@@ -874,7 +874,9 @@ class WooSEA_Get_Products {
                                                                                      	}
 
 											if(is_numeric($product_id)){
-												WC()->cart->add_to_cart( $product_id, $quantity );
+												if(!is_bool($product_id)){
+													WC()->cart->add_to_cart( $product_id, $quantity );
+												}	
 											}
 
                                                         	                        // Read cart and get schipping costs
