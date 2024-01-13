@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Product Feed PRO for WooCommerce
- * Version:     13.1.9
+ * Version:     13.2.0
  * Plugin URI:  https://www.adtribes.io/support/?utm_source=wpadmin&utm_medium=plugin&utm_campaign=woosea_product_feed_pro
  * Description: Configure and maintain your WooCommerce product feeds for Google Shopping, Catalog managers, Remarketing, Bing, Skroutz, Yandex, Comparison shopping websites and over a 100 channels more.
  * Author:      AdTribes.io
@@ -48,7 +48,7 @@ if (!defined('ABSPATH')) {
  * Plugin versionnumber, please do not override.
  * Define some constants
  */
-define( 'WOOCOMMERCESEA_PLUGIN_VERSION', '13.1.9' );
+define( 'WOOCOMMERCESEA_PLUGIN_VERSION', '13.2.0' );
 define( 'WOOCOMMERCESEA_PLUGIN_NAME', 'woocommerce-product-feed-pro' );
 define( 'WOOCOMMERCESEA_PLUGIN_NAME_SHORT', 'woo-product-feed-pro' );
 
@@ -681,7 +681,6 @@ function woosea_add_remarketing_tags( $product = null ){
 								$product_price = $variable_product->get_price();
 
                 						// ----- remove HTML TAGs ----- 
-                						//$product_price = preg_replace ('/<[^>]*>/', ' ', $product_price);
 								$ecomm_price = $product_price;
 							} else {
 								// AggregateOffer
@@ -940,7 +939,6 @@ add_action( 'wp_ajax_woosea_ajax', 'woosea_ajax' );
  */
 function woosea_categories_dropdown() {
 	$rowCount = absint(esc_attr(sanitize_text_field($_POST['rowCount'])));
-
 	$user = wp_get_current_user();
         $allowed_roles = array( 'administrator','editor','author' );
 
@@ -1559,7 +1557,6 @@ function woosea_product_delete_meta_price( $product = null ) {
 	}
 	return $markup_offer;
 }
-//add_filter( 'woocommerce_structured_data_product_offer', 'woosea_product_delete_meta_price', 1000, 1 );
 
 
 /**

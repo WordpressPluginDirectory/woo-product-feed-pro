@@ -121,7 +121,6 @@ class WooSEA_Get_Products {
 					}
 				}
 
-
 				$author = str_replace("&amp;", "", $author);
 				$author = ucfirst($author);
 
