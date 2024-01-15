@@ -6963,17 +6963,20 @@ class WooSEA_Get_Products {
                                                         }
 						}
 
-						$pos = "";
-						if(!is_null($pd_value)){	
-							$pos = strpos($pd_value, '&amp;');
-						}	
-                                                $pos_slash = strpos($pr_array['criteria'], '\\');
-                                                if(($pos !== false) AND (!is_null($pd_value))){
-                                                        $pd_value = str_replace("&amp;","&",$pd_value);
-                                                }
-                                                if($pos_slash !== false){
-                                                        $pr_array['criteria'] = str_replace("\\","",$pr_array['criteria']);
-                                                }
+                                             	$pos = strpos($pd_value, '&amp;');
+                                           	$pos_slash_back = strpos($pr_array['criteria'], '\\');
+                                          	$pos_slash_forward = strpos($pr_array['criteria'], '/');
+
+                                            	if($pos !== false){
+                                                	$pd_value = str_replace("&amp;","&",$pd_value);
+                                             	}
+                                            	if($pos_slash_back !== false){
+                                                	$pr_array['criteria'] = str_replace("\\","",$pr_array['criteria']);
+                                               	}
+                                           	if($pos_slash_forward !== false){
+                                                	$pr_array['criteria'] = str_replace("/","",$pr_array['criteria']);
+                                                  	$pd_value = str_replace("/","",$pd_value);
+                                              	}
 
 //						if(!empty($pd_value)){
                                                 	switch ($pr_array['condition']) {
