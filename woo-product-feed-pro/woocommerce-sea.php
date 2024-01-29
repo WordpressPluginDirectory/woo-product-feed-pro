@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Product Feed PRO for WooCommerce
- * Version:     13.2.2
+ * Version:     13.2.3
  * Plugin URI:  https://www.adtribes.io/support/?utm_source=wpadmin&utm_medium=plugin&utm_campaign=woosea_product_feed_pro
  * Description: Configure and maintain your WooCommerce product feeds for Google Shopping, Catalog managers, Remarketing, Bing, Skroutz, Yandex, Comparison shopping websites and over a 100 channels more.
  * Author:      AdTribes.io
@@ -48,7 +48,7 @@ if (!defined('ABSPATH')) {
  * Plugin versionnumber, please do not override.
  * Define some constants
  */
-define( 'WOOCOMMERCESEA_PLUGIN_VERSION', '13.2.2' );
+define( 'WOOCOMMERCESEA_PLUGIN_VERSION', '13.2.3' );
 define( 'WOOCOMMERCESEA_PLUGIN_NAME', 'woocommerce-product-feed-pro' );
 define( 'WOOCOMMERCESEA_PLUGIN_NAME_SHORT', 'woo-product-feed-pro' );
 
@@ -4234,8 +4234,10 @@ function woosea_update_project_history($project_hash){
                          				$nr_products = count($xml->offers->offer);
 						}
 					} else {
-                      				if ($project['taxonomy'] == "none"){
-                         				$nr_products = count($xml->product);
+						if ($project['taxonomy'] == "none"){
+							if(is_countable($xml->product)){
+								$nr_products = count($xml->product);
+							}	
                        				} else {
                           				$nr_products = count($xml->channel->item);
                       				}

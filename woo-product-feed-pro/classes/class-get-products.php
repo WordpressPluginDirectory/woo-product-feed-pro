@@ -1373,6 +1373,9 @@ class WooSEA_Get_Products {
 									} elseif (preg_match("/g:product_highlight/i",$k)){
 										$v = preg_replace('/&/', '&#38;', $v);
 										$product_highlight = $product->addChild('g:product_highlight', $v, $namespace['g']);
+									} elseif (preg_match("/g:included_destination/i",$k)){
+										$v = preg_replace('/&/', '&#38;', $v);
+										$product_included_destination = $product->addChild('g:included_destination', $v, $namespace['g']);
 									} elseif (preg_match("/g:shopping_ads_excluded_country/i",$k)){
                                        	               				$exclude_country = $product->addChild('g:shopping_ads_excluded_country', $v, $namespace['g']);
 									} elseif (preg_match("/g:promotion_id/i",$k)){
@@ -5214,7 +5217,7 @@ class WooSEA_Get_Products {
 												if(array_key_exists($attr_value['attribute'], $xml_product)){
 													$ca = explode("_", $attr_value['mapfrom']);
 													// Google Shopping Actions, allow multiple product highlights in feed
-													if($attr_value['attribute'] == "g:product_highlight"){
+													if(($attr_value['attribute'] == "g:product_highlight") OR ($attr_value['attribute'] == "g:included_destination")){
 														$xml_product[$attr_value['attribute']."_$ga"] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
 													} elseif($attr_value['attribute'] == "g:consumer_notice"){
 														$xml_product[$attr_value['attribute']."_$ga"] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
@@ -5243,7 +5246,7 @@ class WooSEA_Get_Products {
 															$xml_product[$attr_value['attribute']] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
 														} elseif($attr_value['attribute'] == "g:product_detail"){
 															$xml_product[$attr_value['attribute']] = "$attr_value[prefix]|| ". $attr_value['mapfrom']."#".$product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
-														} elseif($attr_value['attribute'] == "g:product_highlight"){
+														} elseif(($attr_value['attribute'] == "g:product_highlight") OR ($attr_value['attribute'] == "g:included_destination")){
 															$xml_product[$attr_value['attribute']."_$ga"] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
 														} else {
 															if($product_data[$attr_value['mapfrom']] !== ''){

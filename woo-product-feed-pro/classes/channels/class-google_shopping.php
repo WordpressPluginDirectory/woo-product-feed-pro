@@ -303,7 +303,7 @@ class WooSEA_google_shopping {
 				),
 				"Included destination" => array(
 					"name" => "included_destination",
-					"feed_name" => "included_destination",
+					"feed_name" => "g:included_destination",
 					"format" => "optional",
 				),
 				"Ads grouping" => array(
