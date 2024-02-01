@@ -301,8 +301,28 @@ class WooSEA_google_shopping {
 					"feed_name" => "g:promotion_id",
 					"format" => "optional",
 				),
-				"Included destination" => array(
-					"name" => "included_destination",
+				"Included destination 1" => array(
+					"name" => "included_destination_1",
+					"feed_name" => "g:included_destination",
+					"format" => "optional",
+				),
+				"Included destination 2" => array(
+					"name" => "included_destination_2",
+					"feed_name" => "g:included_destination",
+					"format" => "optional",
+				),
+				"Included destination 3" => array(
+					"name" => "included_destination_3",
+					"feed_name" => "g:included_destination",
+					"format" => "optional",
+				),
+				"Included destination 4" => array(
+					"name" => "included_destination_4",
+					"feed_name" => "g:included_destination",
+					"format" => "optional",
+				),
+				"Included destination 5" => array(
+					"name" => "included_destination_5",
 					"feed_name" => "g:included_destination",
 					"format" => "optional",
 				),

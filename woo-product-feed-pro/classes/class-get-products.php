@@ -3043,8 +3043,11 @@ class WooSEA_Get_Products {
 
 			$product_data['author'] = get_the_author();
 			$product_data['quantity'] = $this->clean_quantity( $this->childID, "_stock" );
-			$product_data['visibility'] = $product->get_catalog_visibility();
+			if(is_object($product)){
+				$product_data['visibility'] = $product->get_catalog_visibility();
+			}
 			$download = $product->is_downloadable();
+		
 			if($download == 1){
 				$product_data['downloadable'] = "yes";
 			} else {

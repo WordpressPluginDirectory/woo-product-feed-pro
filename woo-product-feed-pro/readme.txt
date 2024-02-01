@@ -5,7 +5,7 @@ License URI: http://www.gnu.org/licenses/gpl.html
 Tags: Google Shopping Feed, Meta feed, Facebook feed, Facebook catalog feed, WooCommerce Product Feed, Product Feed, Bing Shopping Feed, Bing Product Feed, Google Merchant Feed, Skroutz, Google Product Feed, Twitter, Pinterest, Idealo, Pixels, Conversion API
 Requires at least: 4.5
 Tested up to: 6.3
-Stable tag: 13.2.3
+Stable tag: 13.2.4
 
 == Description ==
 
@@ -363,6 +363,9 @@ Questions left or unanswered? Please do not hesitate to contact us at support@ad
 8. Set the basic configurations for your product feed
 
 === Changelog ===
+
+= 13.2.4 (2024-01-31) =
+* Solved an issue with retrieving product visibility values
 
 = 13.2.3 (2024-01-28) =
 * Fixed an is countable issue, causing feeds not to update
@@ -4255,6 +4258,9 @@ Questions left or unanswered? Please do not hesitate to contact us at support@ad
 * Strip HTML from the (short) description attributes
 
 == Upgrade Notice ==
+
+= 13.2.4 =
+Solved an issue with retrieving product visibility values
 
 = 13.2.3 =
 Fixed an is countable issue, causing feeds not to update
