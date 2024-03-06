@@ -3894,7 +3894,7 @@ class WooSEA_Get_Products {
 			/**
 			 * Get Custom Attributes for Single, Bundled and Composite products
 			 */
-			if (($product->is_type('simple')) OR ($product->is_type('woosb')) OR ($product->is_type('mix-and-match')) OR ($product->is_type('external')) OR ($product->is_type('bundle')) OR ($product->is_type('composite')) OR ($product_data['product_type'] == "variable") OR ($product_data['product_type'] == "auction") OR ($product->is_type('subscription'))){
+			if (($product->is_type('simple')) OR ($product->is_type('woosb')) OR ($product->is_type('mix-and-match')) OR ($product->is_type('external')) OR ($product->is_type('bundle')) OR ($product->is_type('composite')) OR ($product_data['product_type'] == "variable") OR ($product_data['product_type'] == "auction") OR ($product->is_type('subscription') OR ($product->is_type('grouped')))){
 				$custom_attributes = $this->get_custom_attributes( $product_data['id'] );
 
 				if(is_array($custom_attributes)){
@@ -4471,7 +4471,7 @@ class WooSEA_Get_Products {
                                                                 if(is_array($custom_value_m)){
                                                                         // determine what to do with this later 
                                                                 } else {
-                                                                        // This is most likely a ACF field
+									// This is most likely a ACF field
                                                                         if (class_exists('ACF') AND ($custom_value_m > 0)) {
                                                                                 $image = wp_get_attachment_image_src($custom_value_m, "large");
                                                                                 if(isset($image[0])){
