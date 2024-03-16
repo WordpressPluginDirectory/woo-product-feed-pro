@@ -1956,7 +1956,7 @@ class WooSEA_Get_Products {
 								/**
 								 * Check if a product resides in multiple categories
 								 * id so, create multiple category child nodes
-								 */			
+								 */	
 								if ($k == "categories"){
 						                	if((!isset($product->categories)) AND (isset($product))){
 										$category = $product->addChild('categories');
@@ -2897,7 +2897,9 @@ class WooSEA_Get_Products {
 				$primary_cat_id = get_post_meta( $item_id, 'rank_math_primary_product_cat', true );
 				if ( $primary_cat_id ) {
 					$product_cat = get_term( $primary_cat_id, 'product_cat' );
+
 					if(!empty($product_cat->name)){
+						$product_data['category_path'] = $this->woosea_get_term_parents( $product_cat->term_id, 'product_cat', $link = false, $project_taxonomy = $project_config['taxonomy'], $nicename = false, $visited = array() );
 						$product_data['one_category'] = $product_cat->name;
 					}
 				}
@@ -3938,7 +3940,8 @@ class WooSEA_Get_Products {
 						// This is a ACF image field (PLEASE NOTE: the ACF field needs to contain image or bild in the name)
 						if(preg_match("/image|bild|immagine/i", $custom_kk)) {
 							if (class_exists('ACF') AND ($custom_value > 0)) {
-								//$image = wp_get_attachment_image_src($custom_value, "large");
+								$image = wp_get_attachment_image_src($custom_value, "large");
+
 								if(isset($image[0])){
 									$custom_value = $image[0];
 								}	
@@ -5014,9 +5017,9 @@ class WooSEA_Get_Products {
 													$attr_line .= ",'".$attr_value['prefix']."".$product_data[$attr_value['mapfrom']]."".$attr_value['suffix']."'";
 												}
 											} else {
-												//if($product_data[$attr_value['mapfrom']] !== ''){
+												if($product_data[$attr_value['mapfrom']] !== ''){
 													$attr_line .= ",'".$attr_value['prefix']. " ".$product_data[$attr_value['mapfrom']]." " .$attr_value['suffix']."'";
-												//}	
+												}	
 											}
 										} else {
 											$attr_line .= ",''";
@@ -5219,6 +5222,8 @@ class WooSEA_Get_Products {
 												$ga++;
 												if(array_key_exists($attr_value['attribute'], $xml_product)){
 													$ca = explode("_", $attr_value['mapfrom']);
+													$ca_extra = end($ca);
+
 													// Google Shopping Actions, allow multiple product highlights in feed
 													if(($attr_value['attribute'] == "g:product_highlight") OR ($attr_value['attribute'] == "g:included_destination")){
 														$xml_product[$attr_value['attribute']."_$ga"] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
@@ -5227,7 +5232,8 @@ class WooSEA_Get_Products {
 													} elseif($attr_value['attribute'] == "g:product_detail"){
 														$xml_product[$attr_value['attribute']."_$ga"] = "$attr_value[prefix]|| ". $attr_value['mapfrom']."#".$product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
 													} else {
-														$xml_product[$attr_value['attribute']."_$ca[1]"] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
+														$xml_product[$attr_value['attribute']."_$ca_extra"] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
+
 													}
 												} else {
 													if(isset($product_data[$attr_value['mapfrom']])){
