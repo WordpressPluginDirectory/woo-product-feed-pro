@@ -10,42 +10,17 @@ class WooSEA_Get_Admin_Notifications {
 	}
 
 	public function woosea_debug_informations ($versions, $product_numbers, $order_rows, $cron_objects) {
-                $upload_dir = wp_upload_dir();
-		$filename = "debug";
+		// Log timestamp
+		$debug_info = "\n";
+		$debug_info .= date("F j, Y, g:i a"); // e.g. March 10, 2001, 5:16 pm
+		$debug_info .= "\n";
 
-                $base = $upload_dir['basedir'];
-                $path = $base . "/woo-product-feed-pro/logs";
-                $file = $path . "/". $filename ."." ."log";
+		$debug_info .= print_r($versions, true);
+		$debug_info .= print_r($product_numbers, true);
+		$debug_info .= print_r($cron_objects, true);
+		$debug_info .= print_r($order_rows, true);
 
-		// Remove the previous file, preventing the file from becoming to big
-		if ( file_exists ( $file ) ){
-			unlink($file);
-		}
-
-                // External location for downloading the file   
-                $external_base = $upload_dir['baseurl'];
-                $external_path = $external_base . "/woo-product-feed-pro/logs";
-                $external_file = $external_path . "/" . $filename ."." ."log";
-
-                // Check if directory in uploads exists, if not create one      
-                if ( ! file_exists( $path ) ) {
-                        wp_mkdir_p( $path );
-                }
-
-                // Log timestamp
-                $today = "\n";
-                $today .= date("F j, Y, g:i a");                 // March 10, 2001, 5:16 pm
-                $today .= "\n";
-
-                $fp = fopen($file, 'a+');
-                fwrite($fp, $today);
-                fwrite($fp, print_r($versions, TRUE));
-                fwrite($fp, print_r($product_numbers, TRUE));
-                fwrite($fp, print_r($cron_objects, TRUE));
-                fwrite($fp, print_r($order_rows, TRUE));
-                fclose($fp);
-
-		return $this->notification_details = $external_file;
+		return $debug_info;
 	}
 	
 	public function get_admin_notifications ( $step, $error ) {

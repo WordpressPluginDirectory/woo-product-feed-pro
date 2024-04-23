@@ -1939,5 +1939,14 @@ class WooSEA_Activation {
 			$new_activation = $count_activation+1;
 			update_option ( 'woosea_count_activation', $new_activation );
 		}
+
+		/**
+		 * Delete the debug.log file from the uploads directory if it exists.
+		 */
+		$upload_dir = wp_upload_dir();
+		$debug_file = $upload_dir['basedir'] . "/woo-product-feed-pro/logs/debug.log";
+		if ( file_exists($debug_file)) {
+			unlink($debug_file);
+		}
 	}
 }

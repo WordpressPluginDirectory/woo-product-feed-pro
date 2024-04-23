@@ -341,6 +341,31 @@ input:checked + .woo-product-feed-pro-slider:before {
 	box-shadow: 0 0 5px #888;
 }
 
+.woo-product-feed-pro-debug-info {
+  margin: 2em 0 0;
+}
+
+.woo-product-feed-pro-debug-info h3 {
+  margin: 0;
+}
+
+.woo-product-feed-pro-debug-info .copy-product-feed-pro-debug-info {
+  position: relative;
+  top: 1.5em;
+  float: right;
+}
+
+.woo-product-feed-pro-debug-info pre {
+  clear: both;
+  display: block;
+  margin: 0;
+  padding: 1em 1.5em;
+  border: 1px solid #ccc;
+  background: #fff;
+  height: 531px;
+  overflow: auto;
+}
+
 @keyframes blinker {
   50% { opacity: 0; }
 }

@@ -1,19 +1,8 @@
 <?php
 $cron_projects = get_option( 'cron_projects' );
 $license_information = get_option( 'license_information' );
-$count_variation = wp_count_posts('product_variation');
-$count_single = wp_count_posts('product');
-$published_single = $count_single->publish;
-$published_variation = $count_variation->publish;
-$published_products = $published_single+$published_variation;
 $host = sanitize_text_field($_SERVER['HTTP_HOST']);
 $add_manipulation_support = get_option ('add_manipulation_support');
-
-$product_numbers = array (
-	"Single products" => $published_single,
-	"Variation products" => $published_variation,
-	"Total products" => $published_products
-);
 
 $plugin_data = get_plugin_data( __FILE__ );
 
@@ -23,8 +12,6 @@ $versions = array (
 	"WooCommerce" => WC()->version,
 	"WooCommerce Product Feed PRO" => WOOCOMMERCESEA_PLUGIN_VERSION
 );
-
-$order_rows = "";
 
 /**
  * Change default footer text, asking to review our plugin
@@ -77,20 +64,6 @@ $nonce = wp_create_nonce( 'woosea_ajax_nonce' );
 				// KILL SWITCH, THIS WILL REMOVE ALL YOUR FEED PROJECTS
 				// delete_option( 'cron_projects');
 
-				if(sanitize_text_field($_GET['debug']) == "true"){
-					$external_debug_file = $notifications_obj->woosea_debug_informations ($versions, $product_numbers, $order_rows, $cron_projects);
-				?>	
-                        		<div class="woo-product-feed-pro-form-style-2-heading"><?php _e( 'Debugging mode', 'woo-product-feed-pro' );?></div>
-					<div class="notice notice-error is-dismissible">
-                				<p>
-						<?php _e( 'Thank you for taking the time to help us find bugs in our plugin. It is greatly appreciated by us and your feedback will help all current and future users of this plugin. Could you please copy / paste the debug URL in the box below and send it to <a href="mailto:support@adtribes.io">support@adtribes.io</a> so we can analyse how your feed projects are configured and discover potential problems.','woo-product-feed-pro' );?><br/><br/>
-							<?php
-							print "<strong>Debug file:</strong><br/><a href=\"$external_debug_file\" target=\"_blank\">$external_debug_file</a>";
-							?>
-						</p>
-					</div><br/>
-				<?php
-				}
 			} elseif (array_key_exists('force-active', $_GET)){
 				// Force active all feeds
 				foreach($cron_projects as $key => $value){

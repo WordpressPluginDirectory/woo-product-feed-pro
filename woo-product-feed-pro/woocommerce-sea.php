@@ -1,13 +1,13 @@
 <?php
 /**
  * Plugin Name: Product Feed PRO for WooCommerce
- * Version:     13.3.1
+ * Version:     13.3.2
  * Plugin URI:  https://www.adtribes.io/support/?utm_source=wpadmin&utm_medium=plugin&utm_campaign=woosea_product_feed_pro
  * Description: Configure and maintain your WooCommerce product feeds for Google Shopping, Catalog managers, Remarketing, Bing, Skroutz, Yandex, Comparison shopping websites and over a 100 channels more.
  * Author:      AdTribes.io
  * Plugin URI:  https://wwww.adtribes.io/pro-vs-elite/
  * Author URI:  https://www.adtribes.io
- * Developer:   Joris Verwater
+ * Developer:   AdTribes.io
  * License:     GPL3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Requires at least: 4.5
@@ -48,7 +48,7 @@ if (!defined('ABSPATH')) {
  * Plugin versionnumber, please do not override.
  * Define some constants
  */
-define( 'WOOCOMMERCESEA_PLUGIN_VERSION', '13.3.1' );
+define( 'WOOCOMMERCESEA_PLUGIN_VERSION', '13.3.2' );
 define( 'WOOCOMMERCESEA_PLUGIN_NAME', 'woocommerce-product-feed-pro' );
 define( 'WOOCOMMERCESEA_PLUGIN_NAME_SHORT', 'woo-product-feed-pro' );
 
@@ -135,7 +135,7 @@ function woosea_scripts($hook) {
 		wp_enqueue_script( 'woosea_key-js' );
 	}
 	// JS for manage projects page
-	wp_register_script( 'woosea_manage-js', plugin_dir_url( __FILE__ ) . 'js/woosea_manage.js?yo=12', '',WOOCOMMERCESEA_PLUGIN_VERSION, true  );
+	wp_register_script( 'woosea_manage-js', plugin_dir_url( __FILE__ ) . 'js/woosea_manage.js?yo=12', array( 'clipboard' ),WOOCOMMERCESEA_PLUGIN_VERSION, true  );
 	wp_enqueue_script( 'woosea_manage-js' );
 }
 add_action( 'admin_enqueue_scripts' , 'woosea_scripts' );

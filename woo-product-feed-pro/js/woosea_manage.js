@@ -849,4 +849,7 @@ jQuery(function($) {
 	             	});
 		});
 	}
+
+	// Add copy to clipboard functionality for the debug information content box.
+	new ClipboardJS('.copy-product-feed-pro-debug-info');	
 });

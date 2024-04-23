@@ -27,12 +27,25 @@ if(empty($license_information['license_key'])){
 	$license_information['license_key'] = "";
 }
 
+$count_variation     = wp_count_posts('product_variation');
+$count_single        = wp_count_posts('product');
+$published_single    = $count_single->publish;
+$published_variation = $count_variation->publish;
+$published_products  = $published_single+$published_variation;
+$product_numbers     = array (
+	"Single products"    => $published_single,
+	"Variation products" => $published_variation,
+	"Total products"     => $published_products
+);
+
 $versions = array (
-	"PHP" => (float)phpversion(),
-	"Wordpress" => get_bloginfo('version'),
-	"WooCommerce" => WC()->version,
+	"PHP"                          => (float)phpversion(),
+	"Wordpress"                    => get_bloginfo('version'),
+	"WooCommerce"                  => WC()->version,
 	"WooCommerce Product Feed PRO" => WOOCOMMERCESEA_PLUGIN_VERSION
 );
+
+$order_rows = "";
 
 /**
  * Create notification object and get message and message type as WooCommerce is inactive
@@ -560,6 +573,17 @@ if(isset($_GET["tab"])) {
 						print "<tr><td>Product feed LOGS directory writable</td><td>$directory_perm_logs</td></tr>";
 						print "<tr><td colspan=\"2\">&nbsp;</td></tr>";
 						print "</table>";
+
+						// Display the debugging information.
+						$debug_info_content = $notifications_obj->woosea_debug_informations( $versions, $product_numbers, $order_rows, $cron_projects );
+						$debug_info_title   = __( 'System Report', 'woo-product-feed-pro' );
+
+						print "<div class=\"woo-product-feed-pro-debug-info\">";
+						print "<button class=\"button copy-product-feed-pro-debug-info\" type=\"button\" data-clipboard-target=\"#woo-product-feed-pro-debug-info\">Copy to clipboard</button>";
+						print "<h3>{$debug_info_title}</h3>";
+						print "<p>" . __( 'Copy the below text and paste to the support team when requested to help us debug any systems issues with your feeds.', 'woo-product-feed-pro' ) . "</p>";
+						print "<pre id=\"woo-product-feed-pro-debug-info\">{$debug_info_content}</pre>";
+						print "</div>";
 
 					} else {
 					?>
