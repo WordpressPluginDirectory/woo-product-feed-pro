@@ -218,7 +218,7 @@ class WooSEA_Get_Products {
 		 * As that does not have ?lang= behind the links
 		 */
 		if(isset($feed_config['WPML'])){
-			if (($this->woosea_is_plugin_active('sitepress-multilingual-cms')) OR ( function_exists('icl_object_id') )){
+			if (($this->woosea_is_plugin_active('sitepress-multilingual-cms')) || ( function_exists('icl_object_id') )){
 		                if( !class_exists( 'Polylang' ) ) {
 					global $sitepress;
 					$default_lang = $sitepress->get_default_language();	
@@ -326,7 +326,7 @@ class WooSEA_Get_Products {
 				} else {
 					$product_attr = unserialize($value->type);
 
-					if((!empty($product_attr)) AND (is_array($product_attr))){	
+					if((!empty($product_attr)) && (is_array($product_attr))){	
 						foreach ($product_attr as $key_inner => $arr_value) {
 							if(is_array($arr_value)){
 								if(!array_key_exists('name', $arr_value)){
@@ -763,7 +763,7 @@ class WooSEA_Get_Products {
 				// Only add shipping zones to the feed for specific feed country
 	                        $ship_found = strpos($zone_type->code, $code_from_config);
 
-				if(($ship_found !== false) OR ($add_all_shipping == "yes")){	
+				if(($ship_found !== false) || ($add_all_shipping == "yes")){	
 					if ($zone_type->type == "country"){
 						// This is a country shipping zone
 						$zone_details['country'] = $zone_type->code;
@@ -815,7 +815,7 @@ class WooSEA_Get_Products {
 
 								if($shipping_cost > 0){
 									// Do we need to convert the shipping costs with the Aelia Currency Switcher
-	                	        				if((isset($project_config['AELIA'])) AND (!empty($GLOBALS['woocommerce-aelia-currencyswitcher'])) AND (get_option ('add_aelia_support') == "yes")){
+	                	        				if((isset($project_config['AELIA'])) && (!empty($GLOBALS['woocommerce-aelia-currencyswitcher'])) && (get_option ('add_aelia_support') == "yes")){
                         	       				
 										if(!array_key_exists('base_currency', $project_config)){
                         	       		        	 			$from_currency = get_woocommerce_currency();
@@ -829,7 +829,7 @@ class WooSEA_Get_Products {
 
 									if($taxable == "taxable"){
 										foreach ($tax_rates as $k_inner => $w){
-											if((isset($w['shipping'])) and ($w['shipping'] == "yes")){
+											if((isset($w['shipping'])) && ($w['shipping'] == "yes")){
 												$rate = (($fullrate)/100);
 															
 												$shipping_cost = str_replace(",", ".", $shipping_cost);
@@ -851,7 +851,7 @@ class WooSEA_Get_Products {
 
 								if(!empty($product_id)){
                                                                        	 // Add product to cart
-                                                                       	if ((isset($product_id)) AND ($product_id > 0)){
+                                                                       	if ((isset($product_id)) && ($product_id > 0)){
                                                                               	$quantity = 1;
 										if(!empty($code_from_config)){
 											defined( 'WC_ABSPATH' ) || exit;
@@ -902,7 +902,7 @@ class WooSEA_Get_Products {
 
                                                                 	if(!empty($product_id)){
                                                                        		// Add product to cart
-                                                                        	if ((isset($product_id)) AND ($product_id > 0)){
+                                                                        	if ((isset($product_id)) && ($product_id > 0)){
                                                                                 	$quantity = 1;
                                                                                 	if(!empty($code_from_config)){
                                                                                         	defined( 'WC_ABSPATH' ) || exit;
@@ -945,12 +945,12 @@ class WooSEA_Get_Products {
 							}
 
 							// CLASS SHIPPING COSTS
-	 			        	     	if((isset($v->instance_settings[$class_cost_id])) AND ($class_cost_id != "no_class_cost")){
+	 			        	     	if((isset($v->instance_settings[$class_cost_id])) && ($class_cost_id != "no_class_cost")){
 								if (is_numeric($v->instance_settings[$class_cost_id])){
 									$shipping_cost = $v->instance_settings[$class_cost_id];
 
 									// Do we need to convert the shipping costswith the Aelia Currency Switcher
-                        	                        		if((isset($project_config['AELIA'])) AND (!empty($GLOBALS['woocommerce-aelia-currencyswitcher'])) AND (get_option ('add_aelia_support') == "yes")){
+                        	                        		if((isset($project_config['AELIA'])) && (!empty($GLOBALS['woocommerce-aelia-currencyswitcher'])) && (get_option ('add_aelia_support') == "yes")){
                                 						if(!array_key_exists('base_currency', $project_config)){
 											// Get the WooCommerce base currency
                                         						$from_currency = get_woocommerce_currency();
@@ -964,7 +964,7 @@ class WooSEA_Get_Products {
 	
 									if($taxable == "taxable"){
 										foreach ($tax_rates as $k_inner => $w){
-											if((isset($w['shipping'])) and ($w['shipping'] == "yes")){
+											if((isset($w['shipping'])) && ($w['shipping'] == "yes")){
 												$rate = (($w['rate']+100)/100);
 												$shipping_cost = $shipping_cost*$rate;
 												$shipping_cost = round($shipping_cost, 2);
@@ -996,7 +996,7 @@ class WooSEA_Get_Products {
 										$shipping_cost = $mathString;
 										if($taxable == "taxable"){
 											foreach ($tax_rates as $k_inner => $w){
-												if((isset($w['shipping'])) and ($w['shipping'] == "yes")){
+												if((isset($w['shipping'])) && ($w['shipping'] == "yes")){
 													$rate = (($w['rate']+100)/100);
 													if(is_numeric($shipping_cost)){
 														$shipping_cost = $shipping_cost*$rate;
@@ -1008,7 +1008,7 @@ class WooSEA_Get_Products {
 										}
 									}
 									// Do we need to convert the shipping costswith the Aelia Currency Switcher
-                                          	     		 	if((isset($project_config['AELIA'])) AND (!empty($GLOBALS['woocommerce-aelia-currencyswitcher'])) AND (get_option ('add_aelia_support') == "yes")){
+                                          	     		 	if((isset($project_config['AELIA'])) && (!empty($GLOBALS['woocommerce-aelia-currencyswitcher'])) && (get_option ('add_aelia_support') == "yes")){
                                 						if(!array_key_exists('base_currency', $project_config)){
                                         						$from_currency = get_woocommerce_currency();
                                		 					} else {
@@ -1045,7 +1045,7 @@ class WooSEA_Get_Products {
                                                                                                 WC()->customer->set_shipping_postcode(wc_clean( $zone_details['postal_code'] ));
                                                                                         }
 
-                                                                                        if((is_numeric($product_id)) AND ($product_id > 0) AND (!empty($product_id))){
+                                                                                        if((is_numeric($product_id)) && ($product_id > 0) && (!empty($product_id))){
                                                                                         	WC()->cart->empty_cart();
 												WC()->cart->add_to_cart( $product_id, $quantity );
                                                                                         }
@@ -1083,7 +1083,7 @@ class WooSEA_Get_Products {
 								$wwpp_settings_mapped_methods_for_wholesale_users_only = get_option("wwpp_settings_mapped_methods_for_wholesale_users_only");
 
 								// Only remove the shipping method from feed when user explicitly configured so	
-								if(isset($wwpp_settings_mapped_methods_for_wholesale_users_only) AND ($wwpp_settings_mapped_methods_for_wholesale_users_only == "yes")){	
+								if(isset($wwpp_settings_mapped_methods_for_wholesale_users_only) && ($wwpp_settings_mapped_methods_for_wholesale_users_only == "yes")){	
                 							$wwpp_wholesale_shipping_methods = get_option("wwpp_option_wholesale_role_shipping_zone_method_mapping");
 									if(is_array($wwpp_wholesale_shipping_methods)){
 										foreach($wwpp_wholesale_shipping_methods as $wwpp_k => $wwpp_v) {
@@ -1292,9 +1292,9 @@ class WooSEA_Get_Products {
 		}
 
 		// Check if file exists, if it does: delete it first so we can create a new updated one
-		if ( (file_exists( $file )) AND ($header == "true") AND ($feed_config['nr_products_processed'] == 0) || !file_exists( $file ) ) {
-			unlink ( $file );
-		}	
+		if (file_exists($file) && $header == "true" && $feed_config['nr_products_processed'] == 0 ) {
+			unlink($file);
+		}
 
 		// Check if there is a channel feed class that we need to use
 		if ($feed_config['fields'] != 'standard'){
@@ -1311,7 +1311,7 @@ class WooSEA_Get_Products {
 		// Some channels need their own feed config and XML namespace declarations (such as Google shopping)
 		if ($feed_config['taxonomy'] == 'google_shopping'){
 			$namespace = array( 'g' => 'http://base.google.com/ns/1.0' );
-			if ( ($header == "true") AND ($feed_config['nr_products_processed'] == 0) ) {
+			if ( ($header == "true") && ($feed_config['nr_products_processed'] == 0) ) {
 			   	$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><rss xmlns:g="http://base.google.com/ns/1.0"></rss>');
 			   	$xml->addAttribute('version', '2.0');
 				$xml->addChild('channel');
@@ -1332,7 +1332,7 @@ class WooSEA_Get_Products {
 				$xml = simplexml_load_file($file, 'SimpleXMLElement', LIBXML_NOCDATA);
 				$aantal = count($products);
 
-				if (($xml !== FALSE) AND ($aantal > 0)){
+				if (($xml !== FALSE) && ($aantal > 0)){
 					foreach ($products as $key => $value){
 
 						if (is_array ( $value ) ) {
@@ -1384,7 +1384,7 @@ class WooSEA_Get_Products {
 										if(!empty($v)){
 											$product_detail_split = explode("#", $v);
 											$detail_complete = count($product_detail_split);
- 											if(($detail_complete == 2) AND (!empty($product_detail_split[1]))){
+ 											if(($detail_complete == 2) && (!empty($product_detail_split[1]))){
                                        	               						$product_detail = $product->addChild('g:product_detail', '', $namespace['g']);
                                                                                         	$name = str_replace("_", " ", $product_detail_split[0]);
 												$section_name = explode(":", $name);
@@ -1469,7 +1469,7 @@ class WooSEA_Get_Products {
 			}
 			unset($xml);
 		} else {
-			if ( ($header == "true") AND ($feed_config['nr_products_processed'] == 0) || !file_exists( $file ) ) {
+			if ( ($header == "true") && ($feed_config['nr_products_processed'] == 0) || !file_exists( $file ) ) {
 
 				if ($feed_config['name'] == "Yandex") {
 					$main_currency = get_woocommerce_currency();
@@ -1626,27 +1626,27 @@ class WooSEA_Get_Products {
 				if ($aantal > 0){
 
 					// For Yandex template
-					if (($feed_config['name'] == "Yandex") AND ($feed_config['nr_products_processed'] == 0)) {
+					if (($feed_config['name'] == "Yandex") && ($feed_config['nr_products_processed'] == 0)) {
 						$shop = $xml->shop->addChild('offers');
 					}
 
 					// For Bestprice template
-					if (($feed_config['name'] == "Bestprice") AND ($feed_config['nr_products_processed'] == 0)) {
+					if (($feed_config['name'] == "Bestprice") && ($feed_config['nr_products_processed'] == 0)) {
 						$productz = $xml->addChild('products');
 					}
 
 					// For Shopflix template
-					if (($feed_config['name'] == "Shopflix") AND ($feed_config['nr_products_processed'] == 0)) {
+					if (($feed_config['name'] == "Shopflix") && ($feed_config['nr_products_processed'] == 0)) {
 						$productz = $xml->addChild('products');
 					}
 
 					// For ZAP template
-					if (($feed_config['name'] == "Zap.co.il") AND ($feed_config['nr_products_processed'] == 0)) {
+					if (($feed_config['name'] == "Zap.co.il") && ($feed_config['nr_products_processed'] == 0)) {
 						$productz = $xml->addChild('PRODUCTS');
 					}
 					
 					// For Pinterest RSS Board template
-					if (($feed_config['name'] == "Pinterest RSS Board") AND (empty($xml->channel))) {
+					if (($feed_config['name'] == "Pinterest RSS Board") && (empty($xml->channel))) {
 						$productz = $xml->addChild('channel');
 						$productz = $xml->channel->addChild('title', get_bloginfo( 'name' ));
 						$productz = $xml->channel->addChild('description', htmlspecialchars($feed_config['projectname']));
@@ -1655,7 +1655,7 @@ class WooSEA_Get_Products {
 					}
 	
 					// For Google Product review template
-					if (($feed_config['name'] == "Google Product Review") AND (empty($xml->channel))) {
+					if (($feed_config['name'] == "Google Product Review") && (empty($xml->channel))) {
 						
 						if(!is_bool($xml)){
 							$product = $xml->addChild('reviews');
@@ -1683,7 +1683,7 @@ class WooSEA_Get_Products {
 												} elseif($nodes[0] == "REVIEW_URL"){
 													$rev_url = $productz->addChild(strtolower($nodes[0]), htmlspecialchars($nodes[1]));	
 													$rev_url->addAttribute('type', 'singleton');	
-												} elseif(($nodes[0] == "REVIEWER_NAME") OR ($nodes[0] == "REVIEWER_ID")){
+												} elseif(($nodes[0] == "REVIEWER_NAME") || ($nodes[0] == "REVIEWER_ID")){
         	                                        		                		if(isset($productz->reviewer)){
 														if($nodes[0] == "REVIEWER_NAME"){	
 															$name = $nodes[1];
@@ -1752,9 +1752,9 @@ class WooSEA_Get_Products {
 											// End										
 
 											foreach($order_sorted as $k => $v) {
-												if(($k != "product_name") AND ($k != "product_url")){
+												if(($k != "product_name") && ($k != "product_url")){
 													if(!in_array($k, $identifiers)){
-														if(($k != "reviews") AND ($k != "review_url")){
+														if(($k != "reviews") && ($k != "review_url")){
 															if($k != "product_url"){
 																$v = str_replace("&", "and", $v);
 															}
@@ -1801,9 +1801,9 @@ class WooSEA_Get_Products {
 
 											// foreach for product name and product url as order seems to mather to Google
 											foreach($value as $k => $v) {
-												if(($k == "product_name") OR ($k == "product_url")){
+												if(($k == "product_name") || ($k == "product_url")){
 													if(!in_array($k, $identifiers)){
-														if(($k != "reviews") AND ($k != "review_url")){
+														if(($k != "reviews") && ($k != "review_url")){
 															if($k != "product_url"){
 																$v = str_replace("&", "and", $v);
 															}
@@ -1855,7 +1855,7 @@ class WooSEA_Get_Products {
 					}	
 
 					foreach ($products as $key => $value){
-						if ((is_array ( $value )) and (!empty( $value ))) {
+						if ((is_array ( $value )) && (!empty( $value ))) {
 							if ($feed_config['name'] == "Yandex") {
 								$product = $xml->shop->offers->addChild('offer');
 							} elseif ($feed_config['name'] == "Heureka.cz" || $feed_config['name'] == "Heureka.sk" || $feed_config['name'] == "Zbozi.cz" || $feed_config['name'] == "Glami.gr" || $feed_config['name'] == "Glami.sk" || $feed_config['name'] == "Glami.cz") {
@@ -1896,7 +1896,7 @@ class WooSEA_Get_Products {
 								$v = trim($v);
 								$k = trim($k);	
 
-								if(($k == "id") AND ($feed_config['name'] == "Yandex")){
+								if(($k == "id") && ($feed_config['name'] == "Yandex")){
 									if(isset($product)){
 										if(!empty($v)){
 											$product->addAttribute('id', trim($v));
@@ -1904,7 +1904,7 @@ class WooSEA_Get_Products {
 									}
 								}
  							
-								if ((preg_match("/picture/i",$k)) AND ($feed_config['name'] == "Yandex")){
+								if ((preg_match("/picture/i",$k)) && ($feed_config['name'] == "Yandex")){
                                                                         if(isset($product)){
                                                                                 if(!empty($v)){
 											$additional_picture_link = $product->addChild('picture',$v);
@@ -1912,11 +1912,11 @@ class WooSEA_Get_Products {
                                                                         }
 								}
 
-								if(($k == "item_group_id") AND ($feed_config['name'] == "Yandex")){
+								if(($k == "item_group_id") && ($feed_config['name'] == "Yandex")){
 									$product->addAttribute('group_id', trim($v));
 								}
 
-								if(($k == "color") AND ($feed_config['name'] == "Skroutz")){
+								if(($k == "color") && ($feed_config['name'] == "Skroutz")){
                                                                         if(preg_match('/,/', $v)){
                                                                                 $cls = explode(",",$v);
 
@@ -1944,7 +1944,7 @@ class WooSEA_Get_Products {
                                         
                                                                 }
 
-								if(($k == "available") AND ($feed_config['name'] == "Yandex")){
+								if(($k == "available") && ($feed_config['name'] == "Yandex")){
 									if($v == "in stock"){
 										$v = "true";
 									} else {
@@ -1958,7 +1958,7 @@ class WooSEA_Get_Products {
 								 * id so, create multiple category child nodes
 								 */	
 								if ($k == "categories"){
-						                	if((!isset($product->categories)) AND (isset($product))){
+						                	if((!isset($product->categories)) && (isset($product))){
 										$category = $product->addChild('categories');
 										$cat = explode("||",$v);							
 
@@ -2035,14 +2035,14 @@ class WooSEA_Get_Products {
 											}
 										}
 									}
-								} elseif (($k == "id" || $k == "item_group_id" || $k == "available") AND ($feed_config['name'] == "Yandex")){
+								} elseif (($k == "id" || $k == "item_group_id" || $k == "available") && ($feed_config['name'] == "Yandex")){
 									// Do not add these nodes to Yandex product feeds
 								} elseif ($k == "CATEGORYTEXT"){
 									$v = str_replace("||", " | ", $v);
 									$product->addChild("$k");
 									$product->$k = $v;
 								} else {
-									if (($feed_config['fields'] != 'standard') AND ($feed_config['fields'] != "customfeed")){
+									if (($feed_config['fields'] != 'standard') && ($feed_config['fields'] != "customfeed")){
 	          	                                           		$k = $this->get_alternative_key ($channel_attributes, $k);
 									}
 
@@ -2052,7 +2052,7 @@ class WooSEA_Get_Products {
                                                                  		*/
 										$zbozi_nodes = "PARAM_";
 
-                                                                		if((($feed_config['name'] == "Zbozi.cz") OR ($feed_config['name'] == "Mall.sk") OR ($feed_config['name'] == "Glami.gr") OR ($feed_config['name'] == "Glami.sk") OR ($feed_config['name'] == "Glami.cz") OR ($feed_config['name'] == "Heureka.cz") OR ($feed_config['name'] == "Heureka.sk")) AND (preg_match("/$zbozi_nodes/i",$k))){
+                                                                		if((($feed_config['name'] == "Zbozi.cz") || ($feed_config['name'] == "Mall.sk") || ($feed_config['name'] == "Glami.gr") || ($feed_config['name'] == "Glami.sk") || ($feed_config['name'] == "Glami.cz") || ($feed_config['name'] == "Heureka.cz") || ($feed_config['name'] == "Heureka.sk")) && (preg_match("/$zbozi_nodes/i",$k))){
 											$pieces = explode ("_", $k, 2);
 											$productp = $product->addChild('PARAM');
 											if($feed_config['name'] == "Mall.sk"){
@@ -2062,7 +2062,7 @@ class WooSEA_Get_Products {
 												$productp->addChild("PARAM_NAME", $pieces[1]);
                                                                                 		$productp->addChild("VAL", $v);
 											}
-										} elseif(($feed_config['name'] == "Mall.sk") AND ($k == "VARIABLE_PARAMS")){
+										} elseif(($feed_config['name'] == "Mall.sk") && ($k == "VARIABLE_PARAMS")){
 											if(isset($value['ITEMGROUP_ID'])){
 												$productvp = $product->addChild('VARIABLE_PARAMS');
 												$product_variations = new WC_Product_Variation( $value['ID'] );
@@ -2074,31 +2074,31 @@ class WooSEA_Get_Products {
 													}
 												}
 											}
-										} elseif(($feed_config['name'] == "Mall.sk") AND ($k == "MEDIA")){
+										} elseif(($feed_config['name'] == "Mall.sk") && ($k == "MEDIA")){
                                                                                         $productp = $product->addChild('MEDIA');
                                                                                         $productp->addChild("URL", $v);
 											$productp->addChild("MAIN", "true");
-										} elseif(($feed_config['name'] == "Mall.sk") AND ($k == "MEDIA_1")){
+										} elseif(($feed_config['name'] == "Mall.sk") && ($k == "MEDIA_1")){
                                                                                         $productp = $product->addChild('MEDIA');
                                                                                         $productp->addChild("URL", $v);
 											$productp->addChild("MAIN", "false");
-										} elseif(($feed_config['name'] == "Mall.sk") AND ($k == "MEDIA_2")){
+										} elseif(($feed_config['name'] == "Mall.sk") && ($k == "MEDIA_2")){
                                                                                         $productp = $product->addChild('MEDIA');
                                                                                         $productp->addChild("URL", $v);
 											$productp->addChild("MAIN", "false");
-										} elseif(($feed_config['name'] == "Mall.sk") AND ($k == "MEDIA_3")){
+										} elseif(($feed_config['name'] == "Mall.sk") && ($k == "MEDIA_3")){
                                                                                         $productp = $product->addChild('MEDIA');
                                                                                         $productp->addChild("URL", $v);
 											$productp->addChild("MAIN", "false");
-										} elseif(($feed_config['name'] == "Mall.sk") AND ($k == "MEDIA_4")){
+										} elseif(($feed_config['name'] == "Mall.sk") && ($k == "MEDIA_4")){
                                                                                         $productp = $product->addChild('MEDIA');
                                                                                         $productp->addChild("URL", $v);
 											$productp->addChild("MAIN", "false");
-										} elseif(($feed_config['name'] == "Mall.sk") AND ($k == "MEDIA_5")){
+										} elseif(($feed_config['name'] == "Mall.sk") && ($k == "MEDIA_5")){
                                                                                         $productp = $product->addChild('MEDIA');
                                                                                         $productp->addChild("URL", $v);
 											$productp->addChild("MAIN", "false");
-                                                                		} elseif((($feed_config['name'] == "Zbozi.cz") OR ($feed_config['name'] == "Heureka.cz")) AND ($k == "DELIVERY")){
+                                                                		} elseif((($feed_config['name'] == "Zbozi.cz") || ($feed_config['name'] == "Heureka.cz")) && ($k == "DELIVERY")){
                                                                         		$delivery = $product->addChild('DELIVERY');
                                                                         		$delivery_split = explode("##", $v);
                                                                         		$nr_split = count($delivery_split);
@@ -2165,9 +2165,9 @@ class WooSEA_Get_Products {
 												}
 											}
 
-                                                                		} elseif(($feed_config['name'] == "Yandex") AND (preg_match("/picture/i",$k))){
+                                                                		} elseif(($feed_config['name'] == "Yandex") && (preg_match("/picture/i",$k))){
 											// do nothing, was added already
-                                                                		} elseif(($feed_config['name'] == "Yandex") AND (preg_match("/$zbozi_nodes/i",$k))){
+                                                                		} elseif(($feed_config['name'] == "Yandex") && (preg_match("/$zbozi_nodes/i",$k))){
 											$pieces = explode ("_", $k);
 											$p = "param";
 											$productp = $product->addChild($p,$v);
@@ -2285,7 +2285,7 @@ class WooSEA_Get_Products {
 		}
 
 		// Check if file exists, if it does: delete it first so we can create a new updated one
-		if ( (file_exists( $file )) AND ($feed_config['nr_products_processed'] == 0) AND ($header == "true") ) {
+		if ( (file_exists( $file )) && ($feed_config['nr_products_processed'] == 0) && ($header == "true") ) {
 			@unlink ( $file );
 		}	
 
@@ -2323,12 +2323,12 @@ class WooSEA_Get_Products {
 				$pieces = str_replace("'", "", $pieces);
 
 				foreach ($pieces as $k_inner => $v){
-					if (($feed_config['fields'] != 'standard') AND ($feed_config['fields'] != "customfeed")){
+					if (($feed_config['fields'] != 'standard') && ($feed_config['fields'] != "customfeed")){
 						$v = $this->get_alternative_key ($channel_attributes, $v);
 					}			            
 
 					// For CSV fileformat the keys need to get stripped of the g:
-                                      	if(($feed_config['fileformat'] == "csv") OR ($feed_config['fileformat'] == "txt")){
+                                      	if(($feed_config['fileformat'] == "csv") || ($feed_config['fileformat'] == "txt")){
                                         	$v = str_replace("g:", "", $v);
                                      	}	
 					
@@ -2419,12 +2419,12 @@ class WooSEA_Get_Products {
  		if(isset($project_config['product_variations'])){
 			$count_single = wp_count_posts('product');
 			$count_variation = wp_count_posts('product_variation');
-			$published_single = $count_single->publish;
-			$published_variation = $count_variation->publish;
+			$published_single = (int) $count_single->publish;
+			$published_variation = (int) $count_variation->publish;
 			$published_products = $published_single+$published_variation;		
 		} else {
 			$count_single = wp_count_posts('product');
-			$published_products = $count_single->publish;
+			$published_products = (int) $count_single->publish;
 		}
 
 		$versions = array (
@@ -2465,14 +2465,14 @@ class WooSEA_Get_Products {
 		/**
 		 * User set his own batch size
 		 */
-              	$woosea_batch_size = get_option ('woosea_batch_size');
+		$woosea_batch_size = get_option ('woosea_batch_size');
 		if(!empty($woosea_batch_size)){
 			if(is_numeric($woosea_batch_size)){
 				$nr_batches = ceil($published_products/$woosea_batch_size);
 			}
 		}
 
-		$offset_step_size = ceil($published_products/$nr_batches);
+		$offset_step_size = ( 0 < $published_products && 0 < $nr_batches ) ? ceil( $published_products / $nr_batches ) : 0;
 
 		/**
 		 * Check if the [attributes] array in the project_config is of expected format.
@@ -2484,7 +2484,7 @@ class WooSEA_Get_Products {
 			if($project_config['fields'] != 'standard'){
 				foreach ($project_config['attributes'] as $key => $value){
 					foreach($value as $k => $v){
-						if(($k == "attribute") AND (strlen($v) > 0)){
+						if(($k == "attribute") && (strlen($v) > 0)){
                      	       				if(!isset($attr)){
 								$attr = "'$v'";
 							} else {
@@ -2533,12 +2533,14 @@ class WooSEA_Get_Products {
 
 		// Check shipping currency location
 		$project_config['ship_suffix'] = "false";
-        	foreach ($project_config['attributes'] as $attr_key => $attr_value) {
+		if ( ! empty( $project_config['attributes'] ) ) { 
+			foreach ($project_config['attributes'] as $attr_key => $attr_value) {
 
-			if($attr_value['mapfrom'] == "shipping"){
-				
-				if(!empty($attr_value['suffix'])){
-					$project_config['ship_suffix'] = "true";
+				if($attr_value['mapfrom'] == "shipping"){
+					
+					if(!empty($attr_value['suffix'])){
+						$project_config['ship_suffix'] = "true";
+					}
 				}
 			}
 		}
@@ -2582,7 +2584,7 @@ class WooSEA_Get_Products {
 		//$prod_cats_slugs = array();
 		//if(isset($project_config['rules'])){
 		//	foreach ($project_config['rules'] as $rule){
-		//		if(($rule['attribute'] == "categories") AND ($rule['condition'] == "=")){
+		//		if(($rule['attribute'] == "categories") && ($rule['condition'] == "=")){
 		//			$slug = array_search($rule['criteria'], $prod_cats);
 		//			array_push($prod_cats_slugs, $slug);
 		//		}
@@ -2735,7 +2737,7 @@ class WooSEA_Get_Products {
 			}				
 			//unset($visibility_list);
 
-			if(($product_data['exclude_from_search'] == "yes") AND ($product_data['exclude_from_catalog'] == "yes")){
+			if(($product_data['exclude_from_search'] == "yes") && ($product_data['exclude_from_catalog'] == "yes")){
 				$product_data['exclude_from_all'] = "yes";
 			}
 	
@@ -2998,7 +3000,7 @@ class WooSEA_Get_Products {
 
 			if ($stock_status == "outofstock"){
 				$product_data['availability'] = "out of stock";
-				if (($project_config['taxonomy'] == "google_shopping") AND ($project_config['fields'] == "google_shopping")) {
+				if (($project_config['taxonomy'] == "google_shopping") && ($project_config['fields'] == "google_shopping")) {
 					$product_data['availability'] = "out_of_stock";
 					if($project_config['name'] == "Twitter"){
 						$product_data['availability'] = "out of stock";
@@ -3009,7 +3011,7 @@ class WooSEA_Get_Products {
 				}
 			} elseif ($stock_status == "onbackorder") {
 				$product_data['availability'] = "on backorder";
-				if (($project_config['taxonomy'] == "google_shopping") AND ($project_config['fields'] == "google_shopping")) {
+				if (($project_config['taxonomy'] == "google_shopping") && ($project_config['fields'] == "google_shopping")) {
 					$product_data['availability'] = "backorder";
 					if($project_config['name'] == "Twitter"){
 						$product_data['availability'] = "available for order";
@@ -3020,7 +3022,7 @@ class WooSEA_Get_Products {
 				}
 			} else {
 				$product_data['availability'] = "in stock";
-				if (($project_config['taxonomy'] == "google_shopping") AND ($project_config['fields'] == "google_shopping")) {
+				if (($project_config['taxonomy'] == "google_shopping") && ($project_config['fields'] == "google_shopping")) {
 					$product_data['availability'] = "in_stock";
 					if($project_config['name'] == "Twitter"){
 						$product_data['availability'] = "in stock";
@@ -3099,7 +3101,7 @@ class WooSEA_Get_Products {
 			$product_data['product_type'] = $product->get_type();
 
 			// Get the number of active variations that are on stock for variable products
-			if(($product_data['item_group_id'] > 0) AND ($product_data['product_type'] == "variation")){
+			if(($product_data['item_group_id'] > 0) && ($product_data['product_type'] == "variation")){
 				$parent_product = wc_get_product( $product_data['item_group_id'] );
 
 				if(is_object($parent_product)){
@@ -3250,7 +3252,7 @@ class WooSEA_Get_Products {
 			$code_from_config = $this->woosea_country_to_code($project_config['countries']);
 			$nr_standard_rates = count($all_standard_taxes);
 			
-			if(!empty($all_standard_taxes) AND ($nr_standard_rates > 1)){
+			if(!empty($all_standard_taxes) && ($nr_standard_rates > 1)){
 				foreach ($all_standard_taxes as $rate){
 					$rate_arr = get_object_vars($rate);
 					if($rate_arr['tax_rate_country'] == $code_from_config){
@@ -3273,7 +3275,7 @@ class WooSEA_Get_Products {
 			}
 
 			if(empty($tax_rates[1]['rate'])){
-				if(!empty($all_standard_taxes) AND ($nr_standard_rates > 1)){
+				if(!empty($all_standard_taxes) && ($nr_standard_rates > 1)){
 					foreach ($all_standard_taxes as $rate){
 						$rate_arr = get_object_vars($rate);
 						if($rate_arr['tax_rate_country'] == ""){
@@ -3293,7 +3295,7 @@ class WooSEA_Get_Products {
 			}
 
 			// Override price when bundled or composite product
-			if(($product->get_type() == "bundle") OR ($product->get_type() == "composite")){
+			if(($product->get_type() == "bundle") || ($product->get_type() == "composite")){
 				$meta = get_post_meta($product_data['id']);
 				
 				if($product->get_type() == "bundle"){
@@ -3361,7 +3363,7 @@ class WooSEA_Get_Products {
                                 }
 
 				// When WCML manual prices have been entered
-				if (($this->woosea_is_plugin_active('sitepress-multilingual-cms')) OR ( function_exists('icl_object_id') )){
+				if (($this->woosea_is_plugin_active('sitepress-multilingual-cms')) || ( function_exists('icl_object_id') )){
 					$custom_prices = $woocommerce_wpml->get_multi_currency()->custom_prices->get_product_custom_prices( $product_data['id'], $project_config['WCML'] );
 
 					if($custom_prices['_price'] > 0){
@@ -3475,7 +3477,7 @@ class WooSEA_Get_Products {
 			}
 
 			// Do we need to convert all of the above prices with the Aelia Currency Switcher
-			if((isset($project_config['AELIA'])) AND (!empty($GLOBALS['woocommerce-aelia-currencyswitcher'])) AND (get_option ('add_aelia_support') == "yes")){
+			if((isset($project_config['AELIA'])) && (!empty($GLOBALS['woocommerce-aelia-currencyswitcher'])) && (get_option ('add_aelia_support') == "yes")){
 				if(!array_key_exists('base_currency', $project_config)){
 					$from_currency = get_woocommerce_currency();
 				} else {
@@ -3672,21 +3674,24 @@ class WooSEA_Get_Products {
 				}	
 			}
 
-			foreach($project_config['attributes'] as $attr_key => $attr_arr){
-				if(is_array($attr_arr)){
-					if($attr_arr['attribute'] == "g:shipping"){
-						if($product_data['price'] > 0){
-							$product_data['shipping'] =  $this->woosea_get_shipping_cost($class_cost_id, $project_config, $product_data['price'], $tax_rates, $fullrate, $shipping_zones, $product_data['id'], $product_data['item_group_id']);
-							$shipping_str = $product_data['shipping'];
+			if ( ! empty( $project_config['attributes'] ) ) {
+				foreach($project_config['attributes'] as $attr_key => $attr_arr){
+					if(is_array($attr_arr)){
+						if($attr_arr['attribute'] == "g:shipping"){
+							if($product_data['price'] > 0){
+								$product_data['shipping'] =  $this->woosea_get_shipping_cost($class_cost_id, $project_config, $product_data['price'], $tax_rates, $fullrate, $shipping_zones, $product_data['id'], $product_data['item_group_id']);
+								$shipping_str = $product_data['shipping'];
+							}
 						}
 					}
 				}
+
+				if ( (array_key_exists('shipping', $project_config['attributes'])) || (array_key_exists('lowest_shipping_costs', $project_config['attributes'])) || (array_key_exists('shipping_price', $project_config['attributes'])) || ($project_config['fields'] == "trovaprezzi") || ($project_config['fields'] == "idealo") || ($project_config['fields'] == "customfeed")){
+					$product_data['shipping'] =  $this->woosea_get_shipping_cost($class_cost_id, $project_config, $product_data['price'], $tax_rates, $fullrate, $shipping_zones, $product_data['id'], $product_data['item_group_id']);
+					$shipping_str = $product_data['shipping'];
+				}
 			}
 
-                        if ((array_key_exists('shipping', $project_config['attributes'])) OR (array_key_exists('lowest_shipping_costs', $project_config['attributes'])) OR (array_key_exists('shipping_price', $project_config['attributes'])) OR ($project_config['fields'] == "trovaprezzi") OR ($project_config['fields'] == "idealo") OR ($project_config['fields'] == "customfeed")){
-				$product_data['shipping'] =  $this->woosea_get_shipping_cost($class_cost_id, $project_config, $product_data['price'], $tax_rates, $fullrate, $shipping_zones, $product_data['id'], $product_data['item_group_id']);
-				$shipping_str = $product_data['shipping'];
-			}
 			//unset($tax_rates);
 
 			// Get only shipping costs
@@ -3808,12 +3813,12 @@ class WooSEA_Get_Products {
 			/**
 			 * Do we need to add Dynamic Attributes?
 			 */
-			$project_config['attributes_original'] = $project_config['attributes'];
+			$project_config['attributes_original'] = $project_config['attributes'] ?? array();
 
-			if($project_config['fields'] != 'standard'){
+			if( ! empty( $project_config['attributes'] ) && $project_config['fields'] != 'standard'){
 				//$project_config['attributes_original'] = array();
 				foreach($project_config['attributes'] as $stand_key => $stand_val){
-					if((isset($stand_val['mapfrom'])) AND (strlen($stand_val['mapfrom']) > 0)){
+					if((isset($stand_val['mapfrom'])) && (strlen($stand_val['mapfrom']) > 0)){
 						$project_config['attributes_original'][$stand_val['mapfrom']] = "true";
 					}
 				}				
@@ -3826,7 +3831,7 @@ class WooSEA_Get_Products {
 				if(is_array($term_value)){
 					// Do not add variation values to the feed when they are out of stock
 					if($project_config['fields'] == "skroutz"){
-						if(($product->is_type('variable')) AND ($product_data['item_group_id'] == 0)){
+						if(($product->is_type('variable')) && ($product_data['item_group_id'] == 0)){
 							$product_skroutz = wc_get_product($product_data['id']);
 							$variations = $product_skroutz->get_available_variations();
 							$variations_id = wp_list_pluck( $variations, 'variation_id' );
@@ -3896,7 +3901,7 @@ class WooSEA_Get_Products {
 			/**
 			 * Get Custom Attributes for Single, Bundled and Composite products
 			 */
-			if (($product->is_type('simple')) OR ($product->is_type('woosb')) OR ($product->is_type('mix-and-match')) OR ($product->is_type('external')) OR ($product->is_type('bundle')) OR ($product->is_type('composite')) OR ($product_data['product_type'] == "variable") OR ($product_data['product_type'] == "auction") OR ($product->is_type('subscription') OR ($product->is_type('grouped')))){
+			if (($product->is_type('simple')) || ($product->is_type('woosb')) || ($product->is_type('mix-and-match')) || ($product->is_type('external')) || ($product->is_type('bundle')) || ($product->is_type('composite')) || ($product_data['product_type'] == "variable") || ($product_data['product_type'] == "auction") || ($product->is_type('subscription') || ($product->is_type('grouped')))){
 				$custom_attributes = $this->get_custom_attributes( $product_data['id'] );
 
 				if(is_array($custom_attributes)){
@@ -3939,7 +3944,7 @@ class WooSEA_Get_Products {
 
 						// This is a ACF image field (PLEASE NOTE: the ACF field needs to contain image or bild in the name)
 						if(preg_match("/image|bild|immagine/i", $custom_kk)) {
-							if (class_exists('ACF') AND ($custom_value > 0)) {
+							if (class_exists('ACF') && ($custom_value > 0)) {
 								$image = wp_get_attachment_image_src($custom_value, "large");
 
 								if(isset($image[0])){
@@ -3971,7 +3976,7 @@ class WooSEA_Get_Products {
                                  		// Need to clean up the strange price Rightpress is returning
                         			if ($this->woosea_is_plugin_active('wc-dynamic-pricing-and-discounts/wc-dynamic-pricing-and-discounts.php')){
                                       			if($custom_kk == "rp_wcdpd_price_cache"){
-		  	              				if((isset($project_config['AELIA'])) AND (!empty($GLOBALS['woocommerce-aelia-currencyswitcher'])) AND (get_option ('add_aelia_support') == "yes")){
+		  	              				if((isset($project_config['AELIA'])) && (!empty($GLOBALS['woocommerce-aelia-currencyswitcher'])) && (get_option ('add_aelia_support') == "yes")){
 									$product_data['price'] = do_shortcode('[aelia_cs_product_price product_id="'.$product_data['id'].'" formatted="0" currency="'.$project_config['AELIA'].'"]');
                           		      				$product_data['sale_price'] = apply_filters('wc_aelia_cs_convert', $custom_value['sale_price']['p'], $from_currency, $project_config['AELIA']);
 								} else {
@@ -4021,7 +4026,7 @@ class WooSEA_Get_Products {
 			 * Get Product Attributes for Single products 
 			 * These are the attributes users create themselves in WooCommerce
 			 */
-			if (($product->is_type('simple')) OR ($product->is_type('external')) OR ($product->is_type('woosb')) OR ($product->is_type('mix-and-match')) OR ($product->is_type('bundle')) OR ($product->is_type('composite')) OR ($product->is_type('auction') OR ($product->is_type('subscription')) OR ($product->is_type('variable')))){
+			if (($product->is_type('simple')) || ($product->is_type('external')) || ($product->is_type('woosb')) || ($product->is_type('mix-and-match')) || ($product->is_type('bundle')) || ($product->is_type('composite')) || ($product->is_type('auction') || ($product->is_type('subscription')) || ($product->is_type('variable')))){
 				$single_attributes = $product->get_attributes();
 				foreach ($single_attributes as $attribute){
 						$attr_name = strtolower($attribute->get_name());
@@ -4033,7 +4038,7 @@ class WooSEA_Get_Products {
 
                      	// Check if user would like to use the mother main image for all variation products
                       	$add_mother_image = get_option ('add_mother_image');
-                      	if(($add_mother_image == "yes") AND ($product_data['item_group_id'] > 0)){
+                      	if(($add_mother_image == "yes") && ($product_data['item_group_id'] > 0)){
 				$mother_image = wp_get_attachment_image_src( get_post_thumbnail_id( $product_data['item_group_id'] ), 'full' );
 				if(isset($mother_image[0])){
 					$product_data['image'] = $mother_image[0];
@@ -4047,13 +4052,13 @@ class WooSEA_Get_Products {
 			 */
 			$variation_pass = "true";
 
-                        if( ($product_data['item_group_id'] > 0) AND (is_object(wc_get_product( $product_data['item_group_id']))) AND (($product_data['product_type'] == "variation") OR ($product_data['product_type'] == "subscription_variation"))){
+                        if( ($product_data['item_group_id'] > 0) && (is_object(wc_get_product( $product_data['item_group_id']))) && (($product_data['product_type'] == "variation") || ($product_data['product_type'] == "subscription_variation"))){
 				$product_variations = new WC_Product_Variation( $product_data['id'] );
 				$variations = $product_variations->get_variation_attributes();
 
 				// For Skroutz and Bestprice apparal products we can only append colours to the product name
                                 // When a product has both a size and color attribute we assume its an apparal product
-                                if(($project_config['fields'] == "skroutz") OR ($project_config['fields'] == "bestprice")){
+                                if(($project_config['fields'] == "skroutz") || ($project_config['fields'] == "bestprice")){
                                         $size_found = "no";
                                         $color_found = "no";
 
@@ -4071,7 +4076,7 @@ class WooSEA_Get_Products {
                                         }
 
                                         // Remove size from variations array
-                                        if(($size_found == "yes") and ($color_found == "yes")){
+                                        if(($size_found == "yes") && ($color_found == "yes")){
         					update_option('skroutz_apparel', "yes");
 						update_option('skroutz_clr',$clr_attribute,'no');
 						update_option('skroutz_sz',$sz_attribute,'no');
@@ -4088,7 +4093,7 @@ class WooSEA_Get_Products {
                                 			$skroutz_size = get_post_meta( $product_data['id'], "attribute_".$sz_attribute, true );
 						}					
 
-						if((!empty($skroutz_color)) AND (!empty($skroutz_size))){
+						if((!empty($skroutz_color)) && (!empty($skroutz_size))){
 							foreach($variations as $kvar => $vvar){
 								// Does this product have a color value
                             					$var_key = get_option('skroutz_clr');
@@ -4128,9 +4133,9 @@ class WooSEA_Get_Products {
 					}
 				}
 
-				if((isset($project_config['lowest_price_variations'])) OR (isset($project_config['default_variations']))){
+				if((isset($project_config['lowest_price_variations'])) || (isset($project_config['default_variations']))){
 					// Determine the default variation product
-	                        	if( ($product_data['item_group_id'] > 0) AND (is_object(wc_get_product( $product_data['item_group_id']))) AND (($product_data['product_type'] == "variation") OR ($product_data['product_type'] == "subscription_variation"))){
+	                        	if( ($product_data['item_group_id'] > 0) && (is_object(wc_get_product( $product_data['item_group_id']))) && (($product_data['product_type'] == "variation") || ($product_data['product_type'] == "subscription_variation"))){
                                                 $mother_product = new WC_Product_Variable($product_data['item_group_id']);
                                                 //$mother_product = wc_get_product($product_data['item_group_id']);
                                                 $def_attributes = $mother_product->get_default_attributes();
@@ -4152,7 +4157,7 @@ class WooSEA_Get_Products {
                                                                 $lowest_price = 0;
                                                         }	
 
-							if(($var_price == $lowest_price) OR ($var_price == $variation_min_price) OR ($product_data['system_regular_price'] == $variation_min_price) OR ($product_data['system_net_price'] == $variation_min_price)){
+							if(($var_price == $lowest_price) || ($var_price == $variation_min_price) || ($product_data['system_regular_price'] == $variation_min_price) || ($product_data['system_net_price'] == $variation_min_price)){
 								$variation_pass = "true";
 							} else {
 								$variation_pass = "false";
@@ -4232,7 +4237,7 @@ class WooSEA_Get_Products {
 					}
 				}
 	
-				if((array_key_exists('total_product_orders', $project_config['attributes'])) OR ($ruleset == "true")){
+				if((array_key_exists('total_product_orders', $project_config['attributes'])) || ($ruleset == "true")){
 					$product_data['total_product_orders'] = 0;
                         		$sales_array = $this->woosea_get_nr_orders_variation ( $product_data['id'] );
                         		$product_data['total_product_orders'] = $sales_array[0];
@@ -4252,7 +4257,7 @@ class WooSEA_Get_Products {
 				}			
 				//unset($visibility_list);
 
-				if(($product_data['exclude_from_search'] == "yes") AND ($product_data['exclude_from_catalog'] == "yes")){
+				if(($product_data['exclude_from_search'] == "yes") && ($product_data['exclude_from_catalog'] == "yes")){
 					$product_data['exclude_from_all'] = "yes";
 				}
 
@@ -4330,7 +4335,7 @@ class WooSEA_Get_Products {
 				foreach($variations as $kk => $vv){
 					$custom_key = $kk; 
 
-					if (isset($project_config['product_variations']) AND ($project_config['product_variations'] == "on")){
+					if (isset($project_config['product_variations']) && ($project_config['product_variations'] == "on")){
 						$taxonomy = str_replace("attribute_","",$kk);
 
 						$term = get_term_by('slug', $vv, $taxonomy); 
@@ -4446,7 +4451,7 @@ class WooSEA_Get_Products {
                                                 $value_display = str_replace("_", " ",$value->name);
                                                 if (preg_match("/_product_attributes/i",$value->name)){
                                                         $product_attr = unserialize($value->type);
-                                                        if((!empty($product_attr)) AND (is_array($product_attr))){
+                                                        if((!empty($product_attr)) && (is_array($product_attr))){
 								foreach ($product_attr as $key => $arr_value) {
                                                                 	$new_key ="custom_attributes_" . $key;
                                                                 	$product_data[$new_key] = $arr_value['value'];
@@ -4470,12 +4475,12 @@ class WooSEA_Get_Products {
 						if(!is_array($custom_value_m)){
 					            	// In order to make the mapping work again, replace var by product
                                                         // $new_key_m = str_replace("var","product",$new_key_m);
-                                                        if(!key_exists($new_key_m, $product_data) AND (!empty($custom_value_m))){
+                                                        if(!key_exists($new_key_m, $product_data) && (!empty($custom_value_m))){
                                                                 if(is_array($custom_value_m)){
                                                                         // determine what to do with this later 
                                                                 } else {
 									// This is most likely a ACF field
-                                                                        if (class_exists('ACF') AND ($custom_value_m > 0)) {
+                                                                        if (class_exists('ACF') && ($custom_value_m > 0)) {
                                                                                 $image = wp_get_attachment_image_src($custom_value_m, "large");
                                                                                 if(isset($image[0])){
                                                                                         $custom_value = $image[0];
@@ -4575,11 +4580,11 @@ class WooSEA_Get_Products {
 								foreach($product_data['reviews'] as $review_id => $review_details){
 									if(!empty($review_details['review_ratings'])){
 
-										if(($filter_details['condition'] == "<") AND ($review_details['review_ratings'] < $filter_details['criteria']) AND ($filter_details['than'] == "exclude")){
+										if(($filter_details['condition'] == "<") && ($review_details['review_ratings'] < $filter_details['criteria']) && ($filter_details['than'] == "exclude")){
 											unset($product_data['reviews'][$review_id]);
-										} elseif(($filter_details['condition'] == ">") AND ($review_details['review_ratings'] > $filter_details['criteria']) AND ($filter_details['than'] == "exclude")){
+										} elseif(($filter_details['condition'] == ">") && ($review_details['review_ratings'] > $filter_details['criteria']) && ($filter_details['than'] == "exclude")){
 											unset($product_data['reviews'][$review_id]);
-										} elseif(($filter_details['condition'] == ">=") AND ($review_details['review_ratings'] >= $filter_details['criteria']) AND ($filter_details['than'] == "exclude")){
+										} elseif(($filter_details['condition'] == ">=") && ($review_details['review_ratings'] >= $filter_details['criteria']) && ($filter_details['than'] == "exclude")){
 											unset($product_data['reviews'][$review_id]);
 										}	
 									}
@@ -4598,11 +4603,11 @@ class WooSEA_Get_Products {
 			/**
 			 * Check if we need to add category taxonomy mappings (Google Shopping)
 			 */
-			if ((array_key_exists('mappings', $project_config)) AND ($project_config['taxonomy'] == 'google_shopping')){
+			if ((array_key_exists('mappings', $project_config)) && ($project_config['taxonomy'] == 'google_shopping')){
 				if(isset($product_data['id'])){
 					$product_data = $this->woocommerce_sea_mappings( $project_config['mappings'], $product_data ); 
 				}
-			} elseif ((!array_key_exists('mappings', $project_config)) AND ($project_config['taxonomy'] == 'google_shopping')){
+			} elseif ((!array_key_exists('mappings', $project_config)) && ($project_config['taxonomy'] == 'google_shopping')){
 				if(isset($product_data['id'])){
 					$product_data['categories'] = "";	
 				}
@@ -4636,14 +4641,14 @@ class WooSEA_Get_Products {
 						$clr_attr_value = "";
 					}
 
-					if(isset($product_data['item_group_id']) AND ($product_data['product_type'] == "variation")){
+					if(isset($product_data['item_group_id']) && ($product_data['product_type'] == "variation")){
 						if($product_data['item_group_id'] > 0){
 							$product_skroutz = wc_get_product($product_data['item_group_id']);
 							if(is_object($product_skroutz)){
 								$skroutz_product_type = $product_skroutz->get_type();
 							}
 
-							if ( ($product_skroutz) AND ($skroutz_product_type == "variable") ) {
+							if ( ($product_skroutz) && ($skroutz_product_type == "variable") ) {
 								$variations = $product_skroutz->get_available_variations();
                                     				$variations_id = wp_list_pluck( $variations, 'variation_id' );
 								$total_quantity = 0;
@@ -4776,7 +4781,7 @@ class WooSEA_Get_Products {
                                                                                 	foreach($enabled_sizes as $siz){
                                                                                         	$siz = trim($siz, " ");
                                                                                         	$size_variation = trim($size_variation, " ");
-                                                                                        	if($siz <> strtoupper($size_variation)){
+                                                                                        	if($siz !=strtoupper($size_variation)){
                                                                                                 	$new_size .= " ".$siz.",";
                                                                                         	}
                                                                                 	}
@@ -4839,7 +4844,7 @@ class WooSEA_Get_Products {
 
                         // Check if the sale price is effective        
                         if(isset($product_data['sale_price_start_date'])){
-				if((strtotime($product_data['sale_price_start_date'])) AND (strtotime($product_data['sale_price_end_date']))){
+				if((strtotime($product_data['sale_price_start_date'])) && (strtotime($product_data['sale_price_end_date']))){
                                 	$current_date = date('Y-m-d');
                    	             	if(($current_date < $product_data['sale_price_start_date'])){
 		        	        	unset($product_data['sale_price']);
@@ -4865,7 +4870,7 @@ class WooSEA_Get_Products {
 			if(array_key_exists('fields', $project_config)){
 				if(is_array($allowed_channel_parents)){
 					if (!in_array($project_config['fields'], $allowed_channel_parents)){
-						if(($product->is_type('variable')) AND ( isset($product_data['item_group_id'] ))){
+						if(($product->is_type('variable')) && ( isset($product_data['item_group_id'] ))){
 							//if($product_data['item_group_id'] > 0){
 								$product_data = array();
 								$product_data = null;
@@ -4878,7 +4883,7 @@ class WooSEA_Get_Products {
 			/**
 			 * Remove variation products that are not THE default variation product
 			 */
-			if((isset($variation_pass)) AND ($variation_pass == "false")){
+			if((isset($variation_pass)) && ($variation_pass == "false")){
 				$product_data = array();
                         	$product_data = null;	
 			}
@@ -4886,7 +4891,7 @@ class WooSEA_Get_Products {
 			/**
 			 * And item_group_id is not allowed for simple products, prevent users from adding this to the feedd
 			 */
-			if (($product->is_type('simple')) OR ($product->is_type('external')) OR ($product->is_type('woosb')) OR ($product->is_type('mix-and-match')) OR ($product->is_type('bundle')) OR ($product->is_type('composite')) OR ($product->is_type('auction') OR ($product->is_type('subscription')) OR ($product->is_type('variable')))){
+			if (($product->is_type('simple')) || ($product->is_type('external')) || ($product->is_type('woosb')) || ($product->is_type('mix-and-match')) || ($product->is_type('bundle')) || ($product->is_type('composite')) || ($product->is_type('auction') || ($product->is_type('subscription')) || ($product->is_type('variable')))){
 				unset($product_data['item_group_id']);
 			}
 
@@ -4907,23 +4912,22 @@ class WooSEA_Get_Products {
 				/**
 				 * Determine what fields are allowed to make it to the csv and txt productfeed
 				 */
-			        if (($project_config['fields'] != "standard") AND (!isset($tmp_attributes))){
+				if ( ($project_config['fields'] != "standard") && ( ! isset( $tmp_attributes ) ) && is_array( $project_config['attributes'] ) && ! empty( $project_config['attributes'] ) ) {
 					$old_attributes_config = $project_config['attributes'];
-                      			$tmp_attributes = array();
+					$tmp_attributes = array();
 					foreach ($project_config['attributes'] as $key => $value){
 						if(strlen($value['mapfrom']) > 0){
 							$tmp_attributes[$value['mapfrom']] = "true";
 						}
 					}
-	                      		$project_config['attributes'] = $tmp_attributes;
+					$project_config['attributes'] = $tmp_attributes;
 				}
 
-				if(isset($old_attributes_config)){
+				if(isset($old_attributes_config) && is_array($old_attributes_config)){
 					$identifier_positions = array();
 					$loop_count = 0;
 
 					foreach($old_attributes_config as $attr_key => $attr_value){
-			
 						if(!$attr_line){
 							if(array_key_exists('static_value', $attr_value)){
 								if(strlen($attr_value['mapfrom'])){
@@ -4932,8 +4936,8 @@ class WooSEA_Get_Products {
 									$attr_line = "''";
 								}
 							} else {
-								if((strlen($attr_value['mapfrom'])) AND (array_key_exists($attr_value['mapfrom'], $product_data))){
-									if(($attr_value['attribute'] == "URL") OR ($attr_value['attribute'] == "g:link") OR ($attr_value['attribute'] == "g:link_template") OR ($attr_value['attribute'] == "g:image_link") OR ($attr_value['attribute'] == "link") OR ($attr_value['attribute'] == "Final URL") OR ($attr_value['attribute'] == "SKU") OR ($attr_value['attribute'] == "g:itemid")){
+								if((strlen($attr_value['mapfrom'])) && (array_key_exists($attr_value['mapfrom'], $product_data))){
+									if(($attr_value['attribute'] == "URL") || ($attr_value['attribute'] == "g:link") || ($attr_value['attribute'] == "g:link_template") || ($attr_value['attribute'] == "g:image_link") || ($attr_value['attribute'] == "link") || ($attr_value['attribute'] == "Final URL") || ($attr_value['attribute'] == "SKU") || ($attr_value['attribute'] == "g:itemid")){
 										$attr_line = "'".$attr_value['prefix']."".$product_data[$attr_value['mapfrom']]."".$attr_value['suffix']."'";
 									} else {
 										$attr_line = "'".$attr_value['prefix']. "".$product_data[$attr_value['mapfrom']]."" .$attr_value['suffix']."'";
@@ -4953,74 +4957,71 @@ class WooSEA_Get_Products {
 								}
 
  								if (array_key_exists($attr_value['mapfrom'], $product_data)){
-								
 									if(is_array($product_data[$attr_value['mapfrom']])){
-
 										if($attr_value['mapfrom'] == "product_tag"){
 											$product_tag_str = "";
-
-                                                                               		foreach ($product_data['product_tag'] as $key => $value){
-                                                       	                        		$product_tag_str .= ",";
-                                                                                        	$product_tag_str .= "$value";
-                                                                       	     		}
-                                                                        		$product_tag_str = rtrim($product_tag_str, ",");
-                                                                     	      		$product_tag_str = ltrim($product_tag_str, ",");
+											foreach ($product_data['product_tag'] as $key => $value){
+												$product_tag_str .= ",";
+													$product_tag_str .= "$value";
+											}
+											$product_tag_str = rtrim($product_tag_str, ",");
+											$product_tag_str = ltrim($product_tag_str, ",");
 
 											$attr_line .= ",'".$product_tag_str."'";
 										} elseif ($attr_value['mapfrom'] == "reviews"){
 											$review_str = "";
    											foreach ($product_data[$attr_value['mapfrom']] as $key => $value){
-                                                       	                        		$review_str .= "||";
-                                                               	                     		foreach($value as $k => $v){
-                                                                                        		$review_str .= ":$v";
+												$review_str .= "||";
+												foreach($value as $k => $v){
+													$review_str .= ":$v";
 												}
-                                                                       	     		}
-                                                                  	      	  	$review_str = ltrim($review_str, "||");
-                                                                        		$review_str = rtrim($review_str, ":");
-                                                                     	      		$review_str = ltrim($review_str, ":");
-                                                                             		$review_str = str_replace("||:", "||", $review_str);
+											}
+											$review_str = ltrim($review_str, "||");
+											$review_str = rtrim($review_str, ":");
+											$review_str = ltrim($review_str, ":");
+											$review_str = str_replace("||:", "||", $review_str);
 											$review_str .= "||";
 											$attr_line .= ",'".$review_str."'";
 										} else {
-                                        	                               		$shipping_str = "";
-                                                                               		foreach ($product_data[$attr_value['mapfrom']] as $key => $value){
-                                                       	                        		$shipping_str .= "||";
+											$shipping_str = "";
+											foreach ($product_data[$attr_value['mapfrom']] as $key => $value){
+												$shipping_str .= "||";
 												if(is_array($value)){
-                                                               	                     			foreach($value as $k => $v){
-														if(preg_match('/[0-9]/', $v)){
-															$shipping_str .= ":$attr_value[prefix]".$v."$attr_value[suffix]";
+													foreach($value as $k => $v){
+													if(preg_match('/[0-9]/', $v)){
+														$shipping_str .= ":$attr_value[prefix]".$v."$attr_value[suffix]";
 														//	$shipping_str .= ":$attr_value[prefix]".$v."$attr_value[suffix]";
-                                                                                  	         		} else {
-                                                                                        				$shipping_str .= ":$v";
-                                                                     	                 			}
+														} else {
+															$shipping_str .= ":$v";
+														}
 													}
 												}
-                                                                       	     		}
-                                                                  	      	  	$shipping_str = ltrim($shipping_str, "||");
-                                                                        		$shipping_str = rtrim($shipping_str, ":");
-                                                                     	      		$shipping_str = ltrim($shipping_str, ":");
-                                                                             		$shipping_str = str_replace("||:", "||", $shipping_str);
+											}
+											$shipping_str = ltrim($shipping_str, "||");
+											$shipping_str = rtrim($shipping_str, ":");
+											$shipping_str = ltrim($shipping_str, ":");
+											$shipping_str = str_replace("||:", "||", $shipping_str);
 
 											$attr_line .= ",'".$shipping_str."'";
                                                             			}	
 								 	 } else {
 										 if(isset($product_data[$attr_value['mapfrom']])){
 
-											if(($attr_value['attribute'] == "URL") OR ($attr_value['attribute'] == "g:link") OR ($attr_value['attribute'] == "g:link_template") OR ($attr_value['attribute'] == "g:image_link") OR ($attr_value['attribute'] == "link") OR ($attr_value['attribute'] == "Final URL") OR ($attr_value['attribute'] == "SKU") OR ($attr_value['attribute'] == "g:itemid")){
-												if(($product_data['product_type'] == "variation") AND (preg_match("/aelia_cs_currency/", $attr_value['suffix']))){
+											if(($attr_value['attribute'] == "URL") || ($attr_value['attribute'] == "g:link") || ($attr_value['attribute'] == "g:link_template") || ($attr_value['attribute'] == "g:image_link") || ($attr_value['attribute'] == "link") || ($attr_value['attribute'] == "Final URL") || ($attr_value['attribute'] == "SKU") || ($attr_value['attribute'] == "g:itemid")){
+												if(($product_data['product_type'] == "variation") && (preg_match("/aelia_cs_currency/", $attr_value['suffix']))){
 													$attr_value['suffix'] = str_replace("?","&",$attr_value['suffix']);
 													$attr_line .= ",'".$attr_value['prefix']."".$product_data[$attr_value['mapfrom']]."".$attr_value['suffix']."'";
-												} elseif(($product_data['product_type'] == "variation") AND (preg_match("/currency/", $attr_value['suffix']))){
+												} elseif(($product_data['product_type'] == "variation") && (preg_match("/currency/", $attr_value['suffix']))){
 													$attr_value['suffix'] = str_replace("?","&",$attr_value['suffix']);
 													$attr_line .= ",'".$attr_value['prefix']."".$product_data[$attr_value['mapfrom']]."".$attr_value['suffix']."'";
 												} else {
 													$attr_line .= ",'".$attr_value['prefix']."".$product_data[$attr_value['mapfrom']]."".$attr_value['suffix']."'";
 												}
+											} elseif($product_data[$attr_value['mapfrom']] !== ''){
+												$attr_line .= ",'".$attr_value['prefix']. " ".$product_data[$attr_value['mapfrom']]." " .$attr_value['suffix']."'";
 											} else {
-												if($product_data[$attr_value['mapfrom']] !== ''){
-													$attr_line .= ",'".$attr_value['prefix']. " ".$product_data[$attr_value['mapfrom']]." " .$attr_value['suffix']."'";
-												}	
-											}
+												$attr_line .= ",''";
+											}	
 										} else {
 											$attr_line .= ",''";
 										}
@@ -5047,7 +5048,7 @@ class WooSEA_Get_Products {
 							}
 						}
 	
-						if((isset($identifier_exists)) AND ($identifier_exists == "yes")){
+						if((isset($identifier_exists)) && ($identifier_exists == "yes")){
 							$pieces_row[$id_value] = $identifier_exists;
 						} else {
 							if(isset($id_value)){
@@ -5058,13 +5059,16 @@ class WooSEA_Get_Products {
 					$attr_line = implode("','", $pieces_row);
 					$products[] = array ( $attr_line );
 				} else {
-					foreach( array_keys($project_config['attributes']) as $attribute_key ){
-                                        	if (array_key_exists($attribute_key, $product_data)){
-                                                        if(!$attr_line){
-                                                                $attr_line = "'".$product_data[$attribute_key]."'";
-                                                        } else {
-                                                                $attr_line .= ",'".$product_data[$attribute_key]."'";
-                                                        }
+					$attr_line = "";
+					if ( ! empty( $project_config['attributes'] ) ) {
+						foreach( array_keys($project_config['attributes']) as $attribute_key ){
+							if (array_key_exists($attribute_key, $product_data)){
+								if(!$attr_line){
+									$attr_line = "'".$product_data[$attribute_key]."'";
+								} else {
+									$attr_line .= ",'".$product_data[$attribute_key]."'";
+								}
+							}
 						}
 					}
 					$attr_line = trim($attr_line, "'");
@@ -5077,202 +5081,191 @@ class WooSEA_Get_Products {
 				$ga = 0;
 				$ca = 0;
 
-				foreach( array_keys($project_config['attributes']) as $attribute_key ){
-					if(!is_numeric($attribute_key)){
-						if(!isset($old_attributes_config)){
-
-							if(!$xml_product){
-								$xml_product = array (
-									$attribute_key => $product_data[$attribute_key]
-								);
-							} else {
-								if(isset($product_data[$attribute_key])){
+				if ( ! empty( $project_config['attributes'] ) ) {
+					foreach (array_keys($project_config['attributes']) as $attribute_key) {
+						if (!is_numeric($attribute_key)) {
+							if (!isset($old_attributes_config)) {
+								if (!$xml_product) {
+									$xml_product = array(
+										$attribute_key => $product_data[$attribute_key]
+									);
+								} elseif (isset($product_data[$attribute_key])) {
 									$xml_product = array_merge($xml_product, array($attribute_key => $product_data[$attribute_key]));
 								}
-							}
-						} else {
-							foreach($old_attributes_config as $attr_key => $attr_value){
-								// Static attribute value was set by user
-								if(array_key_exists('static_value', $attr_value)){
-									if(!isset($xml_product)){
-										$xml_product = array (
-											$attr_value['attribute'] => "$attr_value[prefix] ". $attr_value['mapfrom'] ." $attr_value[suffix]"
-										);
-									} else {
-										$xml_product[$attr_value['attribute']] = "$attr_value[prefix] ". $attr_value['mapfrom'] ." $attr_value[suffix]";	
-									}
-								} elseif ($attr_value['mapfrom'] == $attribute_key){
-									if(!isset($xml_product)){
-										$xml_product = array (
-											$attr_value['attribute'] => "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]"
-										);
-									} else {
-										if(key_exists($attr_value['mapfrom'],$product_data)){
-
-											if(is_array($product_data[$attr_value['mapfrom']])){
-												if($attr_value['mapfrom'] == "product_tag"){
+							} else {
+								foreach ($old_attributes_config as $attr_key => $attr_value) {
+									// Static attribute value was set by user
+									if (array_key_exists('static_value', $attr_value)) {
+										if (!isset($xml_product)) {
+											$xml_product = array(
+												$attr_value['attribute'] => "$attr_value[prefix] " . $attr_value['mapfrom'] . " $attr_value[suffix]"
+											);
+										} else {
+											$xml_product[$attr_value['attribute']] = "$attr_value[prefix] " . $attr_value['mapfrom'] . " $attr_value[suffix]";
+										}
+									} elseif ($attr_value['mapfrom'] == $attribute_key) {
+										if (!isset($xml_product)) {
+											$xml_product = array(
+												$attr_value['attribute'] => "$attr_value[prefix] " . $product_data[$attr_value['mapfrom']] . " $attr_value[suffix]"
+											);
+										} elseif (key_exists($attr_value['mapfrom'], $product_data)) {
+											if (is_array($product_data[$attr_value['mapfrom']])) {
+												if ($attr_value['mapfrom'] == "product_tag") {
 													$product_tag_str = "";
-
-                                                        		                       		foreach ($product_data['product_tag'] as $key => $value){
-                                                       	        		                		$product_tag_str .= ",";
-                                                                        		                	$product_tag_str .= "$value";
-                                                                       	     				}
-                                                                  	      	  			$product_tag_str = ltrim($product_tag_str, ",");
-                                                                        				$product_tag_str = rtrim($product_tag_str, ",");
-
+				
+													foreach ($product_data['product_tag'] as $key => $value) {
+														$product_tag_str .= ",";
+														$product_tag_str .= "$value";
+													}
+													$product_tag_str = ltrim($product_tag_str, ",");
+													$product_tag_str = rtrim($product_tag_str, ",");
+				
 													$xml_product[$attr_value['attribute']] = "$product_tag_str";
-												} elseif($attr_value['mapfrom'] == "product_tag_space"){
+												} elseif ($attr_value['mapfrom'] == "product_tag_space") {
 													$product_tag_str_space = "";
-
-                                                        		                       		foreach ($product_data['product_tag'] as $key => $value){
-                                                       	        		                		$product_tag_str_space .= ", ";
-                                                                        		                	$product_tag_str_space .= "$value";
-                                                                       	     				}
-                                                                  	      	  			$product_tag_str_space = ltrim($product_tag_str_space, " ,");
-                                                                        				$product_tag_str_space = rtrim($product_tag_str_space, ", ");
+				
+													foreach ($product_data['product_tag'] as $key => $value) {
+														$product_tag_str_space .= ", ";
+														$product_tag_str_space .= "$value";
+													}
+													$product_tag_str_space = ltrim($product_tag_str_space, " ,");
+													$product_tag_str_space = rtrim($product_tag_str_space, ", ");
 													$xml_product[$attr_value['attribute']] = "$product_tag_str_space";
-												} elseif($attr_value['mapfrom'] == "reviews"){
-                                                                                                	$review_str = "";
-													
-                                                                                                        foreach ($product_data[$attr_value['mapfrom']] as $key => $value){
-                                                                                                                $review_str .= "||";
-
-                                                                                                                foreach($value as $k => $v){
-                                                                                                                        if($k == "review_product_id"){
-                                                                                                                                $review_str .= ":::REVIEW_PRODUCT_ID##$v";
-                                                                                                                        } elseif ($k == "reviewer_image"){
-                                                                                                                                $review_str .= ":::REVIEWER_IMAGE##$v";
-                                                                                                                        } elseif ($k == "review_ratings"){
-                                                                                                                                $review_str .= ":::REVIEW_RATINGS##$v";
-                                                                                                                        } elseif ($k == "review_id"){
-                                                                                                                                $review_str .= ":::REVIEW_ID##$v";
-															} elseif ($k == "reviewer_name"){
-                                                                                                                                $review_str .= ":::REVIEWER_NAME##$v";
- 															} elseif ($k == "reviewer_id"){
-                                                                                                                                $review_str .= ":::REVIEWER_ID##$v";
- 															} elseif ($k == "review_timestamp"){
+												} elseif ($attr_value['mapfrom'] == "reviews") {
+													$review_str = "";
+				
+													foreach ($product_data[$attr_value['mapfrom']] as $key => $value) {
+														$review_str .= "||";
+				
+														foreach ($value as $k => $v) {
+															if ($k == "review_product_id") {
+																$review_str .= ":::REVIEW_PRODUCT_ID##$v";
+															} elseif ($k == "reviewer_image") {
+																$review_str .= ":::REVIEWER_IMAGE##$v";
+															} elseif ($k == "review_ratings") {
+																$review_str .= ":::REVIEW_RATINGS##$v";
+															} elseif ($k == "review_id") {
+																$review_str .= ":::REVIEW_ID##$v";
+															} elseif ($k == "reviewer_name") {
+																$review_str .= ":::REVIEWER_NAME##$v";
+															} elseif ($k == "reviewer_id") {
+																$review_str .= ":::REVIEWER_ID##$v";
+															} elseif ($k == "review_timestamp") {
 																$v = str_replace(" ", "T", $v);
 																$v .= "Z";
-                                                                                                                                $review_str .= ":::REVIEW_TIMESTAMP##$v";
- 															} elseif ($k == "review_url"){
-                                                                                                                                $review_str .= ":::REVIEW_URL##$v";
-															} elseif ($k == "title"){
-                                                                                                                                $review_str .= ":::TITLE##$v";
- 															} elseif ($k == "content"){
-                                                                                                                                $review_str .= ":::CONTENT##$v";
- 															} elseif ($k == "pros"){
-                                                                                                                                $review_str .= ":::PROS##$v";
-															} elseif ($k == "cons"){
-                                                                                                                                $review_str .= ":::CONS##$v";
-                                                                                                                        } else {
-                                                                                                                                // UNKNOWN, DO NOT ADD
-                                                                                                                        }
-                                                                                                                }
-                                                                                                        }
-                                                                                                        $review_str = ltrim($review_str, "||");
-                                                                                                        $review_str = rtrim($review_str, ":");
-                                                                                                        $review_str = ltrim($review_str, ":");
-                                                                                                        $review_str = str_replace("||:", "||", $review_str);
-
+																$review_str .= ":::REVIEW_TIMESTAMP##$v";
+															} elseif ($k == "review_url") {
+																$review_str .= ":::REVIEW_URL##$v";
+															} elseif ($k == "title") {
+																$review_str .= ":::TITLE##$v";
+															} elseif ($k == "content") {
+																$review_str .= ":::CONTENT##$v";
+															} elseif ($k == "pros") {
+																$review_str .= ":::PROS##$v";
+															} elseif ($k == "cons") {
+																$review_str .= ":::CONS##$v";
+															} else {
+																// UNKNOWN, DO NOT ADD
+															}
+														}
+													}
+													$review_str = ltrim($review_str, "||");
+													$review_str = rtrim($review_str, ":");
+													$review_str = ltrim($review_str, ":");
+													$review_str = str_replace("||:", "||", $review_str);
+				
 													$review_str .= "||";
-
-                                                                                                        $xml_product[$attr_value['attribute']] = "$review_str";	
- 												} else {
-													if($attr_value['mapfrom'] == "shipping"){
+				
+													$xml_product[$attr_value['attribute']] = "$review_str";
+												} elseif ($attr_value['mapfrom'] == "shipping") {
 														$shipping_str = "";
-                        											foreach ($product_data[$attr_value['mapfrom']] as $key => $value){
+														foreach ($product_data[$attr_value['mapfrom']] as $key => $value) {
 															$shipping_str .= "||";
-												
-															foreach($value as $k => $v){
-																if($k == "country"){
+				
+															foreach ($value as $k => $v) {
+																if ($k == "country") {
 																	$shipping_str .= ":WOOSEA_COUNTRY##$v";
-																} elseif ($k == "region"){
-																	$shipping_str .= ":WOOSEA_REGION##$v";	
-																} elseif ($k == "service"){
+																} elseif ($k == "region") {
+																	$shipping_str .= ":WOOSEA_REGION##$v";
+																} elseif ($k == "service") {
 																	$shipping_str .= ":WOOSEA_SERVICE##$v";
-																} elseif ($k == "postal_code"){
+																} elseif ($k == "postal_code") {
 																	$shipping_str .= ":WOOSEA_POSTAL_CODE##$v";
-																} elseif ($k == "price"){
+																} elseif ($k == "price") {
 																	$shipping_str .= ":WOOSEA_PRICE##$attr_value[prefix] $v $attr_value[suffix]";
 																	//$shipping_str .= ":WOOSEA_PRICE##$v";
 																} else {
 																	// UNKNOWN, DO NOT ADD
 																}
 															}
-                        											}
-                        											$shipping_str = ltrim($shipping_str, "||");
-                        											$shipping_str = rtrim($shipping_str, ":");
-                        											$shipping_str = ltrim($shipping_str, ":");
+														}
+														$shipping_str = ltrim($shipping_str, "||");
+														$shipping_str = rtrim($shipping_str, ":");
+														$shipping_str = ltrim($shipping_str, ":");
 														$shipping_str = str_replace("||:", "||", $shipping_str);
-
+				
 														$xml_product[$attr_value['attribute']] = "$shipping_str";
-													} else {
-														// Array is returned and add to feed
-														$arr_return = "";
-														if (isset($product_data[$attr_value['mapfrom']]) && is_array($product_data[$attr_value['mapfrom']])) {
-															foreach($product_data[$attr_value['mapfrom']] as $key => $value){
-																$arr_return .= $value.',';
-															}
-														}	
-														$arr_return = rtrim($arr_return,",");   
-														$xml_product[$attr_value['attribute']] = $arr_return;
+												} else {
+													// Array is returned and add to feed
+													$arr_return = "";
+													if (isset($product_data[$attr_value['mapfrom']]) && is_array($product_data[$attr_value['mapfrom']])) {
+														foreach ($product_data[$attr_value['mapfrom']] as $key => $value) {
+															$arr_return .= $value . ',';
+														}
 													}
+													$arr_return = rtrim($arr_return, ",");
+													$xml_product[$attr_value['attribute']] = $arr_return;
 												}
 											} else {
 												$ga++;
-												if(array_key_exists($attr_value['attribute'], $xml_product)){
+												if (array_key_exists($attr_value['attribute'], $xml_product)) {
 													$ca = explode("_", $attr_value['mapfrom']);
 													$ca_extra = end($ca);
-
+				
 													// Google Shopping Actions, allow multiple product highlights in feed
-													if(($attr_value['attribute'] == "g:product_highlight") OR ($attr_value['attribute'] == "g:included_destination")){
-														$xml_product[$attr_value['attribute']."_$ga"] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
-													} elseif($attr_value['attribute'] == "g:consumer_notice"){
-														$xml_product[$attr_value['attribute']."_$ga"] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
-													} elseif($attr_value['attribute'] == "g:product_detail"){
-														$xml_product[$attr_value['attribute']."_$ga"] = "$attr_value[prefix]|| ". $attr_value['mapfrom']."#".$product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
+													if (($attr_value['attribute'] == "g:product_highlight") || ($attr_value['attribute'] == "g:included_destination")) {
+														$xml_product[$attr_value['attribute'] . "_$ga"] = "$attr_value[prefix] " . $product_data[$attr_value['mapfrom']] . " $attr_value[suffix]";
+													} elseif ($attr_value['attribute'] == "g:consumer_notice") {
+														$xml_product[$attr_value['attribute'] . "_$ga"] = "$attr_value[prefix] " . $product_data[$attr_value['mapfrom']] . " $attr_value[suffix]";
+													} elseif ($attr_value['attribute'] == "g:product_detail") {
+														$xml_product[$attr_value['attribute'] . "_$ga"] = "$attr_value[prefix]|| " . $attr_value['mapfrom'] . "#" . $product_data[$attr_value['mapfrom']] . " $attr_value[suffix]";
 													} else {
-														$xml_product[$attr_value['attribute']."_$ca_extra"] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
-
+														$xml_product[$attr_value['attribute'] . "_$ca_extra"] = "$attr_value[prefix] " . $product_data[$attr_value['mapfrom']] . " $attr_value[suffix]";
 													}
-												} else {
-													if(isset($product_data[$attr_value['mapfrom']])){
-														if(($attr_value['attribute'] == "URL") OR ($attr_value['attribute'] == "g:link") OR ($attr_value['attribute'] == "link") OR ($attr_value['attribute'] == "g:link_template")){
- 															if(($product_data['product_type'] == "variation") AND (preg_match("/aelia_cs_currency/", $attr_value['suffix']))){
-                                                                                                        			$attr_value['suffix'] = str_replace("?","&",$attr_value['suffix']);
-																$xml_product[$attr_value['attribute']] = "$attr_value[prefix]". $product_data[$attr_value['mapfrom']] ."$attr_value[suffix]";	
-															} elseif(($product_data['product_type'] == "variation") AND (preg_match("/currency/", $attr_value['suffix']))){
-																$attr_value['suffix'] = str_replace("?","&",$attr_value['suffix']);
-																$xml_product[$attr_value['attribute']] = "$attr_value[prefix]". $product_data[$attr_value['mapfrom']] ."$attr_value[suffix]";	
-															} else {		
-																$xml_product[$attr_value['attribute']] = "$attr_value[prefix]". $product_data[$attr_value['mapfrom']] ."$attr_value[suffix]";	
-															}
-														} elseif(($attr_value['attribute'] == "g:image_link") OR (str_contains($attr_value['attribute'], 'g:additional_image_link')) OR ($attr_value['attribute'] == "image_link")){
-															$xml_product[$attr_value['attribute']] = "$attr_value[prefix]".$product_data[$attr_value['mapfrom']]."$attr_value[suffix]";	
-														} elseif(($attr_value['attribute'] == "g:id") OR ($attr_value['attribute'] == "id") OR ($attr_value['attribute'] == "g:item_group_id") OR ($attr_value['attribute'] == "g:itemid")){
-															$xml_product[$attr_value['attribute']] = "$attr_value[prefix]". $product_data[$attr_value['mapfrom']] ."$attr_value[suffix]";	
-														} elseif($attr_value['attribute'] == "g:consumer_notice"){
-															$xml_product[$attr_value['attribute']] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
-														} elseif($attr_value['attribute'] == "g:product_detail"){
-															$xml_product[$attr_value['attribute']] = "$attr_value[prefix]|| ". $attr_value['mapfrom']."#".$product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
-														} elseif(($attr_value['attribute'] == "g:product_highlight") OR ($attr_value['attribute'] == "g:included_destination")){
-															$xml_product[$attr_value['attribute']."_$ga"] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
+												} elseif (isset($product_data[$attr_value['mapfrom']])) {
+													if (($attr_value['attribute'] == "URL") || ($attr_value['attribute'] == "g:link") || ($attr_value['attribute'] == "link") || ($attr_value['attribute'] == "g:link_template")) {
+														if (($product_data['product_type'] == "variation") && (preg_match("/aelia_cs_currency/", $attr_value['suffix']))) {
+															$attr_value['suffix'] = str_replace("?", "&", $attr_value['suffix']);
+															$xml_product[$attr_value['attribute']] = "$attr_value[prefix]" . $product_data[$attr_value['mapfrom']] . "$attr_value[suffix]";
+														} elseif (($product_data['product_type'] == "variation") && (preg_match("/currency/", $attr_value['suffix']))) {
+															$attr_value['suffix'] = str_replace("?", "&", $attr_value['suffix']);
+															$xml_product[$attr_value['attribute']] = "$attr_value[prefix]" . $product_data[$attr_value['mapfrom']] . "$attr_value[suffix]";
 														} else {
-															if($product_data[$attr_value['mapfrom']] !== ''){
-																$xml_product[$attr_value['attribute']] = "$attr_value[prefix] ". $product_data[$attr_value['mapfrom']] ." $attr_value[suffix]";	
-															}	
+															$xml_product[$attr_value['attribute']] = "$attr_value[prefix]" . $product_data[$attr_value['mapfrom']] . "$attr_value[suffix]";
 														}
+													} elseif (($attr_value['attribute'] == "g:image_link") || (str_contains($attr_value['attribute'], 'g:additional_image_link')) || ($attr_value['attribute'] == "image_link")) {
+														$xml_product[$attr_value['attribute']] = "$attr_value[prefix]" . $product_data[$attr_value['mapfrom']] . "$attr_value[suffix]";
+													} elseif (($attr_value['attribute'] == "g:id") || ($attr_value['attribute'] == "id") || ($attr_value['attribute'] == "g:item_group_id") || ($attr_value['attribute'] == "g:itemid")) {
+														$xml_product[$attr_value['attribute']] = "$attr_value[prefix]" . $product_data[$attr_value['mapfrom']] . "$attr_value[suffix]";
+													} elseif ($attr_value['attribute'] == "g:consumer_notice") {
+														$xml_product[$attr_value['attribute']] = "$attr_value[prefix] " . $product_data[$attr_value['mapfrom']] . " $attr_value[suffix]";
+													} elseif ($attr_value['attribute'] == "g:product_detail") {
+														$xml_product[$attr_value['attribute']] = "$attr_value[prefix]|| " . $attr_value['mapfrom'] . "#" . $product_data[$attr_value['mapfrom']] . " $attr_value[suffix]";
+													} elseif (($attr_value['attribute'] == "g:product_highlight") || ($attr_value['attribute'] == "g:included_destination")) {
+														$xml_product[$attr_value['attribute'] . "_$ga"] = "$attr_value[prefix] " . $product_data[$attr_value['mapfrom']] . " $attr_value[suffix]";
+													} elseif ($product_data[$attr_value['mapfrom']] !== '') {
+														$xml_product[$attr_value['attribute']] = "$attr_value[prefix] " . $product_data[$attr_value['mapfrom']] . " $attr_value[suffix]";
 													}
 												}
 											}
 										}
 									}
 								}
-							}	
+							}
 						}
 					}
 				}
-
+				
 				// Do we need to do some calculation on attributes for Google Shopping
 				$xml_product = $this->woosea_calculate_value ( $project_config, $xml_product ); 
 
@@ -5386,7 +5379,7 @@ class WooSEA_Get_Products {
                         	}
                 	}
 
-			if (isset($val['project_hash']) AND ($val['project_hash'] == $project_hash)){
+			if (isset($val['project_hash']) && ($val['project_hash'] == $project_hash)){
 				$nrpr = $feed_config[$key]['nr_products_processed'];
 				$nr_prods_processed = $nrpr+$offset_step_size;
 
@@ -5502,15 +5495,15 @@ class WooSEA_Get_Products {
 		$xml_product = array_map('trim', $xml_product);
 
 		// Check for new products in the Google Shopping feed if we need to 'calculate' the identifier_exists attribute value
-	    	if(($project_config['taxonomy'] == "google_shopping") AND (isset($xml_product['g:condition'])) AND (!isset($xml_product['g:identifier_exists']))){
+	    	if(($project_config['taxonomy'] == "google_shopping") && (isset($xml_product['g:condition'])) && (!isset($xml_product['g:identifier_exists']))){
 			$identifier_exists = "no"; // default value is no
 
-			if (array_key_exists("g:brand", $xml_product) AND ($xml_product['g:brand'] != "")){
+			if (array_key_exists("g:brand", $xml_product) && ($xml_product['g:brand'] != "")){
 				// g:gtin exists and has a value
-				if ((array_key_exists("g:gtin", $xml_product)) AND ($xml_product['g:gtin'] != "")){
+				if ((array_key_exists("g:gtin", $xml_product)) && ($xml_product['g:gtin'] != "")){
 					$identifier_exists = "yes";
 				// g:mpn exists and has a value
-				} elseif ((array_key_exists("g:mpn", $xml_product)) AND ($xml_product['g:mpn'] != "")){
+				} elseif ((array_key_exists("g:mpn", $xml_product)) && ($xml_product['g:mpn'] != "")){
 					$identifier_exists = "yes";
 				// g:brand is empty and so are g:gtin and g:mpn, so no identifier exists
 				} else {
@@ -5518,10 +5511,10 @@ class WooSEA_Get_Products {
 				}
 			} else {
 				// g:gtin exists and has a value but brand is empty
-				if ((array_key_exists("g:gtin", $xml_product)) AND ($xml_product['g:gtin'] != "")){
+				if ((array_key_exists("g:gtin", $xml_product)) && ($xml_product['g:gtin'] != "")){
 					$identifier_exists = "no";
 				// g:mpn exists and has a value but brand is empty
-				} elseif ((array_key_exists("g:mpn", $xml_product)) AND ($xml_product['g:mpn'] != "")){
+				} elseif ((array_key_exists("g:mpn", $xml_product)) && ($xml_product['g:mpn'] != "")){
 					$identifier_exists = "no";
 				// g:brand is empty and so are g:gtin and g:mpn, so no identifier exists
 				} else {
@@ -5760,7 +5753,7 @@ class WooSEA_Get_Products {
 						}
 
 						// Field manipulation only for the product_types that were determined
-						if(($product_type == $product_type_data) OR ($product_type == "all")){
+						if(($product_type == $product_type_data) || ($product_type == "all")){
 							foreach ($becomes as $bk => $bv){
 								foreach ($bv as $bkk => $bvv){
 									if($bkk == "attribute"){
@@ -5855,7 +5848,7 @@ class WooSEA_Get_Products {
                                                 }
 
                                                 // Check if a rule has been set for Google categories
-                                                if (!empty($product_data['categories']) AND ($pr_array['than_attribute'] == "google_category") AND ($product_data[$pr_array['attribute']] == $pr_array['criteria'])){
+                                                if (!empty($product_data['categories']) && ($pr_array['than_attribute'] == "google_category") && ($product_data[$pr_array['attribute']] == $pr_array['criteria'])){
 
                                                         $pr_array['than_attribute'] = "categories";
                                                         $category_id = explode("-", $pr_array['newvalue']);
@@ -5864,16 +5857,16 @@ class WooSEA_Get_Products {
                                                 }
 
                                                 // Make sure that rules on numerics are on true numerics
-                                                if (!is_array($pd_value) AND (!preg_match('/[A-Za-z]/', $pd_value))){
+                                                if (!is_array($pd_value) && (!preg_match('/[A-Za-z]/', $pd_value))){
                                                         $pd_value = strtr($pd_value, ',', '.');
                                                 }
 
                                                 // Make sure the price or sale price is numeric
-                                                if(($pr_array['attribute'] == "sale_price") OR ($pr_array['attribute'] == "price")){
+                                                if(($pr_array['attribute'] == "sale_price") || ($pr_array['attribute'] == "price")){
                                                         settype($pd_value, "double");
                                                 }
 
-                                                if (((is_numeric($pd_value)) AND ($pr_array['than_attribute'] != "shipping"))){
+                                                if (((is_numeric($pd_value)) && ($pr_array['than_attribute'] != "shipping"))){
                                                         // Rules for numeric values
                                                         switch ($pr_array['condition']) {
                                                                 case($pr_array['condition'] = "contains"):
@@ -6252,7 +6245,7 @@ class WooSEA_Get_Products {
                                                                         // Use a lexical order on relational string operators
                                                                         if (($pd_value < $pr_array['criteria'])){
                                                                                 // Specifically for shipping price rules
-                                                                                if(isset($product_data[$pr_array['than_attribute']]) AND (is_array($product_data[$pr_array['than_attribute']]))){
+                                                                                if(isset($product_data[$pr_array['than_attribute']]) && (is_array($product_data[$pr_array['than_attribute']]))){
                                                                                         $arr_size = (count($product_data[$pr_array['than_attribute']])-1);
                                                                                         for ($x = 0; $x <= $arr_size; $x++) {
                                                                                                 $product_data[$pr_array['than_attribute']][$x]['price'] = $pr_array['newvalue'];
@@ -6570,7 +6563,7 @@ class WooSEA_Get_Products {
                                                                 break;
                                                         case($pr_array['condition'] = "!="):
                                                                 if (($old_value == $pr_array['criteria']) && ($pr_array['than'] == "exclude")){
-                                                                        if($allowed <> 0){
+                                                                        if($allowed !=0){
                                                                                 $allowed = 1;
                                                                         }
                                                                 } elseif (($old_value == $pr_array['criteria']) && ($pr_array['than'] == "include_only")){
@@ -6624,7 +6617,7 @@ class WooSEA_Get_Products {
                                                 }
                                         } elseif (is_array($pd_value)){
 						// This can either be a shipping or product_tag array
-						if(($pr_array['attribute'] == "product_tag") OR ($pr_array['attribute'] == "purchase_note")){
+						if(($pr_array['attribute'] == "product_tag") || ($pr_array['attribute'] == "purchase_note")){
                                                         $in_tag_array = "not";
 
                                                         foreach($pd_value as $pt_key => $pt_value){
@@ -6646,7 +6639,7 @@ class WooSEA_Get_Products {
                                                                         case($pr_array['condition'] = "contains"):
                                                                                 if ((preg_match('/'.$pr_array['criteria'].'/', $v))){
                                                                                         if($pr_array['than'] == "include_only"){
-                                                                                                if($allowed <> 0){
+                                                                                                if($allowed !=0){
                                                                                                         $allowed = 1;
                                                                                                 }
                                                                                         } else {
@@ -6659,7 +6652,7 @@ class WooSEA_Get_Products {
                                                                         case($pr_array['condition'] = "containsnot"):
                                                                                 if ((!preg_match('/'.$pr_array['criteria'].'/', $v))){
                                                                                         if($pr_array['than'] == "include_only"){
-                                                                                                if($allowed <> 0){
+                                                                                                if($allowed !=0){
                                                                                                         $allowed = 1;
                                                                                                 }
                                                                                         } else {
@@ -6672,7 +6665,7 @@ class WooSEA_Get_Products {
                                                                         case($pr_array['condition'] = "="):
                                                                                 if (($v == $pr_array['criteria'])){
                                                                                         if($pr_array['than'] == "include_only"){
-                                                                                                if($allowed <> 0){
+                                                                                                if($allowed !=0){
                                                                                                         $allowed = 1;
                                                                                                 }
                                                                                         } else {
@@ -6685,7 +6678,7 @@ class WooSEA_Get_Products {
                                                                         case($pr_array['condition'] = "!="):
                                                                                 if (($v != $pr_array['criteria'])){
                                                                                         if($pr_array['than'] == "include_only"){
-                                                                                                if($allowed <> 0){
+                                                                                                if($allowed !=0){
                                                                                                         $allowed = 1;
                                                                                                 }
                                                                                         } else {
@@ -6696,7 +6689,7 @@ class WooSEA_Get_Products {
                                                                         case($pr_array['condition'] = ">"):
                                                                                 if (($v > $pr_array['criteria'])){
                                                                                         if($pr_array['than'] == "include_only"){
-                                                                                                if($allowed <> 0){
+                                                                                                if($allowed !=0){
                                                                                                         $allowed = 1;
                                                                                                 }
                                                                                         } else {
@@ -6707,7 +6700,7 @@ class WooSEA_Get_Products {
                                                                         case($pr_array['condition'] = ">="):
                                                                                 if (($v >= $pr_array['criteria'])){
                                                                                         if($pr_array['than'] == "include_only"){
-                                                                                                if($allowed <> 0){
+                                                                                                if($allowed !=0){
                                                                                                         $allowed = 1;
                                                                                                 }
                                                                                         } else {
@@ -6718,7 +6711,7 @@ class WooSEA_Get_Products {
                                                                         case($pr_array['condition'] = "<"):
                                                                                 if (($v < $pr_array['criteria'])){
                                                                                         if($pr_array['than'] == "include_only"){
-                                                                                                if($allowed <> 0){
+                                                                                                if($allowed !=0){
                                                                                                         $allowed = 1;
                                                                                                 }
                                                                                         } else {
@@ -6729,7 +6722,7 @@ class WooSEA_Get_Products {
                                                                         case($pr_array['condition'] = "=<"):
                                                                                 if (($v <= $pr_array['criteria'])){
                                                                                         if($pr_array['than'] == "include_only"){
-                                                                                                if($allowed <> 0){
+                                                                                                if($allowed !=0){
                                                                                                         $allowed = 1;
                                                                                                 }
                                                                                         } else {
@@ -6740,7 +6733,7 @@ class WooSEA_Get_Products {
                                                                         case($pr_array['condition'] = "empty"):
                                                                                 if (strlen($v) < 1){
                                                                                         if($pr_array['than'] == "include_only"){
-                                                                                                if($allowed <> 0){
+                                                                                                if($allowed !=0){
                                                                                                         $allowed = 1;
                                                                                                 }
                                                                                         } else {
@@ -6755,7 +6748,7 @@ class WooSEA_Get_Products {
                                                                         case($pr_array['condition'] = "notempty"):
                                                                                 if (strlen($v) > 1){
                                                                                         if($pr_array['than'] == "include_only"){
-                                                                                                if($allowed <> 0){
+                                                                                                if($allowed !=0){
                                                                                                         $allowed = 1;
                                                                                                 }
                                                                                         } else {
@@ -6777,14 +6770,14 @@ class WooSEA_Get_Products {
                                                                                 if($pr_array['than'] == "include_only"){
                                                                                         $allowed = 0;
                                                                                 } else {
-                                                                                        if($allowed <> 0){
+                                                                                        if($allowed !=0){
                                                                                                 $allowed = 1;
                                                                                         }
                                                                                 }
                                                                                 break;
                                                                         case($pr_array['condition'] = "containsnot"):
                                                                                 if($pr_array['than'] == "include_only"){
-                                                                                        if($allowed <> 0){
+                                                                                        if($allowed !=0){
                                                                                                 $allowed = 1;
                                                                                         }
                                                                                 } else {
@@ -6795,14 +6788,14 @@ class WooSEA_Get_Products {
                                                                                 if($pr_array['than'] == "include_only"){
                                                                                         $allowed = 0;
                                                                                 } else {
-                                                                                        if($allowed <> 0){
+                                                                                        if($allowed !=0){
                                                                                                 $allowed = 1;
                                                                                         }
                                                                                 }
                                                                                 break;
                                                                         case($pr_array['condition'] = "!="):
                                                                                 if($pr_array['than'] == "include_only"){
-                                                                                        if($allowed <> 0){
+                                                                                        if($allowed !=0){
                                                                                                 $allowed = 1;
                                                                                         }
                                                                                 } else {
@@ -6839,7 +6832,7 @@ class WooSEA_Get_Products {
                                                                                 break;
                                                                         case($pr_array['condition'] = "empty"):
                                                                                 if($pr_array['than'] == "include_only"){
-                                                                                        if($allowed <> 0){
+                                                                                        if($allowed !=0){
                                                                                                 $allowed = 1;
                                                                                         }
                                                                                 } else {
@@ -6848,7 +6841,7 @@ class WooSEA_Get_Products {
 										break;
                                                                         case($pr_array['condition'] = "notempty"):
                                                                                 if($pr_array['than'] == "include_only"){
-                                                                                        if($allowed <> 0){
+                                                                                        if($allowed !=0){
                                                                                                 $allowed = 0;
                                                                                         }
                                                                                 } else {
@@ -6998,7 +6991,7 @@ class WooSEA_Get_Products {
                                                                 	} elseif ((!preg_match('/'.$pr_array['criteria'].'/', $pd_value)) && ($pr_array['than'] == "include_only")){
                                                                         	$allowed = 0;
                                                                 	} elseif ((preg_match('/'.$pr_array['criteria'].'/', $pd_value)) && ($pr_array['than'] == "include_only")){
-                                                                        	if($allowed <> 0){
+                                                                        	if($allowed !=0){
                                                                                 	$allowed = 1;
                                                                         	}
                                                                 	}
@@ -7011,7 +7004,7 @@ class WooSEA_Get_Products {
                                                                 	}
                                                                 	break;
 								case($pr_array['condition'] = "="):
-									if (($pr_array['criteria'] == "$pd_value") AND ($pr_array['than'] == "exclude")){
+									if (($pr_array['criteria'] == "$pd_value") && ($pr_array['than'] == "exclude")){
 										$allowed = 0;
 									} elseif (($pr_array['criteria'] != "$pd_value") && ($pr_array['than'] == "include_only")){
 										$found = strpos($pd_value,$pr_array['criteria']);
@@ -7021,7 +7014,7 @@ class WooSEA_Get_Products {
                                                                                         	$raw_cats_arr = explode("||",$pd_value);
                                                                                         	if(is_array($raw_cats_arr)){
                                                                                                 	if(in_array($pr_array['criteria'],$raw_cats_arr, TRUE)){
-                                                                                                        	if($allowed <> 0){
+                                                                                                        	if($allowed !=0){
                                                                                                                 	$allowed = 1;
                                                                                                         	}
                                                                                                 	} else {
@@ -7029,7 +7022,7 @@ class WooSEA_Get_Products {
                                                                                                 	}
                                                                                         	}
                                                                                 	} else {
-                                                                                        	if($allowed <> 0){
+                                                                                        	if($allowed !=0){
                                                                                                 	$allowed = 1;
                                                                                         	}
                                                                                	 	}
@@ -7037,7 +7030,7 @@ class WooSEA_Get_Products {
                                                                         		$allowed = 0;
                                                                         	}
                                                                 	} elseif (($pr_array['criteria'] == "$pd_value") && ($pr_array['than'] == "include_only")){
-										if($allowed <> 0){
+										if($allowed !=0){
                                                                                		$allowed = 1;
                                                                         	}
                                                                 	} elseif ((preg_match('/'.$pr_array['criteria'].'/', $pd_value)) && ($pr_array['than'] == "exclude")){
@@ -7050,7 +7043,7 @@ class WooSEA_Get_Products {
                                                                 	break;
                                                         	case($pr_array['condition'] = "!="):
                                                                 	if (($pr_array['criteria'] == "$pd_value") && ($pr_array['than'] == "exclude")){
-                                                                        	if($allowed <> 0){
+                                                                        	if($allowed !=0){
                                                                                 	$allowed = 1;
                                                                         	}
                                                                 	} elseif (($pr_array['criteria'] == "$pd_value") && ($pr_array['than'] == "include_only")){
@@ -7095,7 +7088,7 @@ class WooSEA_Get_Products {
                                                                 	if ((strlen($pd_value) < 1) && ($pr_array['than'] == "exclude")){
                                                                         	$allowed = 0;
                                                                 	} elseif ((strlen($pd_value) > 0) && ($pr_array['than'] == "exclude")){
-                                                                        	if($allowed <> 0){
+                                                                        	if($allowed !=0){
                                                                                 	$allowed = 1;
                                                                         	}
                                                                 	} elseif ((strlen($pd_value) > 0) && ($pr_array['than'] == "include_only")){
@@ -7106,7 +7099,7 @@ class WooSEA_Get_Products {
                                                                 	if ((strlen($pd_value) > 0) && ($pr_array['than'] == "exclude")){
                                                                         	$allowed = 0;
                                                                 	} elseif ((strlen($pd_value) < 1) && ($pr_array['than'] == "exclude")){
-                                                                        	if($allowed <> 0){
+                                                                        	if($allowed !=0){
                                                                                 	$allowed = 1;
                                                                         	}
                                                                 	} elseif ((strlen($pd_value) < 1) && ($pr_array['than'] == "include_only")){

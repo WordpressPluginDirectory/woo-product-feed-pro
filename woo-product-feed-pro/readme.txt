@@ -1,13 +1,13 @@
-=== Product Feed PRO for WooCommerce by AdTribes – WooCommerce Product Feeds for Google, Facebook/Meta, Bing, & More ===
+=== Product Feed PRO for WooCommerce by AdTribes – WooCommerce Product Feeds ===
 Contributors: jkohlbach, RymeraWebCo, Rymera01, smub
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: Google Shopping Feed, Meta feed, Facebook catalog feed, WooCommerce Product Feed, Product Feed
 Requires at least: 5.4
 Tested up to: 6.5
-Stable tag: 13.3.2
+Stable tag: 13.3.3
 
-Most popular WooCommerce product feeds plugin. Google shopping feed, meta/facebook feed, bing product feed and more.
+Most popular WooCommerce product feed plugin supporting Google shopping feed, meta/facebook feed, bing product feed & more.
 
 == DESCRIPTION ==
 
@@ -15,15 +15,18 @@ Most popular WooCommerce product feeds plugin. Google shopping feed, meta/facebo
 
 Create XML feeds, CSV feeds, TXT feeds, and YML feeds for Google Shopping feed (merchant center), Meta feed, Facebook feed, Remarketing product feed, Bing product feed (for Bing Shopping & Bing Ads), Billiger.de feed, Pricerunner feed, Skroutz, Catch.com.au feed, and many more. 
 
-We include over 100 pre-defined templates included for marketplaces, comparison shopping engines and search engines. Or, if you want, create a custom feed to your exact needs. 
+We include over 100+ pre-defined templates included for marketplaces, comparison shopping engines and search engines. Or, if you want, create a custom feed to your exact needs. 
 
-If you're looking for a high-quality product feed for Google Shopping and many more, this is the plugin you've been looking for.
+If you're looking for a high-quality product feed for Google Shopping, Meta Facebook Catalog and many more, this is the plugin you've been looking for.
 
 = Why choose this plugin? =
 This is the most complete free feed plugin offering support for an unlimited number of products and feeds, including features such as category & field mapping and advanced, rule-based, filtering and product variables support. Next to creating product feeds this plugin also add's pixels and conversion API (CAPI) and Google Dynamic Remarketing pixel to your website and makes sure they are aligned with your feeds.
 
 = Best Free Plugin Product Feeds for WooCommerce =
 We're offering the best free yet advanced WooCommerce feed plugin for website owners and marketers to easily set-up and manage their product feeds for online marketing campaigns.
+
+> <strong>Get More With Product Feed ELITE</strong><br />
+> This plugin is the free version of the highly rated AdTribes Product Feed plugin. If you want more extended features to take your product feeds to the next level get ELITE!<br /><br />Click here to compare features and purchase the <a href="https://adtribes.io/?utm_source=wprepo&utm_medium=link&utm_campaign=pfp" rel="friend">AdTribes Product Feed ELITE version</a>.
 
 == Plugin Features ==
 
@@ -371,6 +374,22 @@ Questions left or unanswered? Please do not hesitate to contact us at support@ad
 8. Set the basic configurations for your product feed
 
 === Changelog ===
+
+= 13.3.3 (2024-06-10) =
+* Bug Fix: PHP Warning on creating product feed without active license
+* Bug Fix: Fatal error on when WooCommerce is not activated
+* Bug Fix: Description value is not added when the product has no description
+* Bug Fix: Fatal error when creating new feed and no products exist
+* Bug Fix: Fatal error when creating a new feed with no field mapping
+* Bug Fix: Selecting Google Shopping feed shows unneeded delimiter option
+* Bug Fix: Unable to dismiss the upgrade notification in the Manage Feeds page
+* Bug Fix: woosea_channel processes country data without nonce verification
+* Improvement: Remove old license code and create new license page
+* Improvement: Tidy up plugin styles and visual elements
+* Improvement: Add AdTribes logo and branding to all admin pages
+* Improvement: Change all utm_source on tracking links to "pfp"
+* Improvement: Add plugin bootstrap class
+* Improvement: Remove unused filters and actions and related functions
 
 = 13.3.2 (2024-04-23) =
 * Enhancement: Move debug data to Plugin Systems Check tab in Settings area with a copy button

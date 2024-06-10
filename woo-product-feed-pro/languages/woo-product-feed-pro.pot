@@ -1,0 +1,1468 @@
+# Copyright (C) 2024 AdTribes.io
+# This file is distributed under the GPL3.
+msgid ""
+msgstr ""
+"Project-Id-Version: Product Feed PRO for WooCommerce 13.3.3\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woo-product-feed-pro\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2024-06-10T03:54:37+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.9.0\n"
+"X-Domain: woo-product-feed-pro\n"
+
+#. Plugin Name of the plugin
+msgid "Product Feed PRO for WooCommerce"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://www.adtribes.io/support/?utm_source=wpadmin&utm_medium=plugin&utm_campaign=woosea_product_feed_pro"
+msgstr ""
+
+#. Description of the plugin
+msgid "Configure and maintain your WooCommerce product feeds for Google Shopping, Catalog managers, Remarketing, Bing, Skroutz, Yandex, Comparison shopping websites and over a 100 channels more."
+msgstr ""
+
+#. Author of the plugin
+msgid "AdTribes.io"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://www.adtribes.io"
+msgstr ""
+
+#: bootstrap-old.php:739
+#: bootstrap-old.php:762
+msgid "Invalid security token"
+msgstr ""
+
+#: bootstrap-old.php:745
+msgid "You are not allowed to do this"
+msgstr ""
+
+#: bootstrap-old.php:753
+msgid "Notification successfully dismissed"
+msgstr ""
+
+#: bootstrap-old.php:814
+msgid "Product Feed Pro for WooCommerce"
+msgstr ""
+
+#: bootstrap-old.php:814
+msgid "Product Feed Pro"
+msgstr ""
+
+#: bootstrap-old.php:815
+msgid "Feed configuration"
+msgstr ""
+
+#: bootstrap-old.php:815
+msgid "Create feed"
+msgstr ""
+
+#: bootstrap-old.php:816
+#: pages/admin/woosea-manage-feed.php:156
+msgid "Manage feeds"
+msgstr ""
+
+#: bootstrap-old.php:817
+msgid "Settings"
+msgstr ""
+
+#: bootstrap-old.php:818
+msgid "License"
+msgstr ""
+
+#: bootstrap-old.php:1919
+msgid "Nonce verification failed"
+msgstr ""
+
+#: bootstrap-old.php:2736
+msgid "Brand"
+msgstr ""
+
+#: bootstrap-old.php:2739
+#: bootstrap-old.php:3349
+msgid "Enter the product Brand here."
+msgstr ""
+
+#: bootstrap-old.php:2752
+msgid "GTIN"
+msgstr ""
+
+#: bootstrap-old.php:2754
+msgid "Enter the product Global Trade Item Number (GTIN) here."
+msgstr ""
+
+#: bootstrap-old.php:2764
+msgid "MPN"
+msgstr ""
+
+#: bootstrap-old.php:2766
+msgid "Enter the manufacturer product number"
+msgstr ""
+
+#: bootstrap-old.php:2776
+msgid "UPC"
+msgstr ""
+
+#: bootstrap-old.php:2778
+msgid "Enter the Universal Product Code (UPC) here."
+msgstr ""
+
+#: bootstrap-old.php:2788
+msgid "EAN"
+msgstr ""
+
+#: bootstrap-old.php:2790
+msgid "Enter the International Article Number (EAN) here."
+msgstr ""
+
+#: bootstrap-old.php:2800
+msgid "Optimized title"
+msgstr ""
+
+#: bootstrap-old.php:2802
+msgid "Enter a optimized product title."
+msgstr ""
+
+#: bootstrap-old.php:2812
+#: bootstrap-old.php:3577
+msgid "Product condition"
+msgstr ""
+
+#: bootstrap-old.php:2814
+#: bootstrap-old.php:3580
+msgid "Select the product condition."
+msgstr ""
+
+#: bootstrap-old.php:2817
+#: bootstrap-old.php:3585
+msgid "new"
+msgstr ""
+
+#: bootstrap-old.php:2818
+#: bootstrap-old.php:3586
+msgid "refurbished"
+msgstr ""
+
+#: bootstrap-old.php:2819
+#: bootstrap-old.php:3587
+msgid "used"
+msgstr ""
+
+#: bootstrap-old.php:2820
+#: bootstrap-old.php:3588
+msgid "damaged"
+msgstr ""
+
+#: bootstrap-old.php:2831
+msgid "Color"
+msgstr ""
+
+#: bootstrap-old.php:2833
+msgid "Insert a color."
+msgstr ""
+
+#: bootstrap-old.php:2843
+msgid "Size"
+msgstr ""
+
+#: bootstrap-old.php:2845
+msgid "Insert a size."
+msgstr ""
+
+#: bootstrap-old.php:2855
+#: bootstrap-old.php:3451
+msgid "Gender"
+msgstr ""
+
+#: bootstrap-old.php:2857
+msgid "Select gender."
+msgstr ""
+
+#: bootstrap-old.php:2860
+#: bootstrap-old.php:3459
+msgid "female"
+msgstr ""
+
+#: bootstrap-old.php:2861
+#: bootstrap-old.php:3460
+msgid "male"
+msgstr ""
+
+#: bootstrap-old.php:2862
+#: bootstrap-old.php:3461
+msgid "unisex"
+msgstr ""
+
+#: bootstrap-old.php:2873
+msgid "Material"
+msgstr ""
+
+#: bootstrap-old.php:2875
+msgid "Enter a material."
+msgstr ""
+
+#: bootstrap-old.php:2885
+msgid "Pattern"
+msgstr ""
+
+#: bootstrap-old.php:2887
+msgid "Enter a pattern."
+msgstr ""
+
+#: bootstrap-old.php:2897
+msgid "Age group"
+msgstr ""
+
+#: bootstrap-old.php:2899
+#: bootstrap-old.php:3602
+msgid "Select the product age group."
+msgstr ""
+
+#: bootstrap-old.php:2902
+#: bootstrap-old.php:3607
+msgid "newborn"
+msgstr ""
+
+#: bootstrap-old.php:2903
+#: bootstrap-old.php:3608
+msgid "infant"
+msgstr ""
+
+#: bootstrap-old.php:2904
+#: bootstrap-old.php:3609
+msgid "toddler"
+msgstr ""
+
+#: bootstrap-old.php:2905
+#: bootstrap-old.php:3610
+msgid "kids"
+msgstr ""
+
+#: bootstrap-old.php:2906
+#: bootstrap-old.php:3611
+msgid "adult"
+msgstr ""
+
+#: bootstrap-old.php:2917
+msgid "Unit pricing measure"
+msgstr ""
+
+#: bootstrap-old.php:2919
+msgid "Enter an unit pricing measure."
+msgstr ""
+
+#: bootstrap-old.php:2929
+msgid "Unit pricing base measure"
+msgstr ""
+
+#: bootstrap-old.php:2931
+msgid "Enter an unit pricing base measure."
+msgstr ""
+
+#: bootstrap-old.php:2941
+msgid "Installment months"
+msgstr ""
+
+#: bootstrap-old.php:2943
+msgid "Enter the number of monthly installments the buyer has to pay."
+msgstr ""
+
+#: bootstrap-old.php:2953
+msgid "Installment amount"
+msgstr ""
+
+#: bootstrap-old.php:2955
+msgid "Enter the amount the bbuyer has to pay per month."
+msgstr ""
+
+#: bootstrap-old.php:2965
+msgid "Cost of goods sold"
+msgstr ""
+
+#: bootstrap-old.php:2967
+msgid "Enter the cost of good you are selling."
+msgstr ""
+
+#: bootstrap-old.php:2977
+msgid "Multipack"
+msgstr ""
+
+#: bootstrap-old.php:2979
+msgid "Enter the multipack amount."
+msgstr ""
+
+#: bootstrap-old.php:2989
+#: bootstrap-old.php:3652
+msgid "Is bundle"
+msgstr ""
+
+#: bootstrap-old.php:2991
+#: bootstrap-old.php:3655
+msgid "Select the is bundle value."
+msgstr ""
+
+#: bootstrap-old.php:2994
+msgid "yes"
+msgstr ""
+
+#: bootstrap-old.php:2995
+msgid "no"
+msgstr ""
+
+#: bootstrap-old.php:3006
+#: bootstrap-old.php:3672
+msgid "Energy efficiency class"
+msgstr ""
+
+#: bootstrap-old.php:3008
+msgid "Select the product energy efficiency class."
+msgstr ""
+
+#: bootstrap-old.php:3011
+#: bootstrap-old.php:3036
+#: bootstrap-old.php:3061
+#: bootstrap-old.php:3680
+#: bootstrap-old.php:3708
+#: bootstrap-old.php:3736
+msgid "A+++"
+msgstr ""
+
+#: bootstrap-old.php:3012
+#: bootstrap-old.php:3037
+#: bootstrap-old.php:3062
+#: bootstrap-old.php:3681
+#: bootstrap-old.php:3709
+#: bootstrap-old.php:3737
+msgid "A++"
+msgstr ""
+
+#: bootstrap-old.php:3013
+#: bootstrap-old.php:3038
+#: bootstrap-old.php:3063
+#: bootstrap-old.php:3682
+#: bootstrap-old.php:3710
+#: bootstrap-old.php:3738
+msgid "A+"
+msgstr ""
+
+#: bootstrap-old.php:3014
+#: bootstrap-old.php:3039
+#: bootstrap-old.php:3064
+#: bootstrap-old.php:3683
+#: bootstrap-old.php:3711
+#: bootstrap-old.php:3739
+msgid "A"
+msgstr ""
+
+#: bootstrap-old.php:3015
+#: bootstrap-old.php:3040
+#: bootstrap-old.php:3065
+#: bootstrap-old.php:3684
+#: bootstrap-old.php:3712
+#: bootstrap-old.php:3740
+msgid "B"
+msgstr ""
+
+#: bootstrap-old.php:3016
+#: bootstrap-old.php:3041
+#: bootstrap-old.php:3066
+#: bootstrap-old.php:3685
+#: bootstrap-old.php:3713
+#: bootstrap-old.php:3741
+msgid "C"
+msgstr ""
+
+#: bootstrap-old.php:3017
+#: bootstrap-old.php:3042
+#: bootstrap-old.php:3067
+#: bootstrap-old.php:3686
+#: bootstrap-old.php:3714
+#: bootstrap-old.php:3742
+msgid "D"
+msgstr ""
+
+#: bootstrap-old.php:3018
+#: bootstrap-old.php:3043
+#: bootstrap-old.php:3068
+#: bootstrap-old.php:3687
+#: bootstrap-old.php:3715
+#: bootstrap-old.php:3743
+msgid "E"
+msgstr ""
+
+#: bootstrap-old.php:3019
+#: bootstrap-old.php:3044
+#: bootstrap-old.php:3069
+#: bootstrap-old.php:3688
+#: bootstrap-old.php:3716
+#: bootstrap-old.php:3744
+msgid "F"
+msgstr ""
+
+#: bootstrap-old.php:3020
+#: bootstrap-old.php:3045
+#: bootstrap-old.php:3070
+#: bootstrap-old.php:3689
+#: bootstrap-old.php:3717
+#: bootstrap-old.php:3745
+msgid "G"
+msgstr ""
+
+#: bootstrap-old.php:3031
+#: bootstrap-old.php:3700
+msgid "Minimum energy efficiency class"
+msgstr ""
+
+#: bootstrap-old.php:3033
+msgid "Select the minimum product energy efficiency class."
+msgstr ""
+
+#: bootstrap-old.php:3056
+#: bootstrap-old.php:3728
+msgid "Maximum energy efficiency class"
+msgstr ""
+
+#: bootstrap-old.php:3058
+msgid "Select the maximum product energy efficiency class."
+msgstr ""
+
+#: bootstrap-old.php:3081
+msgid "Is promotion"
+msgstr ""
+
+#: bootstrap-old.php:3083
+msgid "Enter your promotion ID."
+msgstr ""
+
+#: bootstrap-old.php:3093
+msgid "Custom field 0"
+msgstr ""
+
+#: bootstrap-old.php:3095
+#: bootstrap-old.php:3774
+msgid "Enter your custom field 0"
+msgstr ""
+
+#: bootstrap-old.php:3105
+msgid "Custom field 1"
+msgstr ""
+
+#: bootstrap-old.php:3107
+#: bootstrap-old.php:3789
+msgid "Enter your custom field 1"
+msgstr ""
+
+#: bootstrap-old.php:3117
+msgid "Custom field 2"
+msgstr ""
+
+#: bootstrap-old.php:3119
+#: bootstrap-old.php:3804
+msgid "Enter your custom field 2"
+msgstr ""
+
+#: bootstrap-old.php:3129
+msgid "Custom field 3"
+msgstr ""
+
+#: bootstrap-old.php:3131
+#: bootstrap-old.php:3819
+msgid "Enter your custom field 3"
+msgstr ""
+
+#: bootstrap-old.php:3141
+msgid "Custom field 4"
+msgstr ""
+
+#: bootstrap-old.php:3143
+msgid "Enter your custom field 4"
+msgstr ""
+
+#: bootstrap-old.php:3152
+msgid "Exclude from feeds"
+msgstr ""
+
+#: bootstrap-old.php:3154
+#: bootstrap-old.php:3848
+msgid "Check this box if you want this product to be excluded from product feeds."
+msgstr ""
+
+#: bootstrap-old.php:3346
+msgid "<br>Brand"
+msgstr ""
+
+#: bootstrap-old.php:3361
+msgid "<br>GTIN"
+msgstr ""
+
+#: bootstrap-old.php:3364
+msgid "Enter the product GTIN here."
+msgstr ""
+
+#: bootstrap-old.php:3376
+msgid "<br>MPN"
+msgstr ""
+
+#: bootstrap-old.php:3379
+msgid "Enter the MPN here."
+msgstr ""
+
+#: bootstrap-old.php:3391
+msgid "<br>UPC"
+msgstr ""
+
+#: bootstrap-old.php:3394
+msgid "Enter the product UPC here."
+msgstr ""
+
+#: bootstrap-old.php:3406
+msgid "<br>EAN"
+msgstr ""
+
+#: bootstrap-old.php:3409
+msgid "Enter the product EAN here."
+msgstr ""
+
+#: bootstrap-old.php:3421
+msgid "<br>Color"
+msgstr ""
+
+#: bootstrap-old.php:3424
+msgid "Enter the product Color here."
+msgstr ""
+
+#: bootstrap-old.php:3436
+msgid "<br>Size"
+msgstr ""
+
+#: bootstrap-old.php:3439
+msgid "Enter the product Size here."
+msgstr ""
+
+#: bootstrap-old.php:3454
+msgid "Select the gender."
+msgstr ""
+
+#: bootstrap-old.php:3472
+msgid "<br>Material"
+msgstr ""
+
+#: bootstrap-old.php:3475
+msgid "Enter the product Material here."
+msgstr ""
+
+#: bootstrap-old.php:3487
+msgid "<br>Pattern"
+msgstr ""
+
+#: bootstrap-old.php:3490
+msgid "Enter the product Pattern here."
+msgstr ""
+
+#: bootstrap-old.php:3502
+msgid "<br>Unit pricing measure"
+msgstr ""
+
+#: bootstrap-old.php:3505
+msgid "Enter the product Unit pricing measure here."
+msgstr ""
+
+#: bootstrap-old.php:3517
+msgid "<br>Unit pricing base measure"
+msgstr ""
+
+#: bootstrap-old.php:3520
+msgid "Enter the product Unit pricing base measure here."
+msgstr ""
+
+#: bootstrap-old.php:3532
+msgid "<br>Optimized title"
+msgstr ""
+
+#: bootstrap-old.php:3535
+msgid "Enter a optimized product title here."
+msgstr ""
+
+#: bootstrap-old.php:3547
+msgid "<br>Installment months"
+msgstr ""
+
+#: bootstrap-old.php:3550
+msgid "Enter the number of montly installments for the buyer here."
+msgstr ""
+
+#: bootstrap-old.php:3562
+msgid "<br>Installment amount"
+msgstr ""
+
+#: bootstrap-old.php:3565
+msgid "Enter the installment amount here."
+msgstr ""
+
+#: bootstrap-old.php:3599
+msgid "Product age group"
+msgstr ""
+
+#: bootstrap-old.php:3622
+msgid "<br>Cost of good sold"
+msgstr ""
+
+#: bootstrap-old.php:3625
+msgid "Enter the cost of good sold."
+msgstr ""
+
+#: bootstrap-old.php:3637
+msgid "<br>Multipack"
+msgstr ""
+
+#: bootstrap-old.php:3640
+msgid "Enter the multipack amount here."
+msgstr ""
+
+#: bootstrap-old.php:3675
+msgid "Select the energy efficiency class."
+msgstr ""
+
+#: bootstrap-old.php:3703
+msgid "Select the minimum energy efficiency class."
+msgstr ""
+
+#: bootstrap-old.php:3731
+msgid "Select the maximum energy efficiency class."
+msgstr ""
+
+#: bootstrap-old.php:3756
+msgid "<br>Is promotion"
+msgstr ""
+
+#: bootstrap-old.php:3759
+msgid "Enter your promotion ID"
+msgstr ""
+
+#: bootstrap-old.php:3771
+msgid "<br>Custom field 0"
+msgstr ""
+
+#: bootstrap-old.php:3786
+msgid "<br>Custom field 1"
+msgstr ""
+
+#: bootstrap-old.php:3801
+msgid "<br>Custom field 2"
+msgstr ""
+
+#: bootstrap-old.php:3816
+msgid "<br>Custom field 3"
+msgstr ""
+
+#: bootstrap-old.php:3845
+msgid "&nbsp;Exclude from feeds"
+msgstr ""
+
+#. translators: %1$s = opening <a> tag; %2$s = closing </a> tag
+#: bootstrap/app.php:130
+msgid "%1$sClick here to activate %3$s plugin &rarr;%2$s"
+msgstr ""
+
+#: bootstrap/app.php:142
+msgid "Activate this plugin"
+msgstr ""
+
+#. translators: %1$s = opening <p> tag; %2$s = closing </p> tag; %3$s = Product Feed PRO for WooCommerce
+#: bootstrap/app.php:152
+msgid "%1$sUnable to activate %3$s plugin. Please install and activate WooCoomerce plugin first.%2$s"
+msgstr ""
+
+#. translators: %1$s = opening <a> tag; %2$s = closing </a> tag
+#: bootstrap/app.php:163
+msgid "%1$sClick here to install %3$s plugin &rarr;%2$s"
+msgstr ""
+
+#: bootstrap/app.php:175
+msgid "Install this plugin"
+msgstr ""
+
+#. translators: %1$s = opening <strong> tag; %2$s = closing </strong> tag; %3$s = opening <p> tag; %4$s = closing </p> tag
+#: bootstrap/app.php:188
+msgid "%3$s%1$sProduct Feed PRO for WooCommerce%2$s plugin is missing dependency:%4$s"
+msgstr ""
+
+#: bootstrap/app.php:226
+msgid "The class does not have a run method. Please make sure to extend the Abstract_Class class."
+msgstr ""
+
+#: classes/class-admin-notifications.php:31
+msgid "Please select the country and channel for which you would like to create a new product feed. The channel drop-down will populate with relevant country channels once you selected a country. Filling in a project name is mandatory."
+msgstr ""
+
+#: classes/class-admin-notifications.php:35
+msgid "Map your products or categories to the categories of your selected channel. For some channels adding their categorisation in the product feed is mandatory. Even when category mappings are not mandatory it is likely your products will get better visibility and higher conversions when mappings have been added."
+msgstr ""
+
+#: classes/class-admin-notifications.php:39
+msgid "Please drag and drop the attributes you want to be in your product feed from left to right."
+msgstr ""
+
+#: classes/class-admin-notifications.php:43
+msgid "Mapping your product categories to the channel categories will increase changes of getting all your products listed correctly, thus increase your conversion rates."
+msgstr ""
+
+#: classes/class-admin-notifications.php:47
+msgid "Create filter and rules so exactly the right products end up in your product feed. These filters and rules are only eligable for the current product feed you are configuring and will not be used for other feeds.<br/><br/><strong>Filters:</strong> Exclude or include products that meet certain conditions. [<strong><i><a href=\"https://adtribes.io/how-to-create-filters-for-your-product-feed/\" target=\"_blank\">Detailed information and filter examples</a></i></strong>] or [<strong><i><a href=\"https://adtribes.io/create-a-product-feed-for-one-specific-category/\" target=\"_blank\">Create a product feed for just 1 category</a></i></strong>]<br/><strong>Rules:</strong> Change attribute values based on other attribute values or conditions.[<strong><i><a href=\"https://adtribes.io/how-to-create-rules/\" target=\"_blank\">Detailed information about rules and some examples</a></i></strong>]<br/><br/>Order of execution: the filters and rules will be executed in the order of creation."
+msgstr ""
+
+#: classes/class-admin-notifications.php:51
+msgid "<strong>Google Analytics UTM codes:</strong><br/>Adding Google Analytics UTM codes is not mandatory, it will however enable you to get detailed insights into how your products are performing in Google Analytics reporting and allow you to tweak and tune your campaign making it more profitable. We strongly advise you to add the Google Analytics tracking. When enabled the plugin will append the Google Analytics UTM parameters to your landingpage URL's."
+msgstr ""
+
+#: classes/class-admin-notifications.php:55
+msgid "Your product feed is now being created, please be patient. Your feed details will be displayed when generation of the product feed has been finished."
+msgstr ""
+
+#: classes/class-admin-notifications.php:59
+msgid "For the selected channel the attributes shown below are mandatory, please map them to your product attributes. We've already pre-filled a lot of mappings so all you have to do is check those and map the ones that are left blank or add new ones by hitting the 'Add field mapping' button.<br/><br/>[<strong><i><a href=\"https://adtribes.io/how-to-use-static-values-and-create-fake-content-for-your-product-feed/\" target=\"_blank\">Learn how to use static values</a></i></strong>]"
+msgstr ""
+
+#: classes/class-admin-notifications.php:63
+msgid "Manage your projects, such as the mappings and filter rules, below. Hit the refresh icon for the project to run with its new settings or just to refresh the product feed. When a project is being processed it is not possible to make changes to its configuration."
+msgstr ""
+
+#: classes/class-admin-notifications.php:67
+msgid "You cannot create product feeds yet, please install WooCommerce first."
+msgstr ""
+
+#: classes/class-admin-notifications.php:71
+msgid "The graph shows the amount of products in this product feed, measured after every scheduled and/or manually triggered refresh."
+msgstr ""
+
+#: classes/class-admin-notifications.php:75
+msgid "You are running an old PHP version. This plugin might not work or be really slow. Please upgrade to PHP version 7.0 or newer."
+msgstr ""
+
+#: classes/class-admin-notifications.php:79
+msgid "We are sorry but it seems you have disabled your WP CRON. This plugin creates product feeds in batches and needs the WP CRON to be active for doing so. Please enable the WP CRON in your wp-config.php file and re-activate this plugin before creating a product feed."
+msgstr ""
+
+#: classes/class-admin-notifications.php:83
+msgid "We are sorry but it seems you are running an old version of WooCommerce. This plugin requires WooCommerce version 3.0 at least. Please upgrade to the latest version of WooCommerce before creating a product feed."
+msgstr ""
+
+#: classes/class-admin-notifications.php:87
+msgid "Add important attributes, such as Brand, GTIN, condition and many more to create a perfect Google Shopping feed or fix the WooCommerce structured data bug so less products get disapproved in Google's Merchant Center."
+msgstr ""
+
+#: classes/class-admin-notifications.php:91
+msgid "Manipulate your product data to improve the quality of your product feeds and online marketing campaigns. Manipulating your product data is an extremely powerfull feature. Check out an example we have created in our blog post: <b><u><a href=\"https://adtribes.io/feature-product-data-manipulation/\" target=\"_blank\">Manipulating product data</a></u></b>"
+msgstr ""
+
+#: classes/class-admin-notifications.php:95
+msgid "Optimize the information in your Google Shopping feed in order to prevent notifications to show up in your Google Merchant Center and make the most of your Google Shopping campaigns."
+msgstr ""
+
+#: includes/autoload.php:64
+#: includes/autoload.php:84
+msgid "Please contact support if this issue persists."
+msgstr ""
+
+#. translators: %s: WooCommerce Product Feed PRO plugin rating link
+#: pages/admin/woosea-generate-feed-step-0.php:15
+#: pages/admin/woosea-generate-feed-step-1.php:12
+#: pages/admin/woosea-generate-feed-step-2.php:12
+#: pages/admin/woosea-generate-feed-step-4.php:12
+#: pages/admin/woosea-generate-feed-step-5.php:12
+#: pages/admin/woosea-generate-feed-step-7.php:12
+#: pages/admin/woosea-generate-feed-step-9.php:12
+#: pages/admin/woosea-manage-feed.php:22
+#: pages/admin/woosea-manage-settings.php:67
+msgid "If you like our %1$s plugin please leave us a %2$s rating. Thanks in advance!"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:97
+#: pages/admin/woosea-manage-feed.php:101
+msgid "Would you like to get more out of your product feeds? Upgrade to the Elite version of the plugin and you will get:"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:98
+#: pages/admin/woosea-manage-feed.php:102
+msgid "Priority support - we will help you to get your product feed(s) up-and-running;"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:99
+#: pages/admin/woosea-manage-feed.php:103
+msgid "GTIN, Brand, MPN, EAN, Condition and more fields for your product feeds"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:99
+#: pages/admin/woosea-generate-feed-step-0.php:100
+#: pages/admin/woosea-generate-feed-step-0.php:101
+#: pages/admin/woosea-generate-feed-step-0.php:102
+#: pages/admin/woosea-generate-feed-step-0.php:103
+#: pages/admin/woosea-generate-feed-step-0.php:104
+#: pages/admin/woosea-generate-feed-step-0.php:105
+#: pages/admin/woosea-manage-feed.php:103
+#: pages/admin/woosea-manage-feed.php:104
+#: pages/admin/woosea-manage-feed.php:105
+#: pages/admin/woosea-manage-feed.php:106
+#: pages/admin/woosea-manage-feed.php:107
+#: pages/admin/woosea-manage-feed.php:108
+#: pages/admin/woosea-manage-feed.php:109
+msgid "Read more"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:100
+#: pages/admin/woosea-manage-feed.php:104
+msgid "Solve Googe Shopping price mismatch product disapprovals"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:101
+#: pages/admin/woosea-manage-feed.php:105
+msgid "Advanced product data manipulation"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:102
+#: pages/admin/woosea-manage-feed.php:106
+msgid "WPML support - including their currency switcher"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:103
+#: pages/admin/woosea-manage-feed.php:107
+msgid "Aelia  & Curcy currency switcher support"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:104
+#: pages/admin/woosea-generate-feed-step-0.php:569
+#: pages/admin/woosea-generate-feed-step-1.php:272
+#: pages/admin/woosea-manage-feed.php:108
+#: pages/admin/woosea-manage-feed.php:350
+#: pages/admin/woosea-manage-settings.php:676
+msgid "Polylang support"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:105
+#: pages/admin/woosea-generate-feed-step-0.php:568
+#: pages/admin/woosea-generate-feed-step-1.php:271
+#: pages/admin/woosea-manage-feed.php:109
+#: pages/admin/woosea-manage-feed.php:349
+#: pages/admin/woosea-manage-settings.php:675
+msgid "Facebook pixel feature"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:106
+#: pages/admin/woosea-manage-feed.php:110
+msgid "Upgrade To Elite"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:113
+#: pages/admin/woosea-generate-feed-step-1.php:185
+#: pages/admin/woosea-generate-feed-step-2.php:90
+#: pages/admin/woosea-generate-feed-step-4.php:82
+#: pages/admin/woosea-generate-feed-step-5.php:81
+#: pages/admin/woosea-generate-feed-step-7.php:127
+#: pages/admin/woosea-generate-feed-step-9.php:77
+#: pages/admin/woosea-key.php:9
+#: pages/admin/woosea-manage-feed.php:154
+#: pages/admin/woosea-manage-settings.php:103
+msgid "AdTribes"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:115
+#: pages/admin/woosea-manage-feed.php:252
+msgid "General feed settings"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:128
+msgid "Project name"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:282
+msgid "Country"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:292
+msgid "Select a country"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:306
+msgid "Channel"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:408
+msgid "Include product variations"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:423
+msgid "And only include default product variation"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:438
+msgid "And only include lowest priced product variation(s)"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:453
+msgid "File format"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:471
+msgid "Delimiter"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:488
+#: pages/admin/woosea-manage-feed.php:166
+msgid "Refresh interval"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:507
+msgid "Refresh only when products changed"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:520
+msgid "Create a preview of the feed"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:555
+#: pages/admin/woosea-generate-feed-step-1.php:258
+#: pages/admin/woosea-manage-feed.php:336
+#: pages/admin/woosea-manage-settings.php:662
+msgid "Why upgrade to Elite?"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:559
+#: pages/admin/woosea-manage-feed.php:340
+#: pages/admin/woosea-manage-settings.php:666
+msgid "Enjoy all priviliges of our Elite features and priority support and upgrade to the Elite version of our plugin now!"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:561
+#: pages/admin/woosea-generate-feed-step-1.php:264
+#: pages/admin/woosea-manage-feed.php:342
+#: pages/admin/woosea-manage-settings.php:668
+msgid "Priority support: get your feeds live faster"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:562
+#: pages/admin/woosea-generate-feed-step-1.php:265
+#: pages/admin/woosea-manage-feed.php:343
+#: pages/admin/woosea-manage-settings.php:669
+msgid "More products approved by Google"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:563
+#: pages/admin/woosea-generate-feed-step-1.php:266
+#: pages/admin/woosea-manage-feed.php:344
+#: pages/admin/woosea-manage-settings.php:670
+msgid "Add GTIN, brand and more fields to your store"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:564
+#: pages/admin/woosea-generate-feed-step-1.php:267
+#: pages/admin/woosea-manage-feed.php:345
+#: pages/admin/woosea-manage-settings.php:671
+msgid "Exclude individual products from your feeds"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:565
+msgid "WPML / WCML support"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:566
+#: pages/admin/woosea-generate-feed-step-1.php:269
+#: pages/admin/woosea-manage-feed.php:347
+#: pages/admin/woosea-manage-settings.php:673
+msgid "Aelia currency switcher support"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:567
+#: pages/admin/woosea-generate-feed-step-1.php:270
+#: pages/admin/woosea-manage-feed.php:348
+#: pages/admin/woosea-manage-settings.php:674
+msgid "Curcy currency switcher support"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:572
+#: pages/admin/woosea-generate-feed-step-1.php:275
+#: pages/admin/woosea-manage-feed.php:353
+#: pages/admin/woosea-manage-settings.php:679
+msgid "Upgrade to Elite here!"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:580
+#: pages/admin/woosea-manage-settings.php:687
+msgid "We’ve got you covered!"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:584
+#: pages/admin/woosea-generate-feed-step-1.php:287
+#: pages/admin/woosea-manage-feed.php:365
+msgid "Need assistance? Check out our:"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:586
+#: pages/admin/woosea-generate-feed-step-1.php:289
+#: pages/admin/woosea-manage-feed.php:367
+#: pages/admin/woosea-manage-settings.php:693
+msgid "Frequently Asked Questions"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:587
+#: pages/admin/woosea-generate-feed-step-1.php:290
+#: pages/admin/woosea-manage-feed.php:368
+#: pages/admin/woosea-manage-settings.php:694
+msgid "YouTube tutorials"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:588
+#: pages/admin/woosea-generate-feed-step-1.php:291
+#: pages/admin/woosea-manage-feed.php:369
+#: pages/admin/woosea-manage-settings.php:695
+msgid "Tutorials"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:590
+#: pages/admin/woosea-generate-feed-step-1.php:293
+#: pages/admin/woosea-manage-feed.php:371
+#: pages/admin/woosea-manage-settings.php:697
+msgid "Or just reach out to us at"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:590
+#: pages/admin/woosea-generate-feed-step-1.php:293
+#: pages/admin/woosea-manage-feed.php:371
+#: pages/admin/woosea-manage-settings.php:697
+msgid "our WordPress forum"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:590
+#: pages/admin/woosea-generate-feed-step-1.php:293
+#: pages/admin/woosea-manage-feed.php:371
+#: pages/admin/woosea-manage-settings.php:697
+msgid "and we will make sure your product feeds will be up-and-running within no-time."
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:597
+#: pages/admin/woosea-generate-feed-step-1.php:300
+#: pages/admin/woosea-manage-feed.php:378
+#: pages/admin/woosea-manage-settings.php:704
+msgid "Our latest tutorials"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:602
+#: pages/admin/woosea-generate-feed-step-1.php:305
+#: pages/admin/woosea-manage-feed.php:383
+#: pages/admin/woosea-manage-settings.php:709
+msgid "Create a Google Shopping feed"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:603
+#: pages/admin/woosea-generate-feed-step-1.php:306
+#: pages/admin/woosea-generate-feed-step-9.php:79
+#: pages/admin/woosea-manage-feed.php:274
+#: pages/admin/woosea-manage-feed.php:385
+#: pages/admin/woosea-manage-settings.php:711
+msgid "Product data manipulation"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:604
+#: pages/admin/woosea-generate-feed-step-1.php:307
+#: pages/admin/woosea-manage-feed.php:387
+#: pages/admin/woosea-manage-settings.php:713
+msgid "How to create filters for your product feed"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:605
+#: pages/admin/woosea-generate-feed-step-1.php:308
+#: pages/admin/woosea-manage-feed.php:388
+#: pages/admin/woosea-manage-settings.php:714
+msgid "How to set rules for your product feed"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:606
+#: pages/admin/woosea-generate-feed-step-1.php:309
+#: pages/admin/woosea-manage-feed.php:389
+#: pages/admin/woosea-manage-settings.php:715
+msgid "Adding GTIN, Brand, MPN and more"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:607
+#: pages/admin/woosea-generate-feed-step-1.php:310
+#: pages/admin/woosea-manage-feed.php:390
+#: pages/admin/woosea-manage-settings.php:716
+msgid "WooCommerce structured data markup bug"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:608
+#: pages/admin/woosea-generate-feed-step-1.php:311
+#: pages/admin/woosea-manage-feed.php:391
+#: pages/admin/woosea-manage-settings.php:717
+msgid "Enable WPML support"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:609
+#: pages/admin/woosea-generate-feed-step-1.php:312
+#: pages/admin/woosea-manage-feed.php:392
+#: pages/admin/woosea-manage-settings.php:718
+msgid "Enable Aelia currency switcher support"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:610
+#: pages/admin/woosea-generate-feed-step-1.php:313
+#: pages/admin/woosea-manage-feed.php:393
+#: pages/admin/woosea-manage-settings.php:719
+msgid "Help, my feed is stuck!"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:611
+#: pages/admin/woosea-generate-feed-step-1.php:314
+#: pages/admin/woosea-manage-feed.php:394
+#: pages/admin/woosea-manage-settings.php:720
+msgid "Help, my feed has no or too few products!"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:612
+#: pages/admin/woosea-generate-feed-step-1.php:315
+#: pages/admin/woosea-manage-feed.php:395
+#: pages/admin/woosea-manage-settings.php:721
+msgid "How to use the Polylang feature"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-0.php:613
+#: pages/admin/woosea-generate-feed-step-1.php:316
+#: pages/admin/woosea-manage-feed.php:396
+#: pages/admin/woosea-manage-settings.php:722
+msgid "Enable Curcy currency switcher support"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-1.php:187
+#: pages/admin/woosea-manage-feed.php:266
+msgid "Category mapping"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-1.php:200
+msgid "Your category"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-1.php:200
+msgid "Number of products"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-1.php:201
+msgid "category"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-1.php:262
+msgid "Enjoy all privileges of our Elite features and priority support and upgrade to the Elite version of our plugin now!"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-1.php:268
+#: pages/admin/woosea-manage-feed.php:346
+#: pages/admin/woosea-manage-settings.php:672
+msgid "WPML support"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-1.php:283
+#: pages/admin/woosea-manage-feed.php:361
+msgid "We have got you covered!"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-2.php:92
+msgid "Attribute picking"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-4.php:84
+#: pages/admin/woosea-manage-feed.php:278
+msgid "Feed filters and rules"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-4.php:97
+msgid "Type"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-4.php:98
+msgid "IF"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-4.php:99
+msgid "Condition"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-4.php:100
+#: pages/admin/woosea-generate-feed-step-7.php:148
+msgid "Value"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-4.php:101
+msgid "CS"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-4.php:102
+msgid "Then"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-4.php:103
+msgid "IS"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-4.php:121
+msgid "Filter"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-4.php:259
+msgid "Rule"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-5.php:83
+msgid "Conversion & Google Analytics settings"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-5.php:112
+msgid "Enable Google Analytics tracking"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-5.php:127
+msgid "Google Analytics campaign source (utm_source)"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-5.php:131
+msgid "Google Analytics campaign medium (utm_medium)"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-5.php:135
+msgid "Google Analytics campaign name (utm_campaign)"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-5.php:139
+msgid "Google Analytics campaign term (utm_term)"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-5.php:140
+msgid "dynamically added Product ID"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-5.php:143
+msgid "Google Analytics campaign content (utm_content)"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-5.php:147
+msgid "Remove products that did not have sales in the last days"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-7.php:129
+#: pages/admin/woosea-manage-feed.php:260
+msgid "Field mapping"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-7.php:147
+msgid "Prefix"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-7.php:149
+msgid "Suffix"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-9.php:92
+msgid "Product type"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-9.php:93
+msgid "Field"
+msgstr ""
+
+#: pages/admin/woosea-generate-feed-step-9.php:94
+msgid "Becomes"
+msgstr ""
+
+#: pages/admin/woosea-key.php:12
+msgid "Enter your license keys below to enjoy full access, plugin updates, and support."
+msgstr ""
+
+#: pages/admin/woosea-key.php:17
+msgid "Product Feed"
+msgstr ""
+
+#: pages/admin/woosea-key.php:24
+msgid "Version: "
+msgstr ""
+
+#: pages/admin/woosea-key.php:28
+msgid "License Status: "
+msgstr ""
+
+#: pages/admin/woosea-key.php:29
+msgid "Free Version"
+msgstr ""
+
+#: pages/admin/woosea-key.php:34
+msgid "Upgrade to Product Feed Elite"
+msgstr ""
+
+#: pages/admin/woosea-key.php:35
+msgid "The Product Feed Elite version has multi-lingual/multi-currency integrations via WPML, Aelia, Curcy + more. Additional product fields such as brand, GTIN, MPN, EAN, as well as conditions & filters. Google Dynamic remarketing tags, Facebook pixel support & more."
+msgstr ""
+
+#: pages/admin/woosea-key.php:37
+msgid "New additional product fields like Brand, GTIN, MPN, EAN, and more."
+msgstr ""
+
+#: pages/admin/woosea-key.php:38
+msgid "Remarketing and advanced pixel support."
+msgstr ""
+
+#: pages/admin/woosea-key.php:39
+msgid "Advanced data manipulation with extra conditions & filters."
+msgstr ""
+
+#: pages/admin/woosea-key.php:42
+msgid "Get Product Feed Elite & Unlock All Features"
+msgstr ""
+
+#: pages/admin/woosea-key.php:46
+msgid "Learn more about Elite features"
+msgstr ""
+
+#: pages/admin/woosea-key.php:51
+msgid "Product Feed Elite"
+msgstr ""
+
+#: pages/admin/woosea-manage-feed.php:121
+#: pages/admin/woosea-manage-settings.php:113
+msgid "WARNING: Your WP-Cron is disabled"
+msgstr ""
+
+#: pages/admin/woosea-manage-feed.php:163
+msgid "Active"
+msgstr ""
+
+#: pages/admin/woosea-manage-feed.php:164
+msgid "Project name and channel"
+msgstr ""
+
+#: pages/admin/woosea-manage-feed.php:165
+msgid "Format"
+msgstr ""
+
+#: pages/admin/woosea-manage-feed.php:167
+msgid "Status"
+msgstr ""
+
+#: pages/admin/woosea-manage-feed.php:251
+msgid "Change settings"
+msgstr ""
+
+#: pages/admin/woosea-manage-feed.php:256
+msgid "Attribute selection"
+msgstr ""
+
+#: pages/admin/woosea-manage-feed.php:287
+msgid "Feed URL"
+msgstr ""
+
+#: pages/admin/woosea-manage-feed.php:315
+msgid "You haven't configured a product feed yet"
+msgstr ""
+
+#. translators: %s: close <a> tag
+#: pages/admin/woosea-manage-feed.php:320
+msgid "please create one first%s or read our tutorial on"
+msgstr ""
+
+#: pages/admin/woosea-manage-feed.php:324
+msgid "how to set up your very first Google Shopping product feed"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:82
+#: pages/admin/woosea-manage-settings.php:86
+#: pages/admin/woosea-manage-settings.php:149
+msgid "Plugin settings"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:89
+#: pages/admin/woosea-manage-settings.php:156
+msgid "Plugin systems check"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:92
+msgid "Attribute settings"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:167
+msgid "Plugin setting"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:168
+msgid "Off / On"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:176
+msgid "Use parent variable product image for variations"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:194
+msgid "Add shipping costs for all countries to your feed (Google Shopping / Facebook only)"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:212
+msgid "Remove all other shipping classes when free shipping criteria are met (Google Shopping / Facebook only)"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:230
+msgid "Remove the free shipping zone from your feed (Google Shopping / Facebook only)"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:248
+msgid "Remove the local pickup shipping zone from your feed (Google Shopping / Facebook only)"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:266
+msgid "Show only basis attributes in field mapping and filter/rule drop-downs"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:284
+msgid "Enable logging"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:303
+msgid "Add CDATA to title, description and short description:"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:323
+msgid "Add Facebook Pixel"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:323
+#: pages/admin/woosea-manage-settings.php:372
+#: pages/admin/woosea-manage-settings.php:425
+msgid "Read more about this"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:353
+msgid "Content IDS variable products Facebook Pixel"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:372
+msgid "Enable Facebook Conversion API:"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:399
+msgid "Add Google Dynamic Remarketing Pixel:"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:425
+msgid "Change products per batch number"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:574
+msgid "System Report"
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:579
+msgid "Copy the below text and paste to the support team when requested to help us debug any systems issues with your feeds."
+msgstr ""
+
+#: pages/admin/woosea-manage-settings.php:691
+msgid "Need assistance? Check out our"
+msgstr ""
