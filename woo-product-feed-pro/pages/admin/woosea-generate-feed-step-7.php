@@ -1,4 +1,6 @@
 <?php
+use AdTribes\PFP\Factories\Product_Feed;
+
 /**
  * Change default footer text, asking to review our plugin.
  *
@@ -33,58 +35,55 @@ $attribute_dropdown = $attributes_obj->get_product_attributes();
  * Update or get project configuration
  */
 $nonce = wp_create_nonce( 'woosea_ajax_nonce' );
-
 /**
  * Update or get project configuration
  */
 if ( array_key_exists( 'project_hash', $_GET ) ) {
-        $project        = WooSEA_Update_Project::get_project_data( sanitize_text_field( $_GET['project_hash'] ) );
-        $channel_data   = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_GET['channel_hash'] ) );
-    $count_mappings     = count( $project['attributes'] );
-        $manage_project = 'yes';
+    $feed = new Product_Feed( sanitize_text_field( $_GET['project_hash'] ) );
+    if ( $feed->id ) {
+        $feed_attributes = $feed->attributes;
+        $channel_data    = $feed->channel;
+        $count_mappings  = count( $feed_attributes );
 
-        if ( isset( $project['WPML'] ) ) {
-        if ( ( is_plugin_active( 'sitepress-multilingual-cms' ) ) || ( function_exists( 'icl_object_id' ) ) ) {
-            if ( ! class_exists( 'Polylang' ) ) {
-                        // Get WPML language
-                        global $sitepress;
-                        $lang = $project['WPML'];
-                        $sitepress->switch_lang( $lang );
-            }
-            }
+        $project_hash = $feed->legacy_project_hash;
+        $channel_hash = $feed->channel_hash;
     }
+    $manage_project = 'yes';
 } else {
-        // Sanitize values in multi-dimensional POST array
-        if ( is_array( $_POST ) ) {
-                foreach ( $_POST as $p_key => $p_value ) {
-                        if ( is_array( $p_value ) ) {
-                                foreach ( $p_value as $pp_key => $pp_value ) {
-                                        if ( is_array( $pp_value ) ) {
-                                                foreach ( $pp_value as $ppp_key => $ppp_value ) {
-                                                        $_POST[ $p_key ][ $pp_key ][ $ppp_key ] = sanitize_text_field( $ppp_value );
-                                                }
-                                        }
-                                }
-                        } else {
-                                $_POST[ $p_key ] = sanitize_text_field( $p_value );
-                        }
-                }
-        } else {
-                $_POST = array();
-        }
-    $project          = WooSEA_Update_Project::update_project( $_POST );
-        $channel_data = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_POST['channel_hash'] ) );
+    /**
+     * The condition below is when the user is creating a new project.
+     *
+     * The user is redirected to the field mapping page after the general settings page.
+     * Those settings are stored in the temporary option.
+     * This is a legacy code that needs to be refactored.
+     * For now, we will just add the necessary code to make it work.
+     */
 
-        if ( isset( $project['WPML'] ) ) {
-        if ( ( is_plugin_active( 'sitepress-multilingual-cms' ) ) || ( function_exists( 'icl_object_id' ) ) ) {
-            if ( ! class_exists( 'Polylang' ) ) {
-                        // Get WPML language
-                        global $sitepress;
-                        $lang = $project['WPML'];
-                        $sitepress->switch_lang( $lang );
+    // Sanitize values in multi-dimensional POST array
+    if ( is_array( $_POST ) ) {
+        foreach ( $_POST as $p_key => $p_value ) {
+            if ( is_array( $p_value ) ) {
+                foreach ( $p_value as $pp_key => $pp_value ) {
+                    if ( is_array( $pp_value ) ) {
+                        foreach ( $pp_value as $ppp_key => $ppp_value ) {
+                            $_POST[ $p_key ][ $pp_key ][ $ppp_key ] = sanitize_text_field( $ppp_value );
+                        }
+                    }
+                }
+            } else {
+                $_POST[ $p_key ] = sanitize_text_field( $p_value );
             }
-            }
+        }
+    } else {
+        $_POST = array();
     }
+    $feed         = WooSEA_Update_Project::update_project( $_POST );
+    $channel_data = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_POST['channel_hash'] ) );
+
+    $channel_hash = $feed['channel_hash'];
+    $project_hash = $feed['project_hash'];
+
+    $feed_attributes = array();
 }
 
 /**
@@ -96,16 +95,18 @@ if ( $channel_data['taxonomy'] != 'none' ) {
 }
 
 /**
+ * Action hook to add content before the product feed manage page.
+ *
+ * @param int                      $step         Step number.
+ * @param string                   $project_hash Project hash.
+ * @param array|Product_Feed|null  $feed         Product_Feed object or array of project data.
+ */
+do_action( 'adt_before_product_feed_manage_page', 7, $project_hash, $feed );
+
+/**
  * Get main currency
  */
-$currency = get_woocommerce_currency();
-if ( isset( $project['WCML'] ) ) {
-    $currency = $project['WCML'];
-}
-
-if ( isset( $project['AELIA'] ) ) {
-    $currency = $project['AELIA'];
-}
+$currency = apply_filters( 'adt_product_feed_currency', get_woocommerce_currency() );
 
 /**
  * Create channel attribute object
@@ -115,41 +116,41 @@ $obj        = 'WooSEA_' . $channel_data['fields'];
 $fields_obj = new $obj();
 $attributes = $fields_obj->get_channel_attributes();
 ?>
-    <div id="dialog" title="Basic dialog">
-        <p>
-            <div id="dialogText"></div>
-        </p>
-    </div>
+<div id="dialog" title="Basic dialog">
+    <p>
+    <div id="dialogText"></div>
+    </p>
+</div>
 
-    <div class="wrap">
-        <div class="woo-product-feed-pro-form-style-2">
-            <div class="woo-product-feed-pro-form-style-2-heading">
-                <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank"><img class="logo" src="<?php echo esc_attr( WOOCOMMERCESEA_PLUGIN_URL . '/images/adt-logo.png' ); ?>" alt="<?php esc_attr_e( 'AdTribes', 'woo-product-feed-pro' ); ?>"></a> 
-                <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank" class="logo-upgrade">Upgrade to Elite</a>
-                <h1 class="title"><?php esc_html_e( 'Field mapping', 'woo-product-feed-pro' ); ?></h1>
-            </div>
+<div class="wrap">
+    <div class="woo-product-feed-pro-form-style-2">
+        <div class="woo-product-feed-pro-form-style-2-heading">
+            <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank"><img class="logo" src="<?php echo esc_attr( WOOCOMMERCESEA_PLUGIN_URL . '/images/adt-logo.png' ); ?>" alt="<?php esc_attr_e( 'AdTribes', 'woo-product-feed-pro' ); ?>"></a>
+            <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank" class="logo-upgrade">Upgrade to Elite</a>
+            <h1 class="title"><?php esc_html_e( 'Field mapping', 'woo-product-feed-pro' ); ?></h1>
+        </div>
 
-            <div class="<?php echo esc_attr( $notifications_box['message_type'] ); ?>">
-                    <p><?php echo wp_kses_post( $notifications_box['message'] ); ?></p>
-            </div>
+        <div class="<?php echo esc_attr( $notifications_box['message_type'] ); ?>">
+            <p><?php echo wp_kses_post( $notifications_box['message'] ); ?></p>
+        </div>
 
-            <form action="" id="fieldmapping" method="post">
+        <form action="" id="fieldmapping" method="post">
             <?php wp_nonce_field( 'woosea_ajax_nonce' ); ?>
             <table class="woo-product-feed-pro-table" id="woosea-fieldmapping-table" border="1">
                 <thead>
-                            <tr>
+                    <tr>
                         <th></th>
-                                <th>
-                        <?php
+                        <th>
+                            <?php
                             echo "$channel_data[name] attributes";
-                        ?>
+                            ?>
                         </th>
-                                <th><?php esc_html_e( 'Prefix', 'woo-product-feed-pro' ); ?></th>
-                                <th><?php esc_html_e( 'Value', 'woo-product-feed-pro' ); ?></th>
+                        <th><?php esc_html_e( 'Prefix', 'woo-product-feed-pro' ); ?></th>
+                        <th><?php esc_html_e( 'Value', 'woo-product-feed-pro' ); ?></th>
                         <th><?php esc_html_e( 'Suffix', 'woo-product-feed-pro' ); ?></th>
-                            </tr>
-                    </thead>
-        
+                    </tr>
+                </thead>
+
                 <tbody class="woo-product-feed-pro-body">
                     <?php
                     if ( ! isset( $count_mappings ) ) {
@@ -157,89 +158,89 @@ $attributes = $fields_obj->get_channel_attributes();
                         foreach ( $attributes as $row_key => $row_value ) {
                             foreach ( $row_value as $row_k => $row_v ) {
                                 if ( $row_v['format'] == 'required' ) {
-                                ?>
-                                <tr class="rowCount <?php echo "$c"; ?>">
-                                    <td><input type="hidden" name="attributes[<?php echo "$c"; ?>][rowCount]" value="<?php echo "$c"; ?>">
-                                                                            <input type="checkbox" name="record" class="checkbox-field">
-                                    </td>
-                                    <td>
-                                        <select name="attributes[<?php echo "$c"; ?>][attribute]" class="select-field">
-                                        <?php
-                                            foreach ( $attributes as $key => $value ) {
-                                                echo "<optgroup label='$key'><strong>$key</strong>";
+                    ?>
+                                    <tr class="rowCount <?php echo "$c"; ?>">
+                                        <td><input type="hidden" name="attributes[<?php echo "$c"; ?>][rowCount]" value="<?php echo "$c"; ?>">
+                                            <input type="checkbox" name="record" class="checkbox-field">
+                                        </td>
+                                        <td>
+                                            <select name="attributes[<?php echo "$c"; ?>][attribute]" class="select-field woo-sea-select2">
+                                                <?php
+                                                foreach ( $attributes as $key => $value ) {
+                                                    echo "<optgroup label='$key'><strong>$key</strong>";
 
-                                                foreach ( $value as $k => $v ) {
-                                                    if ( $v['feed_name'] == $row_v['feed_name'] ) {
-                                                        if ( array_key_exists( 'name', $v ) ) {
-                                                            $dialog_value = $v['feed_name'];
-                                                            echo "<option value='$v[feed_name]' selected>$k ($v[name])</option>";
-                                                        } else {
-                                                            echo "<option value='$v[feed_name]' selected>$k</option>";
-                                                        }
-                                                    } elseif ( array_key_exists( 'name', $v ) ) {
+                                                    foreach ( $value as $k => $v ) {
+                                                        if ( $v['feed_name'] == $row_v['feed_name'] ) {
+                                                            if ( array_key_exists( 'name', $v ) ) {
+                                                                $dialog_value = $v['feed_name'];
+                                                                echo "<option value='$v[feed_name]' selected>$k ($v[name])</option>";
+                                                            } else {
+                                                                echo "<option value='$v[feed_name]' selected>$k</option>";
+                                                            }
+                                                        } elseif ( array_key_exists( 'name', $v ) ) {
                                                             echo "<option value='$v[feed_name]'>$k ($v[name])</option>";
                                                         } else {
                                                             echo "<option value='$v[feed_name]'>$k</option>";
+                                                        }
                                                     }
                                                 }
+                                                ?>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <?php
+                                            if ( $row_v['feed_name'] == 'g:price' ) {
+                                                echo "<input type='text' name='attributes[$c][prefix]' value='$currency' class='input-field-medium'>";
+                                            } else {
+                                                echo "<input type='text' name='attributes[$c][prefix]' class='input-field-medium'>";
                                             }
-                                        ?>
-                                        </select>
-                                    </td>
-                                            <td>
-                                        <?php
-                                        if ( $row_v['feed_name'] == 'g:price' ) {
-                                            echo "<input type='text' name='attributes[$c][prefix]' value='$currency' class='input-field-medium'>";
-                                        } else {
-                                            echo "<input type='text' name='attributes[$c][prefix]' class='input-field-medium'>";
-                                        }
-                                        ?>
-                                    </td>
-                                    <td>
-                                        <select name="attributes[<?php echo "$c"; ?>][mapfrom]" class="select-field">
-                                        <option></option>
-                                        <?php
-                                            foreach ( $attribute_dropdown as $drop_key => $drop_value ) {
-                                                if ( array_key_exists( 'woo_suggest', $row_v ) ) {
-                                                    if ( $row_v['woo_suggest'] == $drop_key ) {
-                                                        echo "<option value='$drop_key' selected>$drop_value</option>";
+                                            ?>
+                                        </td>
+                                        <td>
+                                            <select name="attributes[<?php echo "$c"; ?>][mapfrom]" class="select-field woo-sea-select2">
+                                                <option></option>
+                                                <?php
+                                                foreach ( $attribute_dropdown as $drop_key => $drop_value ) {
+                                                    if ( array_key_exists( 'woo_suggest', $row_v ) ) {
+                                                        if ( $row_v['woo_suggest'] == $drop_key ) {
+                                                            echo "<option value='$drop_key' selected>$drop_value</option>";
+                                                        } else {
+                                                            echo "<option value='$drop_key'>$drop_value</option>";
+                                                        }
                                                     } else {
                                                         echo "<option value='$drop_key'>$drop_value</option>";
                                                     }
-                                                } else {
-                                                    echo "<option value='$drop_key'>$drop_value</option>";
                                                 }
-                                            }
-                                        ?>
-                                        </select>
-                                    </td>
-                                            <td>
-                                        <input type="text" name="attributes[<?php echo "$c"; ?>][suffix]" class="input-field-medium">
-                                    </td>
-                                </tr>
-                                <?php
-                                ++$c;
+                                                ?>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="attributes[<?php echo "$c"; ?>][suffix]" class="input-field-medium">
+                                        </td>
+                                    </tr>
+                            <?php
+                                    ++$c;
                                 }
                             }
                         }
                     } else {
-                                                foreach ( $project['attributes'] as $attribute_key => $attribute_array ) {
-                            if ( isset( $project['attributes'][ $attribute_key ]['prefix'] ) ) {
-                                $prefix = $project['attributes'][ $attribute_key ]['prefix'];
+                        foreach ( $feed_attributes as $attribute_key => $attribute_array ) {
+                            if ( isset( $feed_attributes[ $attribute_key ]['prefix'] ) ) {
+                                $prefix = $feed_attributes[ $attribute_key ]['prefix'];
                             }
-                            if ( isset( $project['attributes'][ $attribute_key ]['suffix'] ) ) {
-                                $suffix = $project['attributes'][ $attribute_key ]['suffix'];
+                            if ( isset( $feed_attributes[ $attribute_key ]['suffix'] ) ) {
+                                $suffix = $feed_attributes[ $attribute_key ]['suffix'];
                             }
                             ?>
-                            <tr class="rowCount <?php echo "$attribute_key"; ?>">   
+                            <tr class="rowCount <?php echo "$attribute_key"; ?>">
                                 <td><input type="hidden" name="attributes[<?php echo "$attribute_key"; ?>][rowCount]" value="<?php echo "$attribute_key"; ?>">
                                     <input type="checkbox" name="record" class="checkbox-field">
                                 </td>
                                 <td>
                                     <select name="attributes[<?php echo "$attribute_key"; ?>][attribute]" class="select-field">
-                                    <?php
+                                        <?php
                                         echo "<option value=\"$attribute_array[attribute]\">$attribute_array[attribute]</option>";
-                                    ?>
+                                        ?>
                                     </select>
                                 </td>
                                 <td>
@@ -251,51 +252,51 @@ $attributes = $fields_obj->get_channel_attributes();
                                     if ( array_key_exists( 'static_value', $attribute_array ) ) {
                                         echo "<input type=\"text\" name=\"attributes[$attribute_key][mapfrom]\" class=\"input-field-midsmall\" value=\"$attribute_array[mapfrom]\"><input type=\"hidden\" name=\"attributes[$attribute_key][static_value]\" value=\"true\">";
                                     } else {
-                                        ?>
-                                        <select name="attributes[<?php echo "$attribute_key"; ?>][mapfrom]" class="select-field">
-                                        <option></option>
-                                        <?php
+                                    ?>
+                                        <select name="attributes[<?php echo "$attribute_key"; ?>][mapfrom]" class="select-field woo-sea-select2">
+                                            <option></option>
+                                            <?php
                                             foreach ( $attribute_dropdown as $drop_key => $drop_value ) {
-                                                if ( $project['attributes'][ $attribute_key ]['mapfrom'] == $drop_key ) {
+                                                if ( $feed_attributes[ $attribute_key ]['mapfrom'] == $drop_key ) {
                                                     echo "<option value='$drop_key' selected>$drop_value</option>";
                                                 } else {
                                                     echo "<option value='$drop_key'>$drop_value</option>";
                                                 }
                                             }
-                                        ?>
+                                            ?>
                                         </select>
                                     <?php
                                     }
                                     ?>
                                 </td>
-                                        <td>
+                                <td>
                                     <input type="text" name="attributes[<?php echo "$attribute_key"; ?>][suffix]" class="input-field-medium" value="<?php echo "$suffix"; ?>">
                                 </td>
                             </tr>
-                        <?php
+                    <?php
                         }
                     }
                     ?>
-                    </tbody>
-                                
+                </tbody>
+
                 <tr>
                     <td colspan="6">
-                                            <input type="hidden" id="channel_hash" name="channel_hash" value="<?php echo "$project[channel_hash]"; ?>">
-                                            <?php
-                                            if ( isset( $manage_project ) ) {
-                                            ?>
-                            <input type="hidden" name="project_hash" value="<?php echo "$project[project_hash]"; ?>">
-                                            <input type="hidden" name="step" value="100">
-                                            <input type="hidden" name="addrow" id="addrow" value="1">
-                                            <input type="button" class="delete-field-mapping" value="- Delete">&nbsp;<input type="button" class="add-field-mapping" value="+ Add field mapping">&nbsp;<input type="button" class="add-own-mapping" value="+ Add custom field">&nbsp;<input type="submit" id="savebutton" value="Save" />
-    
+                        <input type="hidden" id="channel_hash" name="channel_hash" value="<?php echo esc_attr( $channel_hash ); ?>">
+                        <?php
+                        if ( isset( $manage_project ) ) {
+                        ?>
+                            <input type="hidden" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
+                            <input type="hidden" name="step" value="100">
+                            <input type="hidden" name="addrow" id="addrow" value="1">
+                            <input type="button" class="delete-field-mapping" value="- Delete">&nbsp;<input type="button" class="add-field-mapping" value="+ Add field mapping">&nbsp;<input type="button" class="add-own-mapping" value="+ Add custom field">&nbsp;<input type="submit" id="savebutton" value="Save" />
+
                         <?php
                         } else {
                         ?>
-                            <input type="hidden" name="project_hash" value="<?php echo "$project[project_hash]"; ?>">
-                                            <input type="hidden" name="step" value="<?php echo "$step"; ?>">
-                                            <input type="hidden" name="addrow" id="addrow" value="1">
-                                            <input type="button" class="delete-field-mapping" value="- Delete">&nbsp;<input type="button" class="add-field-mapping" value="+ Add field mapping">&nbsp;<input type="button" class="add-own-mapping" value="+ Add custom field">&nbsp;<input type="submit" id="savebutton" value="Save" />
+                            <input type="hidden" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
+                            <input type="hidden" name="step" value="<?php echo "$step"; ?>">
+                            <input type="hidden" name="addrow" id="addrow" value="1">
+                            <input type="button" class="delete-field-mapping" value="- Delete">&nbsp;<input type="button" class="add-field-mapping" value="+ Add field mapping">&nbsp;<input type="button" class="add-own-mapping" value="+ Add custom field">&nbsp;<input type="submit" id="savebutton" value="Save" />
                         <?php
                         }
                         ?>

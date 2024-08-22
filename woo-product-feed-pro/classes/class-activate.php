@@ -1875,7 +1875,7 @@ class WooSEA_Activation {
 			"Zimbabwe" => array (),
 		);
 		
-		update_option( 'channel_statics', $channel_statics, 'no');
+		update_option( 'channel_statics', $channel_statics, false );
 	        
 		/**
         	 * Function for setting a cron job for regular creation of the feed
@@ -1914,14 +1914,14 @@ class WooSEA_Activation {
     			"custom_attributes__woosea_brand" 	=> "woosea brand"
 		);
 		if(!get_option( 'woosea_extra_attributes' )){
-			update_option( 'woosea_extra_attributes', $extra_attributes );
+			update_option( 'woosea_extra_attributes', $extra_attributes, false );
 		}
 
 		/**
 		 * Disable structured data JSON=LD changes by default
 		 * User needs to enable this setting in the plugin section
 		 */
-		update_option( 'structured_data_fix', 'no' );
+		update_option( 'structured_data_fix', 'no', false );
 
 		/**
     		 * Register date of first activation of plugin
@@ -1929,15 +1929,15 @@ class WooSEA_Activation {
  		 * Review notification request once
 		 */
 		if(!get_option( 'woosea_first_activation')){
-			update_option ( 'woosea_first_activation', time() );
+			update_option ( 'woosea_first_activation', time(), false );
 		}
 
 		if(!get_option( 'woosea_count_activation')){
-			update_option ( 'woosea_count_activation', 1 );
+			update_option ( 'woosea_count_activation', 1, false );
 		} else {
 			$count_activation = get_option ( 'woosea_count_activation' );
 			$new_activation = $count_activation+1;
-			update_option ( 'woosea_count_activation', $new_activation );
+			update_option ( 'woosea_count_activation', $new_activation, false );
 		}
 
 		/**

@@ -1,6 +1,5 @@
 <?php
-$my_currency      = get_woocommerce_currency();
-$aelia_currencies = apply_filters( 'wc_aelia_cs_enabled_currencies', $my_currency );
+use AdTribes\PFP\Factories\Product_Feed;
 
 /**
  * Change default footer text, asking to review our plugin.
@@ -73,10 +72,22 @@ $channel_obj = new WooSEA_Attributes();
 $countries   = $channel_obj->get_channel_countries();
 $channels    = $channel_obj->get_channels( $locale );
 
+$feed         = null;
+$project_hash = isset( $_GET['project_hash'] ) ? sanitize_text_field( $_GET['project_hash'] ) : '';
 if ( array_key_exists( 'project_hash', $_GET ) ) {
-    $project        = WooSEA_Update_Project::get_project_data( sanitize_text_field( $_GET['project_hash'] ) );
-    $manage_project = 'yes';
+    $feed                = new Product_Feed( sanitize_text_field( $_GET['project_hash'] ) );
+    $feed_legacy_country = $feed->get_legacy_country();
+    $manage_project      = 'yes';
 }
+
+/**
+ * Action hook to add content before the product feed manage page.
+ *
+ * @param int                      $step         Step number.
+ * @param string                   $project_hash Project hash.
+ * @param array|Product_Feed|null  $feed         Product_Feed object or array of project data.
+ */
+do_action( 'adt_before_product_feed_manage_page', 0, $project_hash, $feed );
 ?>
 
 <div class="wrap">
@@ -128,189 +139,39 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                 <td width="30%"><span><?php esc_html_e( 'Project name', 'woo-product-feed-pro' ); ?>:<span class="required">*</span></span></td>
                                 <td>
                                     <div style="display: block;">
-                                        <?php
-                                        if ( isset( $project ) ) {
-                                            echo "<input type=\"text\" class=\"input-field\" id=\"projectname\" name=\"projectname\" value=\"$project[projectname]\"/> <div id=\"projecterror\"></div>";
-                                        } else {
-                                            print '<input type="text" class="input-field" id="projectname" name="projectname"/> <div id="projecterror"></div>';
-                                        }
-                                        ?>
+                                        <?php if ( $feed ) : ?> 
+                                            <input type="text" class="input-field" id="projectname" name="projectname" value="<?php echo esc_attr( $feed->title ); ?>"/>
+                                            <div id="projecterror"></div>
+                                        <?php else : ?>
+                                            <input type="text" class="input-field" id="projectname" name="projectname"/> <div id="projecterror"></div>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>
-                            <?php
-                            $add_aelia_support = get_option( 'add_aelia_support' );
-                            if ( $add_aelia_support == 'yes' ) {
-                                if ( ( is_array( $aelia_currencies ) ) && ( count( $aelia_currencies ) > 0 ) ) {
-                                    if ( isset( $manage_project ) ) {
-                                        print '<tr>';
-                                        print '	<td><span>Aelia Currency:</span></td>';
-                                        print '	<td>';
-                                        print '	<select name="AELIA" class="aelia_switch">';
-                                        foreach ( $aelia_currencies as $key => $value ) {
-                                            if ( isset( $project['AELIA'] ) ) {
-                                                if ( $value == $project['AELIA'] ) {
-                                                    echo "<option value=\"$value\" selected>$value</option>";
-                                                } else {
-                                                    echo "<option value=\"$value\">$value</option>";
-                                                }
-                                            } else {
-                                                echo "<option value=\"$value\">$value</option>";
-                                            }
-                                        }
-                                        print '</select>';
-                                        echo "<input type=\"hidden\" name=\"base_currency\" value=\"$my_currency\">";
-                                        print '</td>';
-                                        print '</tr>';
-                                    } else {
-                                        print '<tr>';
-                                        print '	<td><span>Aelia Currency:</span></td>';
-                                        print '	<td>';
-                                        print '	<select name="AELIA">';
-                                        foreach ( $aelia_currencies as $key => $value ) {
-                                            if ( $value == $my_currency ) {
-                                                echo "<option value=\"$value\" selected>$value</option>";
-                                            } else {
-                                                echo "<option value=\"$value\">$value</option>";
-                                            }
-                                        }
-                                        print '</select>';
-                                        echo "<input type=\"hidden\" name=\"base_currency\" value=\"$my_currency\">";
-                                        print '</td>';
-                                        print '</tr>';
-                                    }
-                                }
-                            }
-
-                            if ( ( is_plugin_active( 'sitepress-multilingual-cms' ) ) || ( function_exists( 'icl_object_id' ) ) ) {
-
-                                // This is WPML
-                                if ( ! class_exists( 'Polylang' ) ) {
-                                    $add_wpml_support = get_option( 'add_wpml_support' );
-                                    if ( $add_wpml_support == 'yes' ) {
-                                        // Adding WPML support here
-                                        $my_current_lang = apply_filters( 'wpml_current_language', null );
-
-                                        global $sitepress;
-                                        $list_lang = $sitepress->get_active_languages();
-                                        $nr_lang   = count( $list_lang );
-
-                                        $wcml_currencies = array();
-                                        // Check if WCML plugin is active
-                                        if ( function_exists( 'wcml_loader' ) ) {
-                                            $wcml_settings = get_option( '_wcml_settings' );
-                                            $currencies    = $wcml_settings['currency_options'];
-
-                                            foreach ( $currencies as $cur_key => $cur_val ) {
-                                                array_push( $wcml_currencies, $cur_key );
-                                            }
-                                        }
-
-                                        if ( $nr_lang > 0 ) {
-                                            if ( isset( $manage_project ) ) {
-                                                print '<tr>';
-                                                print '<td><span>WPML Language:</span></td>';
-                                                print '<td>';
-                                                print '<select name="WPML" disabled>';
-                                                foreach ( $list_lang as $key => $value ) {
-                                                    if ( $key == $project['WPML'] ) {
-                                                        echo "<option value=\"$key\" selected>$value[english_name]</option>";
-                                                    } else {
-                                                        echo "<option value=\"$key\">$value[english_name]</option>";
-                                                    }
-                                                }
-                                                print '</select>';
-                                                print '</td>';
-                                                print '</tr>';
-
-                                                if ( ( count( $wcml_currencies ) > 0 ) && ( $wcml_settings['enable_multi_currency'] > 0 ) ) {
-                                                    print '<tr>';
-                                                    print '<td><span>WCML Currency:</span></td>';
-                                                    print '<td>';
-                                                    print '<select name="WCML" disabled>';
-                                                    foreach ( $wcml_currencies as $key => $value ) {
-                                                        if ( $value == $project['WCML'] ) {
-                                                            echo "<option value=\"$value\" selected>$value</option>";
-                                                        } else {
-                                                            echo "<option value=\"$value\">$value</option>";
-                                                        }
-                                                    }
-                                                    print '</select>';
-                                                    print '</td>';
-                                                    print '</tr>';
-                                                }
-                                            } else {
-                                                print '<tr>';
-                                                print '<td><span>WPML Language:</span></td>';
-                                                print '<td>';
-                                                print '<select name="WPML">';
-                                                foreach ( $list_lang as $key => $value ) {
-                                                    if ( $key == $my_current_lang ) {
-                                                        echo "<option value=\"$key\" selected>$value[english_name]</option>";
-                                                    } else {
-                                                        echo "<option value=\"$key\">$value[english_name]</option>";
-                                                    }
-                                                }
-                                                print '</select>';
-                                                print '</td>';
-                                                print '</tr>';
-
-                                                if ( ( count( $wcml_currencies ) > 0 ) && ( $wcml_settings['enable_multi_currency'] > 0 ) ) {
-                                                    $my_currency = get_woocommerce_currency();
-                                                    print '<tr>';
-                                                    print '<td><span>WCML Currency:</span></td>';
-                                                    print '<td>';
-                                                    print '<select name="WCML">';
-                                                    foreach ( $wcml_currencies as $key => $value ) {
-                                                        if ( $value == $my_currency ) {
-                                                            echo "<option value=\"$value\" selected>$value</option>";
-                                                        } else {
-                                                            echo "<option value=\"$value\">$value</option>";
-                                                        }
-                                                    }
-                                                    print '</select>';
-                                                    print '</td>';
-                                                    print '</tr>';
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            ?>
                             <tr>
                                 <td><span><?php esc_html_e( 'Country', 'woo-product-feed-pro' ); ?>:</span></td>
                                 <td>
-                                    <?php
-                                    if ( isset( $manage_project ) ) {
-                                        // print"<select name=\"countries\" id=\"countries\" class=\"select-field\" disabled>";
-                                        print '<select name="countries" id="countries" class="select-field">';
-                                    } else {
-                                        print '<select name="countries" id="countries" class="select-field">';
-                                    }
-                                    ?>
-                                    <option><?php esc_html_e( 'Select a country', 'woo-product-feed-pro' ); ?></option>
-                                    <?php
-                                    foreach ( $countries as $value ) {
-                                        if ( ( isset( $project ) ) && ( $value == $project['countries'] ) ) {
-                                            echo "<option value=\"$value\" selected>$value</option>";
-                                        } else {
-                                            echo "<option value=\"$value\">$value</option>";
-                                        }
-                                    }
-                                    ?>
+                                    <select name="countries" id="countries" class="select-field woo-sea-select2">
+                                        <option><?php esc_html_e( 'Select a country', 'woo-product-feed-pro' ); ?></option>
+                                        <?php foreach ( $countries as $value ) : ?>
+                                            <?php if ( $feed && ( $value == $feed_legacy_country ) ) : ?>
+                                                <option value="<?php echo esc_attr( $value ); ?>" selected><?php echo esc_html( $value ); ?></option>
+                                            <?php else : ?>
+                                                <option value="<?php echo esc_attr( $value ); ?>"><?php echo esc_html( $value ); ?></option>
+                                            <?php endif; ?>
+                                        <?php endforeach; ?>
                                     </select>
                                 </td>
                             </tr>
                             <tr>
                                 <td><span><?php esc_html_e( 'Channel', 'woo-product-feed-pro' ); ?>:</span></td>
                                 <td>
+                                    <?php if ( $feed ) : ?>
+                                    <select name="channel_hash" id="channel_hash" class="select-field" disabled>
+                                        <option value="<?php echo esc_html( $feed->channel_hash ); ?>" selected><?php echo esc_html( $feed->get_channel( 'name' ) ); ?></option>
+                                    </select>
                                     <?php
-                                    if ( isset( $manage_project ) ) {
-                                        print '<select name="channel_hash" id="channel_hash" class="select-field" disabled>';
-                                        echo "<option value=\"$project[channel_hash]\" selected>$project[name]</option>";
-                                        print '</select>';
-                                    } else {
+                                    else :
                                         $customfeed           = '';
                                         $advertising          = '';
                                         $marketplace          = '';
@@ -320,77 +181,45 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                         $optgroup_marketplace = 0;
                                         $optgroup_shopping    = 0;
 
-                                        print '<select name="channel_hash" id="channel_hash" class="select-field">';
+                                        print '<select name="channel_hash" id="channel_hash" class="select-field woo-sea-select2">';
 
                                         foreach ( $channels as $key => $val ) {
                                             if ( $val['type'] == 'Custom Feed' ) {
                                                 if ( $optgroup_customfeed == 1 ) {
-                                                    if ( ( isset( $project ) ) && ( $val['channel_hash'] == $project['channel_hash'] ) ) {
-                                                        $customfeed .= "<option value=\"$val[channel_hash]\" selected>$key</option>";
-                                                    } else {
-                                                        $customfeed .= "<option value=\"$val[channel_hash]\">$key</option>";
-                                                    }
+                                                    $customfeed .= "<option value=\"$val[channel_hash]\">$key</option>";
                                                 } else {
-                                                    $customfeed = '<optgroup label="Custom Feed">';
-                                                    if ( ( isset( $project ) ) && ( $val['channel_hash'] == $project['channel_hash'] ) ) {
-                                                        $customfeed .= "<option value=\"$val[channel_hash]\" selected>$key</option>";
-                                                    } else {
-                                                        $customfeed .= "<option value=\"$val[channel_hash]\">$key</option>";
-                                                    }
+                                                    $customfeed          = '<optgroup label="Custom Feed">';
+                                                    $customfeed         .= "<option value=\"$val[channel_hash]\">$key</option>";
                                                     $optgroup_customfeed = 1;
                                                 }
                                             }
 
                                             if ( $val['type'] == 'Advertising' ) {
                                                 if ( $optgroup_advertising == 1 ) {
-                                                    if ( ( isset( $project ) ) && ( $val['channel_hash'] == $project['channel_hash'] ) ) {
-                                                        $advertising .= "<option value=\"$val[channel_hash]\" selected>$key</option>";
-                                                    } else {
-                                                        $advertising .= "<option value=\"$val[channel_hash]\">$key</option>";
-                                                    }
+                                                    $advertising .= "<option value=\"$val[channel_hash]\">$key</option>";
                                                 } else {
-                                                    $advertising = '<optgroup label="Advertising">';
-                                                    if ( ( isset( $project ) ) && ( $val['channel_hash'] == $project['channel_hash'] ) ) {
-                                                        $advertising .= "<option value=\"$val[channel_hash]\" selected>$key</option>";
-                                                    } else {
-                                                        $advertising .= "<option value=\"$val[channel_hash]\">$key</option>";
-                                                    }
+                                                    $advertising          = '<optgroup label="Advertising">';
+                                                    $advertising         .= "<option value=\"$val[channel_hash]\">$key</option>";
                                                     $optgroup_advertising = 1;
                                                 }
                                             }
 
                                             if ( $val['type'] == 'Marketplace' ) {
                                                 if ( $optgroup_marketplace == 1 ) {
-                                                    if ( ( isset( $project ) ) && ( $val['channel_hash'] == $project['channel_hash'] ) ) {
-                                                        $marketplace .= "<option value=\"$val[channel_hash]\" selected>$key</option>";
-                                                    } else {
-                                                        $marketplace .= "<option value=\"$val[channel_hash]\">$key</option>";
-                                                    }
+                                                    $marketplace .= "<option value=\"$val[channel_hash]\">$key</option>";
                                                 } else {
-                                                    $marketplace = '<optgroup label="Marketplace">';
-                                                    if ( ( isset( $project ) ) && ( $val['channel_hash'] == $project['channel_hash'] ) ) {
-                                                        $marketplace .= "<option value=\"$val[channel_hash]\" selected>$key</option>";
-                                                    } else {
-                                                        $marketplace .= "<option value=\"$val[channel_hash]\">$key</option>";
-                                                    }
+                                                    $marketplace          = '<optgroup label="Marketplace">';
+                                                    $marketplace         .= "<option value=\"$val[channel_hash]\">$key</option>";
                                                     $optgroup_marketplace = 1;
                                                 }
                                             }
 
                                             if ( $val['type'] == 'Comparison shopping engine' ) {
                                                 if ( $optgroup_shopping == 0 ) {
-                                                    if ( ( isset( $project ) ) && ( $val['channel_hash'] == $project['channel_hash'] ) ) {
-                                                        $shopping .= "<option value=\"$val[channel_hash]\" selected>$key</option>";
-                                                    } else {
-                                                        $shopping .= "<option value=\"$val[channel_hash]\">$key</option>";
-                                                    }
+                                                    $shopping .= "<option value=\"$val[channel_hash]\">$key</option>";
                                                 } else {
-                                                    $shopping = '<optgroup label="Comparison Shopping Engine">';
-                                                    if ( ( isset( $project ) ) && ( $val['channel_hash'] == $project['channel_hash'] ) ) {
-                                                        $shopping .= "<option value=\"$val[channel_hash]\">$key</option>";
-                                                    } else {
-                                                        $shopping .= "<option value=\"$val[channel_hash]\" selected>$key</option>";
-                                                    }
+                                                    $shopping          = '<optgroup label="Comparison Shopping Engine">';
+                                                    $shopping         .= "<option value=\"$val[channel_hash]\" selected>$key</option>";
                                                     $optgroup_shopping = 1;
                                                 }
                                             }
@@ -400,7 +229,7 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                         echo "$marketplace";
                                         echo "$shopping";
                                         print '</select>';
-                                    }
+                                    endif;
                                     ?>
                                 </td>
                             </tr>
@@ -409,7 +238,7 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                 <td>
                                     <label class="woo-product-feed-pro-switch">
                                         <?php
-                                        if ( isset( $project['product_variations'] ) ) {
+                                        if ( $feed && $feed->include_product_variations ) {
                                             print '<input type="checkbox" id="variations" name="product_variations" class="checkbox-field" checked>';
                                         } else {
                                             print '<input type="checkbox" id="variations" name="product_variations" class="checkbox-field">';
@@ -424,7 +253,7 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                 <td>
                                     <label class="woo-product-feed-pro-switch">
                                         <?php
-                                        if ( isset( $project['default_variations'] ) ) {
+                                        if ( $feed && $feed->only_include_default_product_variation ) {
                                             print '<input type="checkbox" id="default_variations" name="default_variations" class="checkbox-field" checked>';
                                         } else {
                                             print '<input type="checkbox" id="default_variations" name="default_variations" class="checkbox-field">';
@@ -439,7 +268,7 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                 <td>
                                     <label class="woo-product-feed-pro-switch">
                                         <?php
-                                        if ( isset( $project['lowest_price_variations'] ) ) {
+                                        if ( $feed && $feed->only_include_lowest_product_variation ) {
                                             print '<input type="checkbox" id="lowest_price_variations" name="lowest_price_variations" class="checkbox-field" checked>';
                                         } else {
                                             print '<input type="checkbox" id="lowest_price_variations" name="lowest_price_variations" class="checkbox-field">';
@@ -457,7 +286,7 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                         $format_arr = array( 'xml', 'csv', 'txt', 'tsv' );
                                         foreach ( $format_arr as $format ) {
                                             $format_upper = strtoupper( $format );
-                                            if ( ( isset( $project ) ) && ( $format == $project['fileformat'] ) ) {
+                                            if ( $feed && ( $format == $feed->file_format ) ) {
                                                 echo "<option value=\"$format\" selected>$format_upper</option>";
                                             } else {
                                                 echo "<option value=\"$format\">$format_upper</option>";
@@ -474,7 +303,7 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                         <?php
                                         $delimiter_arr = array( ',', '|', ';', 'tab', '#' );
                                         foreach ( $delimiter_arr as $delimiter ) {
-                                            if ( ( isset( $project ) ) && ( array_key_exists( 'delimiter', $project ) ) && ( $delimiter == $project['delimiter'] ) ) {
+                                            if ( $feed && ( $delimiter == $feed->delimiter ) ) {
                                                 echo "<option value=\"$delimiter\" selected>$delimiter</option>";
                                             } else {
                                                 echo "<option value=\"$delimiter\">$delimiter</option>";
@@ -492,7 +321,7 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                         $refresh_arr = array( 'daily', 'twicedaily', 'hourly', 'no refresh' );
                                         foreach ( $refresh_arr as $refresh ) {
                                             $refresh_upper = ucfirst( $refresh );
-                                            if ( ( isset( $project ) ) && ( $refresh == $project['cron'] ) ) {
+                                            if ( $feed && ( $refresh == $feed->refresh_interval ) ) {
                                                 echo "<option value=\"$refresh\" selected>$refresh_upper</option>";
                                             } else {
                                                 echo "<option value=\"$refresh\">$refresh_upper</option>";
@@ -507,7 +336,7 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                 <td><span><?php esc_html_e( 'Refresh only when products changed', 'woo-product-feed-pro' ); ?>:</span></td>
                                 <td>
                                     <?php
-                                    if ( ( isset( $project ) ) && ( array_key_exists( 'products_changed', $project ) ) ) {
+                                    if ( $feed && $feed->refresh_only_when_product_changed ) {
                                         print '<input name="products_changed" type="checkbox" class="checkbox-field" checked> <a href="https://adtribes.io/update-product-feed-products-changed-new-ones-added/" target="_blank">Read our tutorial about this feature</a>';
                                     } else {
                                         print '<input name="products_changed" type="checkbox" class="checkbox-field"> <a href="https://adtribes.io/update-product-feed-products-changed-new-ones-added/" target="_blank">Read our tutorial about this feature</a>';
@@ -520,7 +349,7 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                                 <td><span><?php esc_html_e( 'Create a preview of the feed', 'woo-product-feed-pro' ); ?>:</span></td>
                                 <td>
                                     <?php
-                                    if ( ( isset( $project ) ) && ( array_key_exists( 'preview_feed', $project ) ) ) {
+                                    if ( $feed && $feed->create_preview ) {
                                         print '<input name="preview_feed" type="checkbox" class="checkbox-field" checked> <a href="https://adtribes.io/create-product-feed-preview/" target="_blank">Read our tutorial about this feature</a>';
                                     } else {
                                         print '<input name="preview_feed" type="checkbox" class="checkbox-field"> <a href="https://adtribes.io/create-product-feed-preview/" target="_blank">Read our tutorial about this feature</a>';
@@ -531,91 +360,22 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
 
                             <tr>
                                 <td colspan="2">
-                                    <?php
-                                    if ( isset( $project ) ) {
-                                        echo "<input type=\"hidden\" name=\"project_hash\" id=\"project_hash\" value=\"$project[project_hash]\" />";
-                                        echo "<input type=\"hidden\" name=\"channel_hash\" id=\"channel_hash\" value=\"$project[channel_hash]\" />";
-                                        print '<input type="hidden" name="project_update" id="project_update" value="yes" />';
-                                        print '<input type="hidden" name="step" id="step" value="100" />';
-                                        print '<input type="submit" id="goforit" value="Save" />';
-                                    } else {
-                                        print '<input type="hidden" name="step" id="step" value="99" />';
-                                        print '<input type="submit" id="goforit" value="Save & continue" />';
-                                    }
-                                    ?>
+                                    <?php if ( $feed ) : ?>
+                                        <input type="hidden" name="project_hash" id="project_hash" value="<?php echo esc_attr( $feed->legacy_project_hash ); ?>" />
+                                        <input type="hidden" name="channel_hash" id="channel_hash" value="<?php echo esc_attr( $feed->channel_hash ); ?>" />
+                                        <input type="hidden" name="project_update" id="project_update" value="yes" />
+                                        <input type="hidden" name="step" id="step" value="100" />
+                                        <input type="submit" id="goforit" value="Save" />
+                                    <?php else : ?>
+                                        <input type="hidden" name="step" id="step" value="99" />
+                                        <input type="submit" id="goforit" value="Save & continue" />
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="woo-product-feed-pro-table-right">
-
-                    <table class="woo-product-feed-pro-table">
-                        <tr>
-                            <td><strong><?php esc_html_e( 'Why upgrade to Elite?', 'woo-product-feed-pro' ); ?></strong></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <?php esc_html_e( 'Enjoy all priviliges of our Elite features and priority support and upgrade to the Elite version of our plugin now!', 'woo-product-feed-pro' ); ?>
-                                <ul>
-                                    <li><strong>1.</strong> <?php esc_html_e( 'Priority support: get your feeds live faster', 'woo-product-feed-pro' ); ?></li>
-                                    <li><strong>2.</strong> <?php esc_html_e( 'More products approved by Google', 'woo-product-feed-pro' ); ?></li>
-                                    <li><strong>3.</strong> <?php esc_html_e( 'Add GTIN, brand and more fields to your store', 'woo-product-feed-pro' ); ?></li>
-                                    <li><strong>4.</strong> <?php esc_html_e( 'Exclude individual products from your feeds', 'woo-product-feed-pro' ); ?></li>
-                                    <li><strong>5.</strong> <?php esc_html_e( 'WPML / WCML support', 'woo-product-feed-pro' ); ?></li>
-                                    <li><strong>6.</strong> <?php esc_html_e( 'Aelia currency switcher support', 'woo-product-feed-pro' ); ?></li>
-                                    <li><strong>7.</strong> <?php esc_html_e( 'Curcy currency switcher support', 'woo-product-feed-pro' ); ?></li>
-                                    <li><strong>8.</strong> <?php esc_html_e( 'Facebook pixel feature', 'woo-product-feed-pro' ); ?></li>
-                                    <li><strong>9.</strong> <?php esc_html_e( 'Polylang support', 'woo-product-feed-pro' ); ?></li>
-                                </ul>
-                                <strong>
-                                    <a href="https://adtribes.io/pro-vs-elite/?utm_source=pfp&utm_medium=page-0&utm_campaign=why-upgrade-box" target="_blank"><?php esc_html_e( 'Upgrade to Elite here!', 'woo-product-feed-pro' ); ?></a>
-                                </strong>
-                            </td>
-                        </tr>
-                    </table><br />
-
-                    <table class="woo-product-feed-pro-table">
-                        <tr>
-                            <td><strong><?php esc_html_e( 'We’ve got you covered!', 'woo-product-feed-pro' ); ?></strong></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <?php esc_html_e( 'Need assistance? Check out our:', 'woo-product-feed-pro' ); ?>
-                                <ul>
-                                    <li><strong><a href="https://adtribes.io/support/?utm_source=pfp&utm_medium=page-0&utm_campaign=faq" target="_blank"><?php esc_html_e( 'Frequently Asked Questions', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong><a href="https://www.youtube.com/channel/UCXp1NsK-G_w0XzkfHW-NZCw" target="_blank"><?php esc_html_e( 'YouTube tutorials', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong><a href="https://adtribes.io/tutorials/?utm_source=pfp&utm_medium=page-0&utm_campaign=tutorials" target="_blank"><?php esc_html_e( 'Tutorials', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                </ul>
-                                <?php esc_html_e( 'Or just reach out to us at', 'woo-product-feed-pro' ); ?> <strong><a href="https://wordpress.org/support/plugin/woo-product-feed-pro/" target="_blank"><?php esc_html_e( 'our WordPress forum', 'woo-product-feed-pro' ); ?></a></strong> <?php esc_html_e( 'and we will make sure your product feeds will be up-and-running within no-time.', 'woo-product-feed-pro' ); ?>
-                            </td>
-                        </tr>
-                    </table><br />
-
-                    <table class="woo-product-feed-pro-table">
-                        <tr>
-                            <td><strong><?php esc_html_e( 'Our latest tutorials', 'woo-product-feed-pro' ); ?></strong></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <ul>
-                                    <li><strong>1. <a href="https://adtribes.io/setting-up-your-first-google-shopping-product-feed/?utm_source=pfp&utm_medium=page0&utm_campaign=first shopping feed" target="_blank"><?php esc_html_e( 'Create a Google Shopping feed', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>2. <a href="https://adtribes.io/feature-product-data-manipulation/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=product_data_manipulation" target="_blank"><?php esc_html_e( 'Product data manipulation', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>3. <a href="https://adtribes.io/how-to-create-filters-for-your-product-feed/?utm_source=pfp&utm_medium=page0&utm_campaign=how to create filters" target="_blank"><?php esc_html_e( 'How to create filters for your product feed', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>4. <a href="https://adtribes.io/how-to-create-rules/?utm_source=pfp&utm_medium=page0&utm_campaign=how to create rules" target="_blank"><?php esc_html_e( 'How to set rules for your product feed', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>5. <a href="https://adtribes.io/add-gtin-mpn-upc-ean-product-condition-optimised-title-and-brand-attributes/?utm_source=pfp&utm_medium=page0&utm_campaign=adding fields" target="_blank"><?php esc_html_e( 'Adding GTIN, Brand, MPN and more', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>6. <a href="https://adtribes.io/woocommerce-structured-data-bug/?utm_source=pfp&utm_medium=page0&utm_campaign=structured data bug" target="_blank"><?php esc_html_e( 'WooCommerce structured data markup bug', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>7. <a href="https://adtribes.io/wpml-support/?utm_source=pfp&utm_medium=page0&utm_campaign=wpml support" target="_blank"><?php esc_html_e( 'Enable WPML support', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>8. <a href="https://adtribes.io/aelia-currency-switcher-feature/?utm_source=pfp&utm_medium=page0&utm_campaign=aelia support" target="_blank"><?php esc_html_e( 'Enable Aelia currency switcher support', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>9. <a href="https://adtribes.io/help-my-feed-processing-is-stuck/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=feed stuck" target="_blank"><?php esc_html_e( 'Help, my feed is stuck!', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>10. <a href="https://adtribes.io/help-i-have-none-or-less-products-in-my-product-feed-than-expected/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=too few products" target="_blank"><?php esc_html_e( 'Help, my feed has no or too few products!', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>11. <a href="https://adtribes.io/polylang-support-product-feeds/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=polylang support" target="_blank"><?php esc_html_e( 'How to use the Polylang feature', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                    <li><strong>12. <a href="https://adtribes.io/curcy-currency-switcher-feature/?utm_source=pfp&utm_medium=page0&utm_campaign=curcy support" target="_blank"><?php esc_html_e( 'Enable Curcy currency switcher support', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                </ul>
-                            </td>
-                        </tr>
-                    </table><br />
-                </div>
+                <?php require_once WOOCOMMERCESEA_VIEWS_ROOT_PATH . 'view-sidebar.php'; ?>
             </div>
         </form>
     </div>

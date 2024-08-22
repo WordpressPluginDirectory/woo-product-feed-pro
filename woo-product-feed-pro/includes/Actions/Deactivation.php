@@ -40,6 +40,22 @@ class Deactivation extends Abstract_Class {
     }
 
     /**
+     * Plugin deactivation.
+     *
+     * @since 13.3.5
+     * @access public
+     *
+     * @param int $blog_id Blog ID.
+     */
+    private function _deactivate_plugin( $blog_id ) {
+        delete_option( 'adt_pfp_activation_code_triggered' );
+        delete_site_option( WOOCOMMERCESEA_OPTION_INSTALLED_VERSION );
+
+        $this->cleanup_cron();
+        $this->cleanup_options();
+    }
+
+    /**
      * Cleanup cron.
      *
      * @since 13.3.3
@@ -67,7 +83,30 @@ class Deactivation extends Abstract_Class {
      * @access public
      */
     public function run() {
-        $this->cleanup_cron();
-        $this->cleanup_options();
+        // Delete the flag that determines if plugin activation code is triggered.
+        global $wpdb;
+
+        // check if it is a multisite network.
+        if ( is_multisite() ) {
+
+            // check if the plugin has been activated on the network or on a single site.
+            if ( $this->network_wide ) {
+                // get ids of all sites.
+                $blog_ids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
+
+                foreach ( $blog_ids as $blog_id ) {
+                    switch_to_blog( $blog_id );
+                    $this->_deactivate_plugin( $blog_id );
+                }
+
+                restore_current_blog();
+            } else {
+                // activated on a single site, in a multi-site.
+                $this->_deactivate_plugin( $wpdb->blogid );
+            }
+        } else {
+            // activated on a single site.
+            $this->_deactivate_plugin( $wpdb->blogid );
+        }
     }
 }

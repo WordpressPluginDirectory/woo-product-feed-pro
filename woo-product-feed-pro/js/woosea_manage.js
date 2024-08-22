@@ -14,7 +14,7 @@ jQuery(function ($) {
     tab_value = url.searchParams.get('tab');
   }
 
-  if (get_value == 'woosea_manage_feed') {
+  if (get_value == 'woosea_manage_feed' && woosea_manage_params.total_product_feeds > 0) {
     jQuery(function ($) {
       var nonce = $('#_wpnonce').val();
 
@@ -327,35 +327,6 @@ jQuery(function ($) {
     }
   });
 
-  // Check if user would like to enable addition of CDATA
-  $('#add_woosea_cdata').on('change', function () {
-    // on change of state
-    var nonce = $('#_wpnonce').val();
-    if (this.checked) {
-      // Checkbox is on
-      jQuery.ajax({
-        method: 'POST',
-        url: ajaxurl,
-        data: {
-          action: 'woosea_add_woosea_cdata',
-          security: nonce,
-          status: 'on',
-        },
-      });
-    } else {
-      // Checkbox is off
-      jQuery.ajax({
-        method: 'POST',
-        url: ajaxurl,
-        data: {
-          action: 'woosea_add_woosea_cdata',
-          security: nonce,
-          status: 'off',
-        },
-      });
-    }
-  });
-
   // Check if user would like to add a Facebook Pixel to their website
   $('#woosea_content_ids').on('change', function () {
     // on change of state
@@ -415,53 +386,6 @@ jQuery(function ($) {
         })
         .done(function (data) {
           $('#facebook_pixel_id').remove();
-        })
-        .fail(function (data) {
-          console.log('Failed AJAX Call :( /// Return Data: ' + data);
-        });
-    }
-  });
-
-  // Check if user would like to enable the Facebook Conversion API
-  $('#add_facebook_capi').on('change', function () {
-    // on change of state
-    var nonce = $('#_wpnonce').val();
-    if (this.checked) {
-      // Checkbox is on
-      jQuery
-        .ajax({
-          method: 'POST',
-          url: ajaxurl,
-          data: {
-            action: 'woosea_add_facebook_capi_setting',
-            security: nonce,
-            status: 'on',
-          },
-        })
-        .done(function (data) {
-          $('#facebook_capi').after(
-            '<tr id="facebook_capi_token"><td colspan="2"><span>Insert your Facebook Conversion API token:</span><br/><br/><input type="hidden" name="nonce_facebook_capi_id" id="nonce_facebook_capi_id" value="' +
-              nonce +
-              '"><input type="textarea" class="textarea-field" id="fb_capi_token" name="fb_capi_token"><br/><br/><input type="button" id="save_facebook_capi_token" value="Save"></td></tr>'
-          );
-        })
-        .fail(function (data) {
-          console.log('Failed AJAX Call :( /// Return Data: ' + data);
-        });
-    } else {
-      // Checkbox is off
-      jQuery
-        .ajax({
-          method: 'POST',
-          url: ajaxurl,
-          data: {
-            action: 'woosea_add_facebook_capi_setting',
-            security: nonce,
-            status: 'off',
-          },
-        })
-        .done(function (data) {
-          $('#facebook_capi_token').remove();
         })
         .fail(function (data) {
           console.log('Failed AJAX Call :( /// Return Data: ' + data);
@@ -722,11 +646,10 @@ jQuery(function ($) {
             },
           })
 
-          .done(function (data) {
-            data = JSON.parse(data);
+          .done(function (response) {
             $('#woosea_main_table').append(
               '<tr class><td>&nbsp;</td><td colspan="5"><span>The plugin is creating a new product feed now: <b><i>"' +
-                data.projectname +
+                response.data.projectname +
                 '"</i></b>. Please refresh your browser to manage the copied product feed project.</span></span></td></tr>'
             );
           });
@@ -841,19 +764,17 @@ jQuery(function ($) {
             security: nonce,
             project_hash: hash,
           },
-          success: function (data) {
-            data = JSON.parse(data);
-
-            if (data.proc_perc < 100) {
-              if (data.running != 'stopped') {
+          success: function (response) {
+            if (response.data.proc_perc < 100) {
+              if (response.data.running != 'stopped') {
                 $('#woosea_proc_' + hash).addClass('woo-product-feed-pro-blink_me');
-                return $('#woosea_proc_' + hash).text('processing (' + data.proc_perc + '%)');
+                return $('#woosea_proc_' + hash).text('processing (' + response.data.proc_perc + '%)');
               }
-            } else if (data.proc_perc == 100) {
+            } else if (response.data.proc_perc == 100) {
               //	clearInterval(myInterval);
               $('#woosea_proc_' + hash).removeClass('woo-product-feed-pro-blink_me');
               return $('#woosea_proc_' + hash).text('ready');
-            } else if (data.proc_perc == 999) {
+            } else if (response.data.proc_perc == 999) {
               // Do not do anything
             } else {
               //	clearInterval(myInterval);
@@ -872,9 +793,8 @@ jQuery(function ($) {
               security: nonce,
             },
           })
-          .done(function (data) {
-            data = JSON.parse(data);
-            if (data.processing == 'false') {
+          .done(function (response) {
+            if (response.data.processing == 'false') {
               clearInterval(myInterval);
               console.log('Kill interval, all feeds are ready');
             }
@@ -885,6 +805,64 @@ jQuery(function ($) {
       });
   }
 
+  $('#adt_migrate_to_custom_post_type').on('click', function () {
+    var nonce = $('#_wpnonce').val();
+    var popup_dialog = confirm('Are you sure you want to migrate your products to a custom post type?');
+    var $button = $(this);
+
+    if (popup_dialog == true) {
+      // Disable the button
+      $button.prop('disabled', true);
+
+      jQuery
+        .ajax({
+          method: 'POST',
+          url: ajaxurl,
+          data: {
+            action: 'adt_migrate_to_custom_post_type',
+            security: nonce,
+          },
+        })
+        .done(function (response) {
+          // Enable the button
+          $button.prop('disabled', false);
+
+          if (response.success) {
+            alert('Migration completed successfully');
+          } else {
+            alert('Migration failed');
+          }
+        })
+        .fail(function (data) {
+          // Enable the button
+          $button.prop('disabled', false);
+        });
+    }
+  });
+
   // Add copy to clipboard functionality for the debug information content box.
   new ClipboardJS('.copy-product-feed-pro-debug-info');
+
+  // Init tooltips and select2
+  $(document.body)
+    .on('init_woosea_tooltips', function () {
+      $('.tips, .help_tip, .woocommerce-help-tip').tipTip({
+        attribute: 'data-tip',
+        fadeIn: 50,
+        fadeOut: 50,
+        delay: 200,
+        keepAlive: true,
+      });
+    })
+    .on('init_woosea_select2', function () {
+      $('.woo-sea-select2').select2({
+        containerCssClass: 'woo-sea-select2-selection',
+      });
+    });
+
+  // Tooltips
+  $(document.body).trigger('init_woosea_tooltips');
+
+  // Select2
+  $(document.body).trigger('init_woosea_select2');
 });

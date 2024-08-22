@@ -1,4 +1,6 @@
 <?php
+use AdTribes\PFP\Factories\Product_Feed;
+
 /**
  * Change default footer text, asking to review our plugin.
  *
@@ -40,39 +42,64 @@ $nonce = wp_create_nonce( 'woosea_ajax_nonce' );
  * Update project configuration
  */
 if ( array_key_exists( 'project_hash', $_GET ) ) {
-        $project        = WooSEA_Update_Project::get_project_data( sanitize_text_field( $_GET['project_hash'] ) );
-    $channel_data       = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_GET['channel_hash'] ) );
+    $feed = new Product_Feed( sanitize_text_field( $_GET['project_hash'] ) );
+    if ( $feed->id ) {
+        $channel_data   = $feed->get_channel();
         $manage_project = 'yes';
+
+        $channel_hash = $feed->channel_hash;
+        $project_hash = $feed->legacy_project_hash;
+
+        $utm_source                    = $feed->utm_source;
+        $utm_campaign                  = $feed->utm_campaign;
+        $utm_enabled                   = $feed->utm_enabled;
+        $utm_medium                    = $feed->utm_medium;
+        $utm_term                      = $feed->utm_term;
+        $utm_content                   = $feed->utm_content;
+        $total_product_orders_lookback = $feed->utm_total_product_orders_lookback;
+    }
 } else {
-        // Sanitize values in multi-dimensional POST array
-        if ( is_array( $_POST ) ) {
-                foreach ( $_POST as $p_key => $p_value ) {
-                        if ( is_array( $p_value ) ) {
-                                foreach ( $p_value as $pp_key => $pp_value ) {
-                                        if ( is_array( $pp_value ) ) {
-                                                foreach ( $pp_value as $ppp_key => $ppp_value ) {
-                                                        $_POST[ $p_key ][ $pp_key ][ $ppp_key ] = sanitize_text_field( $ppp_value );
-                                                }
-                                        }
-                                }
-                        } else {
-                                $_POST[ $p_key ] = sanitize_text_field( $p_value );
+    // Sanitize values in multi-dimensional POST array
+    if ( is_array( $_POST ) ) {
+        foreach ( $_POST as $p_key => $p_value ) {
+            if ( is_array( $p_value ) ) {
+                foreach ( $p_value as $pp_key => $pp_value ) {
+                    if ( is_array( $pp_value ) ) {
+                        foreach ( $pp_value as $ppp_key => $ppp_value ) {
+                            $_POST[ $p_key ][ $pp_key ][ $ppp_key ] = sanitize_text_field( $ppp_value );
                         }
+                    }
                 }
-        } else {
-                $_POST = array();
+            } else {
+                $_POST[ $p_key ] = sanitize_text_field( $p_value );
+            }
         }
-    $project                                  = WooSEA_Update_Project::update_project( $_POST );
-    $channel_data                             = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_POST['channel_hash'] ) );
-    $project['utm_source']                    = $project['name'];
-    $project['utm_medium']                    = 'cpc';
-    $project['utm_campaign']                  = $project['projectname'];
-    $project['utm_term']                      = '';
-    $project['utm_content']                   = '';
-    $project['utm_on']                        = 'on';
-    $project['adtribes_conversion']           = 'on';
-    $project['total_product_orders_lookback'] = '';
+    } else {
+        $_POST = array();
+    }
+    $feed         = WooSEA_Update_Project::update_project( $_POST );
+    $channel_data = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_POST['channel_hash'] ) );
+
+    $channel_hash = $feed['channel_hash'];
+    $project_hash = $feed['project_hash'];
+
+    $utm_source                    = $feed['name'];
+    $utm_medium                    = 'cpc';
+    $utm_campaign                  = $feed['projectname'];
+    $utm_enabled                   = true;
+    $utm_term                      = '';
+    $utm_content                   = '';
+    $total_product_orders_lookback = '';
 }
+
+/**
+ * Action hook to add content before the product feed manage page.
+ *
+ * @param int                      $step         Step number.
+ * @param string                   $project_hash Project hash.
+ * @param array|Product_Feed|null  $feed         Product_Feed object or array of project data.
+ */
+do_action( 'adt_before_product_feed_manage_page', 5, $project_hash, $feed );
 ?>
     <div class="wrap">
         <div class="woo-product-feed-pro-form-style-2">
@@ -90,89 +117,66 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
                 <form id="googleanalytics" method="post">
                 <?php wp_nonce_field( 'woosea_ajax_nonce' ); ?>
 
-                <table class="woo-product-feed-pro-table">
-                <!--
-                <tr>
-                    <td><span>Enable conversion tracking: </span></td>
-                    <td>
-                        <label class="woo-product-feed-pro-switch">
-                            <?php
-                            if ( isset( $project['adtribes_conversion'] ) ) {
-                                print '<input type="checkbox" name="adtribes_conversion" class="checkbox-field" checked>';
-                            } else {
-                                print '<input type="checkbox" name="adtribes_conversion" class="checkbox-field">';
-                            }
-                            ?>
-                            <div class="woo-product-feed-pro-slider round"></div>
-                        </label>    
-                    </td>
-                </tr>           
-                -->
-                <tr>
-                    <td><span><?php esc_html_e( 'Enable Google Analytics tracking', 'woo-product-feed-pro' ); ?>: </span></td>
-                    <td>
-                        <label class="woo-product-feed-pro-switch">
-                            <?php
-                            if ( isset( $project['utm_on'] ) ) {
-                                print '<input type="checkbox" name="utm_on" class="checkbox-field" checked>';
-                            } else {
-                                print '<input type="checkbox" name="utm_on" class="checkbox-field">';
-                            }
-                            ?>
-                            <div class="woo-product-feed-pro-slider round"></div>
-                        </label>    
-                    </td>
-                </tr>           
-                <tr>
-                    <td><span><?php esc_html_e( 'Google Analytics campaign source (utm_source)', 'woo-product-feed-pro' ); ?>:</span></td>
-                    <td><input type="text" class="input-field" name="utm_source" value="<?php echo "$project[utm_source]"; ?>" /></td>
-                </tr>
-                <tr>
-                    <td><span><?php esc_html_e( 'Google Analytics campaign medium (utm_medium)', 'woo-product-feed-pro' ); ?>:</span></td>
-                    <td><input type="text" class="input-field" name="utm_medium" value="<?php echo "$project[utm_medium]"; ?>" /></td>
-                </tr>
-                <tr>
-                    <td><span><?php esc_html_e( 'Google Analytics campaign name (utm_campaign)', 'woo-product-feed-pro' ); ?>:</span></td>
-                    <td><input type="text" class="input-field" name="utm_campaign" value="<?php echo "$project[utm_campaign]"; ?>" /></td>
-                </tr>
-                <tr>
-                    <td><span><?php esc_html_e( 'Google Analytics campaign term (utm_term)', 'woo-product-feed-pro' ); ?>:</span></td>
-                    <td><input type="hidden" name="utm_term" value="id"><input type="text" class="input-field" value="[productId]" disabled/> <i>(<?php esc_html_e( 'dynamically added Product ID', 'woo-product-feed-pro' ); ?>)</i></td>
-                </tr>
-                <tr>
-                    <td><span><?php esc_html_e( 'Google Analytics campaign content (utm_content)', 'woo-product-feed-pro' ); ?>:</span></td>
-                    <td><input type="text" class="input-field" name="utm_content" value="<?php echo "$project[utm_content]"; ?>" /></td>
-                </tr>
-                <tr>
-                    <td><span><?php esc_html_e( 'Remove products that did not have sales in the last days', 'woo-product-feed-pro' ); ?>: <a href="https://adtribes.io/create-feed-performing-products/" target="_blank">What does this do?</a></span></td>
-                    <td><input type="text" class="input-field" name="total_product_orders_lookback" value="<?php echo "$project[total_product_orders_lookback]"; ?>" /> days</td>
-                </tr>
+                    <table class="woo-product-feed-pro-table">
+                        <tr>
+                            <td><span><?php esc_html_e( 'Enable Google Analytics tracking', 'woo-product-feed-pro' ); ?>: </span></td>
+                            <td>
+                                <label class="woo-product-feed-pro-switch">
+                                    <input type="checkbox" name="utm_on" class="checkbox-field" <?php echo $utm_enabled ? 'checked' : ''; ?>>
+                                    <div class="woo-product-feed-pro-slider round"></div>
+                                </label>    
+                            </td>
+                        </tr>           
+                        <tr>
+                            <td><span><?php esc_html_e( 'Google Analytics campaign source (utm_source)', 'woo-product-feed-pro' ); ?>:</span></td>
+                            <td><input type="text" class="input-field" name="utm_source" value="<?php echo esc_attr( $utm_source ); ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><span><?php esc_html_e( 'Google Analytics campaign medium (utm_medium)', 'woo-product-feed-pro' ); ?>:</span></td>
+                            <td><input type="text" class="input-field" name="utm_medium" value="<?php echo esc_attr( $utm_medium ); ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><span><?php esc_html_e( 'Google Analytics campaign name (utm_campaign)', 'woo-product-feed-pro' ); ?>:</span></td>
+                            <td><input type="text" class="input-field" name="utm_campaign" value="<?php echo esc_attr( $utm_campaign ); ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><span><?php esc_html_e( 'Google Analytics campaign term (utm_term)', 'woo-product-feed-pro' ); ?>:</span></td>
+                            <td><input type="hidden" name="utm_term" value="id"><input type="text" class="input-field" value="[productId]" disabled/> <i>(<?php esc_html_e( 'dynamically added Product ID', 'woo-product-feed-pro' ); ?>)</i></td>
+                        </tr>
+                        <tr>
+                            <td><span><?php esc_html_e( 'Google Analytics campaign content (utm_content)', 'woo-product-feed-pro' ); ?>:</span></td>
+                            <td><input type="text" class="input-field" name="utm_content" value="<?php echo esc_attr( $utm_content ); ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><span><?php esc_html_e( 'Remove products that did not have sales in the last days', 'woo-product-feed-pro' ); ?>: <a href="https://adtribes.io/create-feed-performing-products/" target="_blank">What does this do?</a></span></td>
+                            <td><input type="text" class="input-field" name="total_product_orders_lookback" value="<?php echo esc_attr( $total_product_orders_lookback ); ?>" /> days</td>
+                        </tr>
 
-                <tr>
-                    <td colspan="2">
-                        <?php
-                        if ( isset( $manage_project ) ) {
-                            ?>
-                            <input type="hidden" name="channel_hash" value="<?php echo "$project[channel_hash]"; ?>">
-                            <input type="hidden" name="project_update" id="project_update" value="yes">
-                            <input type="hidden" name="project_hash" value="<?php echo "$project[project_hash]"; ?>">
-                            <input type="hidden" name="step" value="100">
-                            <input type="hidden" name="woosea_page" value="analytics">
-                            <input type="submit" id="savebutton" value="Save">
-                            <?php
-                        } else {
-                        ?>
-                            <input type="hidden" name="channel_hash" value="<?php echo "$project[channel_hash]"; ?>">
-                            <input type="hidden" name="project_hash" value="<?php echo "$project[project_hash]"; ?>">
-                            <input type="hidden" name="step" value="101">
-                            <input type="hidden" name="woosea_page" value="analytics">
-                            <input type="submit" id="savebutton" value="Generate Product Feed">
-                        <?php
-                        }
-                        ?>
-                    </td>
-                </tr>
-                </table>
+                        <tr>
+                            <td colspan="2">
+                                <?php
+                                if ( isset( $manage_project ) ) {
+                                    ?>
+                                    <input type="hidden" name="channel_hash" value="<?php echo esc_attr( $channel_hash ); ?>">
+                                    <input type="hidden" name="project_update" id="project_update" value="yes">
+                                    <input type="hidden" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
+                                    <input type="hidden" name="step" value="100">
+                                    <input type="hidden" name="woosea_page" value="analytics">
+                                    <input type="submit" id="savebutton" value="Save">
+                                    <?php
+                                } else {
+                                ?>
+                                    <input type="hidden" name="channel_hash" value="<?php echo esc_attr( $channel_hash ); ?>">
+                                    <input type="hidden" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
+                                    <input type="hidden" name="step" value="101">
+                                    <input type="hidden" name="woosea_page" value="analytics">
+                                    <input type="submit" id="savebutton" value="Generate Product Feed">
+                                <?php
+                                }
+                                ?>
+                            </td>
+                        </tr>
+                    </table>
                 </form>
             </tbody>
         </div>

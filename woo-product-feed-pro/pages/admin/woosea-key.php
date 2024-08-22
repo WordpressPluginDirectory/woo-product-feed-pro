@@ -38,7 +38,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <li><?php esc_html_e( 'Remarketing and advanced pixel support.', 'woo-product-feed-pro' ); ?></li>
                             <li><?php esc_html_e( 'Advanced data manipulation with extra conditions & filters.', 'woo-product-feed-pro' ); ?></li>
                         </ul>
-                        <a href="https://adtribes.io/pro-vs-elite/?utm_source=pfp&utm_medium=license&utm_campaign=upgradelicensebutton" target="_blank" rel="noopener noreferrer" class="button button-pink button-hero mb-1">
+                        <a href="https://adtribes.io/pricing/?utm_source=pfp&utm_medium=license&utm_campaign=upgradelicensebutton" target="_blank" rel="noopener noreferrer" class="button button-pink button-hero mb-1">
                                 <?php esc_html_e( 'Get Product Feed Elite & Unlock All Features', 'woo-product-feed-pro' ); ?>
                         </a>
                         <div class="learn-more">

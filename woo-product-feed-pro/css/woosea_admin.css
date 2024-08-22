@@ -139,6 +139,15 @@
   text-transform: uppercase;
 }
 
+.woo-product-feed-pro-table .woo-product-feed-pro-table--empty td {
+  padding-top: 1.5em;
+  padding-bottom: 1.5em;
+}
+
+.woo-product-feed-pro-table .woo-product-feed-pro-table--empty td p {
+  display: inline;
+}
+
 /* The switch - the box around the slider */
 .woo-product-feed-pro-switch {
   position: relative;
@@ -373,9 +382,6 @@ input:checked + .woo-product-feed-pro-slider:before {
   width: 100%;
   -moz-border-radius: 5px;
   border-radius: 5px;
-  -moz-box-shadow: 0 0 5px #888;
-  -webkit-box-shadow: 0 0 5px #888;
-  box-shadow: 0 0 5px #888;
 }
 
 .woo-product-feed-pro-debug-info {
@@ -407,4 +413,59 @@ input:checked + .woo-product-feed-pro-slider:before {
   50% {
     opacity: 0;
   }
+}
+
+.select2-container .woo-sea-select2-selection, 
+.select2-container .woo-sea-select2-selection .select2-selection__arrow {
+  height: 44px !important;
+}
+
+.select2-container .woo-sea-select2-selection .select2-selection__rendered {
+  line-height: 44px !important;
+}
+
+/* Sidebar */
+
+.woo-product-feed-pro-sidebar-upgrade-button {
+  display: inline-block;
+  margin: 0 0 1em;
+  padding: 0.5em 1em;
+  background: #E63E77;
+  color: #ffffff;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 50px;
+}
+
+.woo-product-feed-pro-sidebar-upgrade-button:hover {
+  background: #E63E77;
+  color: #ffffff;
+}
+
+.woo-product-feed-pro-resources {
+  margin-top: 6px;
+  margin-bottom: 3px;
+}
+
+.woo-product-feed-pro-resources li {
+  display: inline-block;
+}
+
+.woo-product-feed-pro-resources li a {
+  display: block;
+  background: #e5e5e5;
+  color: #404040;
+  padding: 10px;
+  margin: 2px;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.woo-product-feed-pro-resources li a:hover {
+  background: #eee;
+}
+
+.woo-product-feed-pro-helpful-articles-list {
+  margin-top: 3px;
+  margin-bottom: 6px;
 }

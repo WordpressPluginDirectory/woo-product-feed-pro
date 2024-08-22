@@ -4,8 +4,8 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: Google Shopping Feed, Meta feed, Facebook catalog feed, WooCommerce Product Feed, Product Feed
 Requires at least: 5.4
-Tested up to: 6.5
-Stable tag: 13.3.3
+Tested up to: 6.6
+Stable tag: 13.3.5.1
 
 Most popular WooCommerce product feed plugin supporting Google shopping feed, meta/facebook feed, bing product feed & more.
 
@@ -301,6 +301,12 @@ Please report your security reports or plugin vulnerabilities to security@adtrib
 
 == Installation ==
 
+1. Upload the `woo-product-feed-pro/` folder to the `/wp-content/plugins/` directory
+1. Activate the plugin through the 'Plugins' menu in WordPress
+1. Visit the new Product Feed menu on the left and click Create Feed.
+1. Select your feed type and map any extra product fields. We'll take care of the rest!
+1. See the [getting started guides](https://wholesalesuiteplugin.com/knowledge-base/) for this plugin.
+
 === From within Wordpress ===
 1. Visit Plugins > Add New;
 1. Search for Product Feed PRO for WooCommerce;
@@ -374,6 +380,27 @@ Questions left or unanswered? Please do not hesitate to contact us at support@ad
 8. Set the basic configurations for your product feed
 
 === Changelog ===
+
+= 13.3.5.1 (2024-08-22) =
+* Bug Fix: Product Feed data is not migrated to custom post type on update
+
+= 13.3.5 (2024-08-21) =
+* Bug Fix: Identifier requires to update for Google Local Products Inventory feed
+* Bug Fix: Field mapping prefix and suffix adding space after prefix and before suffix
+* Bug Fix: The 'g:' prefix for google feeds channel is not stripped for TSV format
+* Bug Fix: The product category fields is generated with empty value in the first index
+* Improvement: Update menu item to new branding colors
+* Improvement: Refactor product feeds to use custom post type
+* Improvement: Declare WooCommerce HPOS compatibility
+
+= 13.3.4 (2024-07-03) =
+* Improvement: UI/UX: Use Select2 js on large select option input
+* Improvement: UI/UX: Add tooltip on Feed filters and rules columns
+* Improvement: Add lite bar on admin pages
+* Improvement: Add Help and About pages
+* Improvement: Add translation POT file
+* Improvement: Limit the amount of history products in system report
+* Improvement: Update options to not to be autoloaded
 
 = 13.3.3 (2024-06-10) =
 * Bug Fix: PHP Warning on creating product feed without active license

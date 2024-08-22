@@ -1,5 +1,8 @@
 <?php // phpcs:disable
 
+use AdTribes\PFP\Factories\Product_Feed;
+use AdTribes\PFP\Helpers\Product_Feed_Helper;
+
 /**
  * Enqueue css assets.
  *
@@ -76,6 +79,7 @@ function woosea_scripts( $hook ) {
         // JS for manage projects page.
         wp_register_script( 'woosea_manage-js', plugin_dir_url( __FILE__ ) . 'js/woosea_manage.js?yo=12', array( 'clipboard' ), WOOCOMMERCESEA_PLUGIN_VERSION, true );
         wp_enqueue_script( 'woosea_manage-js' );
+        wp_localize_script( 'woosea_manage-js', 'woosea_manage_params', array( 'total_product_feeds' => Product_Feed_Helper::get_total_product_feed() ) );
     }
 }
 add_action( 'admin_enqueue_scripts', 'woosea_scripts' );
@@ -93,7 +97,7 @@ function woosea_plugin_action_links( $links, $file ) {
         $plugin_links[] = '<a href="https://adtribes.io/support/?utm_source=pfp&utm_medium=pluginpage&utm_campaign=support" target="_blank" rel="noopener noreferrer">Support</a>';
         $plugin_links[] = '<a href="https://adtribes.io/tutorials/?utm_source=pfp&utm_medium=pluginpage&utm_campaign=tutorials" target="_blank" rel="noopener noreferrer">Tutorials</a>';
         $plugin_links[] = '<a href="' . admin_url( 'admin.php?page=woosea_manage_settings' ) . '">Settings</a>';
-        $plugin_links[] = '<a href="https://adtribes.io/pro-vs-elite/?utm_source=pfp&utm_medium=pluginpage&utm_campaign=go elite" target="_blank" style="color:green;" rel="noopener noreferrer"><b>Upgrade To Elite</b></a>';
+        $plugin_links[] = '<a href="https://adtribes.io/pricing/?utm_source=pfp&utm_medium=pluginpage&utm_campaign=goelite" target="_blank" style="color:green;" rel="noopener noreferrer"><b>Upgrade To Elite</b></a>';
 
         // add the links to the list of links already there.
         foreach ( $plugin_links as $link ) {
@@ -749,7 +753,7 @@ function woosea_getelite_notification() {
         'show'      => 'no',
         'timestamp' => date( 'd-m-Y' ),
     );
-    update_option( 'woosea_getelite_notification', $get_elite_notice );
+    update_option( 'woosea_getelite_notification', $get_elite_notice, false );
     wp_send_json_success( __( 'Notification successfully dismissed', 'woo-product-feed-pro' ) );
 }
 add_action( 'wp_ajax_woosea_getelite_notification', 'woosea_getelite_notification' );
@@ -770,7 +774,7 @@ function woosea_getelite_active_notification() {
             'show'      => 'no',
             'timestamp' => date( 'd-m-Y' ),
         );
-        update_option( 'woosea_getelite_active_notification', $get_elite_notice );
+        update_option( 'woosea_getelite_active_notification', $get_elite_notice, false );
     }
 }
 add_action( 'wp_ajax_woosea_getelite_active_notification', 'woosea_getelite_active_notification' );
@@ -798,14 +802,10 @@ function woosea_inject_ajax( $order_id ) {
     $customer_id = $order->get_user_id();
     $total       = $order->get_total();
 
-    update_option( 'last_order_id', $order_id );
+    update_option( 'last_order_id', $order_id, false );
 }
 add_action( 'woocommerce_thankyou', 'woosea_inject_ajax' );
 
-/**
- * Register own cron hook(s), it will execute the woosea_create_all_feeds that will generate all feeds on scheduled event.
- */
-add_action( 'woosea_cron_hook', 'woosea_create_all_feeds' ); // create a cron hook.
 
 /**
  * Add WooCommerce SEA plugin to Menu.
@@ -837,7 +837,7 @@ function woosea_ajax() {
         if ( ! is_array( $attributes_dropdown ) ) {
             $attributes_obj      = new WooSEA_Attributes();
             $attributes_dropdown = $attributes_obj->get_product_attributes_dropdown();
-                update_option( 'attributes_dropdown', $attributes_dropdown, 'yes' );
+                update_option( 'attributes_dropdown', $attributes_dropdown, false );
         }
 
         $data = array(
@@ -927,7 +927,7 @@ function woosea_save_adwords_conversion_id() {
     if ( array_intersect( $allowed_roles, $user->roles ) ) {
         $adwords_conversion_id = sanitize_text_field( $_POST['adwords_conversion_id'] );
         $adwords_conversion_id = woosea_sanitize_xss( $adwords_conversion_id );
-        update_option( 'woosea_adwords_conversion_id', $adwords_conversion_id );
+        update_option( 'woosea_adwords_conversion_id', $adwords_conversion_id, false );
     }
 }
 add_action( 'wp_ajax_woosea_save_adwords_conversion_id', 'woosea_save_adwords_conversion_id' );
@@ -960,7 +960,7 @@ function woosea_save_facebook_pixel_id() {
     if ( array_intersect( $allowed_roles, $user->roles ) ) {
         $facebook_pixel_id = sanitize_text_field( $_POST['facebook_pixel_id'] );
         $facebook_pixel_id = woosea_sanitize_xss( $facebook_pixel_id );
-        update_option( 'woosea_facebook_pixel_id', $facebook_pixel_id );
+        update_option( 'woosea_facebook_pixel_id', $facebook_pixel_id, false );
     }
 }
 add_action( 'wp_ajax_woosea_save_facebook_pixel_id', 'woosea_save_facebook_pixel_id' );
@@ -977,7 +977,7 @@ function woosea_save_facebook_capi_token() {
     if ( array_intersect( $allowed_roles, $user->roles ) ) {
         $facebook_capi_token = sanitize_text_field( $_POST['facebook_capi_token'] );
         $facebook_capi_token = woosea_sanitize_xss( $facebook_capi_token );
-        update_option( 'woosea_facebook_capi_token', $facebook_capi_token );
+        update_option( 'woosea_facebook_capi_token', $facebook_capi_token, false );
     }
 }
 add_action( 'wp_ajax_woosea_save_facebook_capi_token', 'woosea_save_facebook_capi_token' );
@@ -1009,28 +1009,24 @@ function woosea_add_mass_cat_mapping() {
             );
         }
 
-        $project = WooSEA_Update_Project::get_project_data( sanitize_text_field( $project_hash ) );
+        $project = new Product_Feed( $project_hash );
+
         // This happens during configuration of a new feed.
-            if ( empty( $project ) ) {
-            $project_temp = get_option( 'channel_project' );
+        if ( $project->id == 0 ) {
+            $project_temp = get_option( ADT_OPTION_TEMP_PRODUCT_FEED );
                 if ( array_key_exists( 'mappings', $project_temp ) ) {
                 $project_temp['mappings'] = $mappings + $project_temp['mappings'];
             } else {
                 $project_temp['mappings'] = $mappings;
             }
-                    update_option( 'channel_project', $project_temp, 'yes' );
+                    update_option( ADT_OPTION_TEMP_PRODUCT_FEED, $project_temp, false );
         } else {
             // Only update the ones that changed.
             foreach ( $mappings as $categoryId => $catArray ) {
-                if ( is_array( $project['mappings'] ) ) {
-                    if ( array_key_exists( $categoryId, $project['mappings'] ) ) {
-                        $project['mappings'][ $categoryId ] = $catArray;
-                    } else {
-                        $project['mappings'][ $categoryId ] = $catArray;
-                    }
-                }
+                $project->set_mappings( $catArray ,$categoryId );
             }
-            $project_updated = WooSEA_Update_Project::update_project_data( $project );
+            $project->save();
+
         }
         $data = array(
             'status_mapping' => 'true',
@@ -1051,27 +1047,31 @@ function woosea_add_cat_mapping() {
     $project_hash    = sanitize_text_field( $_POST['project_hash'] );
     $criteria        = sanitize_text_field( $_POST['criteria'] );
     $status_mapping  = 'false';
-    $project         = WooSEA_Update_Project::get_project_data( sanitize_text_field( $project_hash ) );
+    $project         = new Product_Feed( $project_hash );
 
     // This is during the configuration of a new feed.
-    if ( empty( $project ) ) {
-        $project_temp = get_option( 'channel_project' );
+    if ( $project->id == 0 ) {
+        $project_temp = get_option( ADT_OPTION_TEMP_PRODUCT_FEED );
 
         $project_temp['mappings'][ $rowCount ]['rowCount']        = $rowCount;
         $project_temp['mappings'][ $rowCount ]['categoryId']      = $rowCount;
         $project_temp['mappings'][ $rowCount ]['criteria']        = $criteria;
         $project_temp['mappings'][ $rowCount ]['map_to_category'] = $map_to_category;
 
-                update_option( 'channel_project', $project_temp, 'yes' );
+        update_option( ADT_OPTION_TEMP_PRODUCT_FEED, $project_temp, false );
         $status_mapping = 'true';
         // This is updating an existing product feed.
     } else {
-        $project['mappings'][ $rowCount ]['rowCount']        = $rowCount;
-        $project['mappings'][ $rowCount ]['categoryId']      = $rowCount;
-        $project['mappings'][ $rowCount ]['criteria']        = $criteria;
-        $project['mappings'][ $rowCount ]['map_to_category'] = $map_to_category;
-
-        $project_updated = WooSEA_Update_Project::update_project_data( $project );
+        $project->set_mappings( 
+            array(
+                'rowCount'        => $rowCount,
+                'categoryId'      => $rowCount,
+                'criteria'        => $criteria,
+                'map_to_category' => $map_to_category,
+            )
+            ,$rowCount
+        );
+        $project->save();
         $status_mapping  = 'true';
     }
 
@@ -1862,38 +1862,6 @@ function woosea_shipping_zones() {
 add_action( 'wp_ajax_woosea_shipping_zones', 'woosea_shipping_zones' );
 
 /**
- * Determine if any of the feeds is updating.
- */
-function woosea_check_processing() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator', 'editor', 'author' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        $processing  = 'false';
-        $feed_config = get_option( 'cron_projects' );
-        $found       = false;
-
-        foreach ( $feed_config as $key => $val ) {
-            if ( array_key_exists( 'running', $val ) ) {
-                if ( in_array( $val['running'], array( 'true', 'processing', 'stopped', 'not run yet' ) ) ) {
-                    $processing = 'true';
-                }
-            }
-        }
-
-        $data = array(
-            'processing' => $processing,
-        );
-
-        echo json_encode( $data );
-        wp_die();
-    }
-}
-add_action( 'wp_ajax_woosea_check_processing', 'woosea_check_processing' );
-
-/**
  * Get the dynamic attributes.
  */
 function woosea_special_attributes() {
@@ -1929,289 +1897,6 @@ function woosea_channel() {
 add_action( 'wp_ajax_woosea_channel', 'woosea_channel' );
 
 /**
- * Delete a project from cron.
- */
-function woosea_project_delete() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-
-        $project_hash = sanitize_text_field( $_POST['project_hash'] );
-        $feed_config  = get_option( 'cron_projects' );
-        $found        = false;
-
-        foreach ( $feed_config as $key => $val ) {
-            if ( isset( $val['project_hash'] ) && ( $val['project_hash'] == $project_hash ) ) {
-                $found      = true;
-                $found_key  = $key;
-                $upload_dir = wp_upload_dir();
-                $base       = $upload_dir['basedir'];
-                $path       = $base . '/woo-product-feed-pro/' . $val['fileformat'];
-                $file       = $path . '/' . sanitize_file_name( $val['filename'] ) . '.' . $val['fileformat'];
-            }
-        }
-
-        if ( $found == 'true' ) {
-            // Remove project from project array.
-            unset( $feed_config[ $found_key ] );
-
-            // Update cron.
-            update_option( 'cron_projects', $feed_config, 'no' );
-
-            // Remove project file.
-            @unlink( $file );
-        }
-    }
-}
-add_action( 'wp_ajax_woosea_project_delete', 'woosea_project_delete' );
-
-/**
- * Stop processing of a project.
- */
-function woosea_project_cancel() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-
-        $project_hash = sanitize_text_field( $_POST['project_hash'] );
-        $feed_config  = get_option( 'cron_projects' );
-
-        foreach ( $feed_config as $key => $val ) {
-            if ( $val['project_hash'] == $project_hash ) {
-
-                $batch_project = 'batch_project_' . $project_hash;
-                delete_option( $batch_project );
-
-                $feed_config[ $key ]['nr_products_processed'] = 0;
-
-                // Set processing status on ready.
-                $feed_config[ $key ]['running']      = 'stopped';
-                $feed_config[ $key ]['last_updated'] = date( 'd M Y H:i' );
-
-                // Delete processed product array for preventing duplicates.
-                delete_option( 'woosea_duplicates' );
-
-                // In 1 minute from now check the amount of products in the feed and update the history count.
-                wp_schedule_single_event( time() + 60, 'woosea_update_project_stats', array( $val['project_hash'] ) );
-            }
-        }
-
-        update_option( 'cron_projects', $feed_config, 'no' );
-    }
-}
-add_action( 'wp_ajax_woosea_project_cancel', 'woosea_project_cancel' );
-
-/**
- * Get the processing status of a project feed.
- */
-function woosea_project_processing_status() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator', 'editor', 'author' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-
-        $project_hash = sanitize_text_field( $_POST['project_hash'] );
-        $feed_config  = get_option( 'cron_projects' );
-        $proc_perc    = 0;
-
-        foreach ( $feed_config as $key => $val ) {
-            if ( isset( $val['project_hash'] ) && ( $val['project_hash'] === $project_hash ) ) {
-                $this_feed = $val;
-            }
-        }
-
-        if ( $this_feed['running'] == 'ready' ) {
-            $proc_perc = 100;
-        } elseif ( $this_feed['running'] == 'not run yet' ) {
-            $proc_perc = 999;
-        } elseif ( isset( $this_feed['nr_products'] ) ) {
-            if ( $this_feed['nr_products'] > 0 ) {
-                $proc_perc = round( ( $this_feed['nr_products_processed'] / $this_feed['nr_products'] ) * 100 );
-            }
-        }
-
-        $data = array(
-            'project_hash' => $project_hash,
-            'running'      => $this_feed['running'],
-            'proc_perc'    => $proc_perc,
-        );
-
-        echo json_encode( $data );
-        wp_die();
-    }
-}
-add_action( 'wp_ajax_woosea_project_processing_status', 'woosea_project_processing_status' );
-
-/**
- * Copy a project.
- */
-function woosea_project_copy() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-
-        $project_hash  = sanitize_text_field( $_POST['project_hash'] );
-        $feed_config   = get_option( 'cron_projects' );
-        $max_key       = max( array_keys( $feed_config ) );
-        $add_project   = array();
-        $upload_dir    = wp_upload_dir();
-        $external_base = $upload_dir['baseurl'];
-
-        foreach ( $feed_config as $key => $val ) {
-            if ( $val['project_hash'] == $project_hash ) {
-                $val['projectname'] = 'Copy ' . $val['projectname'];
-
-                // New code to create the project hash so dependency on openSSL is removed.
-                $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                $pieces   = array();
-                $length   = 32;
-                $max      = mb_strlen( $keyspace, '8bit' ) - 1;
-
-                for ( $i = 0; $i < $length; ++$i ) {
-                    $pieces [] = $keyspace[ random_int( 0, $max ) ];
-                }
-
-                $val['project_hash'] = implode( '', $pieces );
-                $val['filename']     = $val['project_hash'];
-                $val['utm_campaign'] = 'Copy ' . $val['utm_campaign'];
-                $val['last_updated'] = '';
-                $val['running']      = 'not run yet';
-
-                // Construct product feed URL.
-                    $external_path                = $external_base . '/woo-product-feed-pro/' . $val['fileformat'];
-                            $val['external_file'] = $external_path . '/' . sanitize_file_name( $val['filename'] ) . '.' . $val['fileformat'];
-
-                // To build the new project row on the manage feed page.
-                $projecthash   = $val['project_hash'];
-                $projectname   = $val['projectname'];
-                $channel       = $val['name'];
-                $fileformat    = $val['fileformat'];
-                $interval      = $val['cron'];
-                $external_file = $val['external_file'];
-
-                // Save the copied project.
-                $new_key                 = $max_key + 1;
-                $add_project[ $new_key ] = $val;
-
-                array_push( $feed_config, $add_project[ $new_key ] );
-                update_option( 'cron_projects', $feed_config, 'no' );
-
-                // Do not start processing, user wants to make changes to the copied project.
-                $copy_status = 'true';
-            }
-        }
-
-        $data = array(
-            'project_hash'  => $projecthash,
-            'channel'       => $channel,
-            'projectname'   => $projectname,
-            'fileformat'    => $fileformat,
-            'interval'      => $interval,
-            'external_file' => $external_file,
-            'copy_status'   => $copy_status,
-        );
-
-        echo json_encode( $data );
-        wp_die();
-    }
-}
-add_action( 'wp_ajax_woosea_project_copy', 'woosea_project_copy' );
-
-/**
- * Refresh a project.
- */
-function woosea_project_refresh() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    // Force garbage collection dump.
-    gc_enable();
-    gc_collect_cycles();
-
-    $project_hash  = sanitize_text_field( $_POST['project_hash'] );
-    $feed_config   = get_option( 'cron_projects' );
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator', 'editor', 'author' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-
-        // Make sure content of feeds is not being cached.
-
-        // Make sure feeds are not being cached.
-        $no_caching = new WooSEA_Caching();
-
-        // LiteSpeed Caching.
-        if ( class_exists( 'LiteSpeed\Core' ) || defined( 'LSCWP_DIR' ) ) {
-                $no_caching->litespeed_cache();
-        }
-
-        // WP Fastest Caching.
-        if ( class_exists( 'WpFastestCache' ) ) {
-                $no_caching->wp_fastest_cache();
-        }
-
-        // WP Super Caching.
-        if ( function_exists( 'wpsc_init' ) ) {
-                $no_caching->wp_super_cache();
-        }
-
-        // Breeze Caching.
-        if ( class_exists( 'Breeze_Admin' ) ) {
-                $no_caching->breeze_cache();
-        }
-
-        // WP Optimize Caching.
-        if ( class_exists( 'WP_Optimize' ) ) {
-                $no_caching->wp_optimize_cache();
-        }
-
-        // Cache Enabler.
-        if ( class_exists( 'Cache_Enabler' ) ) {
-                $no_caching->cache_enabler_cache();
-        }
-
-        // Swift Performance Lite.
-        if ( class_exists( 'Swift_Performance_Lite' ) ) {
-                $no_caching->swift_performance_cache();
-        }
-
-        // Comet Cache.
-        if ( is_plugin_active( 'comet-cache/comet-cache.php' ) ) {
-                $no_caching->comet_cache();
-        }
-
-        // HyperCache.
-        if ( class_exists( 'HyperCache' ) ) {
-                $no_caching->hyper_cache();
-        }
-
-        foreach ( $feed_config as $key => $val ) {
-            if ( isset( $val['project_hash'] ) && ( $val['project_hash'] == $project_hash ) ) {
-                $batch_project = 'batch_project_' . $project_hash;
-
-                if ( ! get_option( $batch_project ) ) {
-                    update_option( $batch_project, $val, 'no' );
-                    $final_creation = woosea_continue_batch( $project_hash );
-                } else {
-                    $final_creation = woosea_continue_batch( $project_hash );
-                }
-            }
-        }
-    }
-}
-add_action( 'wp_ajax_woosea_project_refresh', 'woosea_project_refresh' );
-
-/**
  * Add or remove custom attributes to the feed configuration drop-downs.
  */
 function woosea_add_attributes() {
@@ -2230,7 +1915,7 @@ function woosea_add_attributes() {
                 $extra_attributes = array(
                     $attribute_value => $attribute_name,
                 );
-                update_option( 'woosea_extra_attributes', $extra_attributes, 'no' );
+                update_option( 'woosea_extra_attributes', $extra_attributes, false );
             }
         } else {
             $extra_attributes = get_option( 'woosea_extra_attributes' );
@@ -2241,12 +1926,12 @@ function woosea_add_attributes() {
                         $attribute_value => $attribute_name,
                     );
                     $extra_attributes = array_merge( $extra_attributes, $add_attribute );
-                    update_option( 'woosea_extra_attributes', $extra_attributes, 'no' );
+                    update_option( 'woosea_extra_attributes', $extra_attributes, false );
                 }
             } elseif ( $active == 'false' ) {
                     // remove from extra attributes array.
                     $extra_attributes = array_diff( $extra_attributes, array( $attribute_value => $attribute_name ) );
-                    update_option( 'woosea_extra_attributes', $extra_attributes, 'no' );
+                    update_option( 'woosea_extra_attributes', $extra_attributes, false );
             }
         }
 
@@ -2254,49 +1939,6 @@ function woosea_add_attributes() {
     }
 }
 add_action( 'wp_ajax_woosea_add_attributes', 'woosea_add_attributes' );
-
-/**
- * Change status of a project from active to inactive or visa versa.
- */
-function woosea_project_status() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator', 'editor', 'author' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        $project_hash = sanitize_text_field( $_POST['project_hash'] );
-        $active       = sanitize_text_field( $_POST['active'] );
-        $feed_config  = get_option( 'cron_projects' );
-        $number_feeds = count( $feed_config );
-
-        if ( $number_feeds > 0 ) {
-            foreach ( $feed_config as $key => $val ) {
-                if ( $val['project_hash'] == $project_hash ) {
-                    $feed_config[ $key ]['active'] = $active;
-                    $upload_dir                    = wp_upload_dir();
-                    $base                          = $upload_dir['basedir'];
-                    $path                          = $base . '/woo-product-feed-pro/' . $val['fileformat'];
-                    $file                          = $path . '/' . sanitize_file_name( $val['filename'] ) . '.' . $val['fileformat'];
-                }
-            }
-        }
-
-        // When project is put on inactive, delete the product feed.
-        if ( $active == 'false' ) {
-            @unlink( $file );
-        }
-
-        // Regenerate product feed.
-        if ( $active == 'true' ) {
-            $update_project = woosea_project_refresh( $project_hash );
-        }
-
-        // Update cron with new project status.
-        update_option( 'cron_projects', $feed_config, 'no' );
-    }
-}
-add_action( 'wp_ajax_woosea_project_status', 'woosea_project_status' );
 
 /**
  * Register interaction with the review request notification.
@@ -2309,115 +1951,10 @@ function woosea_review_notification() {
     $allowed_roles = array( 'administrator', 'editor', 'author' );
 
     if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        update_option( 'woosea_review_interaction', 'yes', 'yes' );
+        update_option( 'woosea_review_interaction', 'yes', false );
     }
 }
 add_action( 'wp_ajax_woosea_review_notification', 'woosea_review_notification' );
-
-/**
- * This function enables the setting to fix the.
- * WooCommerce structured data bug.
- */
-function woosea_enable_structured_data() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $status        = sanitize_text_field( $_POST['status'] );
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        if ( $status == 'off' ) {
-            update_option( 'structured_data_fix', 'no', 'yes' );
-        } else {
-            update_option( 'structured_data_fix', 'yes', 'yes' );
-        }
-    }
-}
-add_action( 'wp_ajax_woosea_enable_structured_data', 'woosea_enable_structured_data' );
-
-/**
- * This function enables the setting to remove VAT from structured data prices
- */
-function woosea_structured_vat() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        $status = sanitize_text_field( $_POST['status'] );
-
-        if ( $status == 'off' ) {
-            update_option( 'structured_vat', 'no', 'yes' );
-        } else {
-            update_option( 'structured_vat', 'yes', 'yes' );
-        }
-    }
-}
-add_action( 'wp_ajax_woosea_structured_vat', 'woosea_structured_vat' );
-
-/**
- * This function enables the setting to add Product data manipulation support
- */
-function woosea_add_manipulation() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        $status = sanitize_text_field( $_POST['status'] );
-
-        if ( $status == 'off' ) {
-            update_option( 'add_manipulation_support', 'no', 'yes' );
-        } else {
-            update_option( 'add_manipulation_support', 'yes', 'yes' );
-        }
-    }
-}
-add_action( 'wp_ajax_woosea_add_manipulation', 'woosea_add_manipulation' );
-
-/**
- * This function enables the setting to add WPML support.
- */
-function woosea_add_wpml() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        $status = sanitize_text_field( $_POST['status'] );
-
-        if ( $status == 'off' ) {
-            update_option( 'add_wpml_support', 'no', 'yes' );
-        } else {
-            update_option( 'add_wpml_support', 'yes', 'yes' );
-        }
-    }
-}
-add_action( 'wp_ajax_woosea_add_wpml', 'woosea_add_wpml' );
-
-/**
- * This function enables the setting to add Aelia support.
- */
-function woosea_add_aelia() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        $status = sanitize_text_field( $_POST['status'] );
-
-        if ( $status == 'off' ) {
-            update_option( 'add_aelia_support', 'no', 'yes' );
-        } else {
-            update_option( 'add_aelia_support', 'yes', 'yes' );
-        }
-    }
-}
-add_action( 'wp_ajax_woosea_add_aelia', 'woosea_add_aelia' );
 
 /**
  * This function enables the setting to use Mother main image for all product variations.
@@ -2432,9 +1969,9 @@ function woosea_add_mother_image() {
         $status = sanitize_text_field( $_POST['status'] );
 
         if ( $status == 'off' ) {
-            update_option( 'add_mother_image', 'no', 'yes' );
+            update_option( 'add_mother_image', 'no' );
         } else {
-            update_option( 'add_mother_image', 'yes', 'yes' );
+            update_option( 'add_mother_image', 'yes' );
         }
     }
 }
@@ -2453,9 +1990,9 @@ function woosea_add_all_shipping() {
         $status = sanitize_text_field( $_POST['status'] );
 
         if ( $status == 'off' ) {
-            update_option( 'add_all_shipping', 'no', 'yes' );
+            update_option( 'add_all_shipping', 'no' );
         } else {
-            update_option( 'add_all_shipping', 'yes', 'yes' );
+            update_option( 'add_all_shipping', 'yes' );
         }
     }
 }
@@ -2474,9 +2011,9 @@ function woosea_free_shipping() {
         $status = sanitize_text_field( $_POST['status'] );
 
         if ( $status == 'off' ) {
-            update_option( 'free_shipping', 'no', 'yes' );
+            update_option( 'free_shipping', 'no' );
         } else {
-            update_option( 'free_shipping', 'yes', 'yes' );
+            update_option( 'free_shipping', 'yes' );
         }
     }
 }
@@ -2495,9 +2032,9 @@ function woosea_local_pickup_shipping() {
         $status = sanitize_text_field( $_POST['status'] );
 
         if ( $status == 'off' ) {
-            update_option( 'local_pickup_shipping', 'no', 'yes' );
+            update_option( 'local_pickup_shipping', 'no' );
         } else {
-            update_option( 'local_pickup_shipping', 'yes', 'yes' );
+            update_option( 'local_pickup_shipping', 'yes' );
         }
     }
 }
@@ -2516,9 +2053,9 @@ function woosea_remove_free_shipping() {
         $status = sanitize_text_field( $_POST['status'] );
 
         if ( $status == 'off' ) {
-            update_option( 'remove_free_shipping', 'no', 'yes' );
+            update_option( 'remove_free_shipping', 'no' );
         } else {
-            update_option( 'remove_free_shipping', 'yes', 'yes' );
+            update_option( 'remove_free_shipping', 'yes' );
         }
     }
 }
@@ -2537,9 +2074,9 @@ function woosea_add_woosea_logging() {
         $status = sanitize_text_field( $_POST['status'] );
 
         if ( $status == 'off' ) {
-            update_option( 'add_woosea_logging', 'no', 'yes' );
+            update_option( 'add_woosea_logging', 'no' );
         } else {
-            update_option( 'add_woosea_logging', 'yes', 'yes' );
+            update_option( 'add_woosea_logging', 'yes' );
         }
     }
 }
@@ -2558,34 +2095,13 @@ function woosea_add_woosea_basic() {
         $status = sanitize_text_field( $_POST['status'] );
 
         if ( $status == 'off' ) {
-            update_option( 'add_woosea_basic', 'no', 'yes' );
+            update_option( 'add_woosea_basic', 'no' );
         } else {
-            update_option( 'add_woosea_basic', 'yes', 'yes' );
+            update_option( 'add_woosea_basic', 'yes' );
         }
     }
 }
 add_action( 'wp_ajax_woosea_add_woosea_basic', 'woosea_add_woosea_basic' );
-
-/**
- * This function enables the setting to add CDATA to title and descriptions.
- */
-function woosea_add_woosea_cdata() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        $status = sanitize_text_field( $_POST['status'] );
-
-        if ( $status == 'off' ) {
-            update_option( 'add_woosea_cdata', 'no', 'yes' );
-        } else {
-            update_option( 'add_woosea_cdata', 'yes', 'yes' );
-        }
-    }
-}
-add_action( 'wp_ajax_woosea_add_woosea_cdata', 'woosea_add_woosea_cdata' );
 
 /**
  * This function enables the setting to add the Faceook pixel.
@@ -2600,34 +2116,13 @@ function woosea_add_facebook_pixel_setting() {
         $status = sanitize_text_field( $_POST['status'] );
 
         if ( $status == 'off' ) {
-            update_option( 'add_facebook_pixel', 'no', 'yes' );
+            update_option( 'add_facebook_pixel', 'no' );
         } else {
-            update_option( 'add_facebook_pixel', 'yes', 'yes' );
+            update_option( 'add_facebook_pixel', 'yes' );
         }
     }
 }
 add_action( 'wp_ajax_woosea_add_facebook_pixel_setting', 'woosea_add_facebook_pixel_setting' );
-
-/**
- * This function enables the setting to enable the Faceook Conversion API (CAPI).
- */
-function woosea_add_facebook_capi_setting() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        $status = sanitize_text_field( $_POST['status'] );
-
-        if ( $status == 'off' ) {
-            update_option( 'add_facebook_capi', 'no', 'yes' );
-        } else {
-            update_option( 'add_facebook_capi', 'yes', 'yes' );
-        }
-    }
-}
-add_action( 'wp_ajax_woosea_add_facebook_capi_setting', 'woosea_add_facebook_capi_setting' );
 
 /**
  * This function saves the value that needs to be used in the Facebook pixel content_ids parameter.
@@ -2642,9 +2137,9 @@ function woosea_facebook_content_ids() {
         $content_ids = sanitize_text_field( $_POST['content_ids'] );
 
         if ( $content_ids == 'variable' ) {
-            update_option( 'add_facebook_pixel_content_ids', 'variable', 'yes' );
+            update_option( 'add_facebook_pixel_content_ids', 'variable', false );
         } else {
-            update_option( 'add_facebook_pixel_content_ids', 'variation', 'yes' );
+            update_option( 'add_facebook_pixel_content_ids', 'variation', false );
         }
     }
 }
@@ -2663,9 +2158,9 @@ function woosea_add_remarketing() {
         $status = sanitize_text_field( $_POST['status'] );
 
         if ( $status == 'off' ) {
-            update_option( 'add_remarketing', 'no', 'yes' );
+            update_option( 'add_remarketing', 'no' );
         } else {
-            update_option( 'add_remarketing', 'yes', 'yes' );
+            update_option( 'add_remarketing', 'yes' );
         }
     }
 }
@@ -2684,34 +2179,13 @@ function woosea_add_batch() {
         $status = sanitize_text_field( $_POST['status'] );
 
         if ( $status == 'off' ) {
-            update_option( 'add_batch', 'no', 'yes' );
+            update_option( 'add_batch', 'no' );
         } else {
-            update_option( 'add_batch', 'yes', 'yes' );
+            update_option( 'add_batch', 'yes' );
         }
     }
 }
 add_action( 'wp_ajax_woosea_add_batch', 'woosea_add_batch' );
-
-/**
- * This function enables the setting to add identifiers GTIN, MPN, EAN, UPC, Brand and Condition.
- */
-function woosea_add_identifiers() {
-    check_ajax_referer( 'woosea_ajax_nonce', 'security' );
-
-    $user          = wp_get_current_user();
-    $allowed_roles = array( 'administrator' );
-
-    if ( array_intersect( $allowed_roles, $user->roles ) ) {
-        $status = sanitize_text_field( $_POST['status'] );
-
-        if ( $status == 'off' ) {
-            update_option( 'add_unique_identifiers', 'no', 'yes' );
-        } else {
-            update_option( 'add_unique_identifiers', 'yes', 'yes' );
-        }
-    }
-}
-add_action( 'wp_ajax_woosea_add_identifiers', 'woosea_add_identifiers' );
 
 /**
  * This function add the actual fields to the edit product page for single products
@@ -4154,72 +3628,6 @@ function woosea_save_custom_variable_fields( $post_id ) {
 add_action( 'woocommerce_save_product_variation', 'woosea_save_custom_variable_fields', 10, 1 );
 
 /**
- * Set project history: amount of products in the feed.
- *
- * @param string $project_hash The project hash.
- **/
-function woosea_update_project_history( $project_hash ) {
-    $feed_config = get_option( 'cron_projects', array() );
-    if ( ! is_array( $feed_config ) ) {
-        return;
-    }
-
-    foreach ( $feed_config as $key => $project ) {
-        if ( $project['project_hash'] !== $project_hash ) {
-            continue;
-        }
-
-        $nr_products = 0;
-        $upload_dir  = wp_upload_dir();
-            $base    = $upload_dir['basedir'];
-            $path    = $base . '/woo-product-feed-pro/' . $project['fileformat'];
-            $file    = $path . '/' . sanitize_file_name( $project['filename'] ) . '.' . $project['fileformat'];
-
-            if ( file_exists( $file ) ) {
-                if ( ( $project['fileformat'] == 'csv' ) || ( $project['fileformat'] == 'txt' ) ) {
-                    $fp              = file( $file );
-                    $raw_nr_products = count( $fp );
-                    $nr_products     = $raw_nr_products - 1; // header row of csv.
-                } else {
-                    $xml = simplexml_load_file( $file, 'SimpleXMLElement', LIBXML_NOCDATA );
-
-                if ( $project['name'] == 'Yandex' ) {
-                    if ( isset( $xml->offers->offer ) ) {
-                                    $nr_products = count( $xml->offers->offer );
-                    }
-                } elseif ( $project['taxonomy'] == 'none' ) {
-                    if ( is_countable( $xml->product ) ) {
-                        $nr_products = count( $xml->product );
-                    }
-                } else {
-                    $nr_products = count( $xml->channel->item );
-                }
-            }
-        }
-
-        $count_timestamp = date( 'd M Y H:i' );
-        $number_run      = array(
-            $count_timestamp => $nr_products,
-        );
-
-        $feed_config = get_option( 'cron_projects' );
-
-        foreach ( $feed_config as $key => $val ) {
-            if ( ( $val['project_hash'] == $project['project_hash'] ) && ( $val['running'] == 'ready' ) ) {
-                if ( array_key_exists( 'history_products', $feed_config[ $key ] ) ) {
-                    $feed_config[ $key ]['history_products'][ $count_timestamp ] = $nr_products;
-                } else {
-                    $feed_config[ $key ]['history_products'] = $number_run;
-                }
-            }
-        }
-
-        update_option( 'cron_projects', $feed_config );
-    }
-}
-add_action( 'woosea_update_project_stats', 'woosea_update_project_history', 1, 1 );
-
-/**
  * Get the attribute mapping helptexts.
  */
 function woosea_fieldmapping_dialog_helptext() {
@@ -4447,33 +3855,12 @@ function woosea_generate_pages() {
     if ( $generate_step == 99 ) {
         $generate_step = 7;
     } elseif ( $generate_step == 100 ) {
-        // Update existing feed configuration with new values from previous step.
-        $project = WooSEA_Update_Project::reconfigure_project( $from_post );
+        do_action( 'adt_edit_product_feed', $from_post );
     } elseif ( $generate_step == 101 ) {
         // Update project configuration.
         $project_data = WooSEA_Update_Project::update_project( $from_post );
 
-        // Set some last project configs.
-        $project_data['active']                = true;
-        $project_data['last_updated']          = date( 'd M Y H:i' );
-        $project_data['running']               = 'processing';
-        $count_variation                       = wp_count_posts( 'product_variation' );
-        $count_single                          = wp_count_posts( 'product' );
-        $published_single                      = $count_single->publish;
-        $published_variation                   = $count_variation->publish;
-        $published_products                    = $published_single + $published_variation;
-        $project_data['nr_products']           = $published_products;
-        $project_data['nr_products_processed'] = 0;
-        $add_to_cron                           = WooSEA_Update_Project::add_project_cron( $project_data, 'donotdo' );
-        $batch_project                         = 'batch_project_' . $project_data['project_hash'];
-
-        if ( ! get_option( $batch_project ) ) {
-            // Batch project hook expects a multidimentional array.
-            update_option( $batch_project, $project_data, 'no' );
-            $final_creation = woosea_continue_batch( $project_data['project_hash'] );
-        } else {
-            $final_creation = woosea_continue_batch( $project_data['project_hash'] );
-        }
+        do_action( 'adt_create_product_feed', $project_data, $from_post );
     }
 
     // Switch to determing what template to use during feed configuration.
@@ -4483,9 +3870,6 @@ function woosea_generate_pages() {
             break;
         case 1:
             load_template( plugin_dir_path( __FILE__ ) . '/pages/admin/woosea-generate-feed-step-1.php' );
-            break;
-        case 2:
-            load_template( plugin_dir_path( __FILE__ ) . '/pages/admin/woosea-generate-feed-step-2.php' );
             break;
         case 3:
             load_template( plugin_dir_path( __FILE__ ) . '/pages/admin/woosea-generate-feed-step-3.php' );
@@ -4505,9 +3889,6 @@ function woosea_generate_pages() {
         case 8:
             load_template( plugin_dir_path( __FILE__ ) . '/pages/admin/woosea-statistics-feed.php' );
             break;
-        case 9:
-            load_template( plugin_dir_path( __FILE__ ) . '/pages/admin/woosea-generate-feed-step-9.php' );
-            break;
         case 100:
             load_template( plugin_dir_path( __FILE__ ) . '/pages/admin/woosea-manage-feed.php' );
             break;
@@ -4521,223 +3902,19 @@ function woosea_generate_pages() {
 }
 
 /**
- * Function used by event scheduling to create feeds.
- * Feed can automatically be generated every hour, twicedaiy or once a day.
- */
-function woosea_create_all_feeds() {
-    $feed_config = array();
-    $feed_config = get_option( 'cron_projects' );
-
-    if ( empty( $feed_config ) ) {
-        $nr_projects = 0;
-    } else {
-        $nr_projects = count( $feed_config );
-    }
-
-    $cron_start_date = date( 'd M Y H:i' );
-    $cron_start_time = time();
-    $hour            = date( 'H' );
-
-    // Update project configurations with the latest amount of live products.
-    $count_products = wp_count_posts( 'product', 'product_variation' );
-    $nr_products    = $count_products->publish;
-
-    // Determine if changes where made to products or new orders where placed.
-    // Only update the feed(s) when such a change occured.
-    $products_changes = 'no'; // default value.
-    $products_changes = get_option( 'woosea_allow_update' );
-
-    // Make sure content of feeds is not being cached.
-    // Make sure feeds are not being cached.
-    $no_caching = new WooSEA_Caching();
-
-    // LiteSpeed Caching.
-    if ( class_exists( 'LiteSpeed\Core' ) || defined( 'LSCWP_DIR' ) ) {
-        $no_caching->litespeed_cache();
-    }
-
-    // WP Fastest Caching.
-    if ( class_exists( 'WpFastestCache' ) ) {
-        $no_caching->wp_fastest_cache();
-    }
-
-    // WP Super Caching.
-    if ( function_exists( 'wpsc_init' ) ) {
-        $no_caching->wp_super_cache();
-    }
-
-    // Breeze Caching.
-    if ( class_exists( 'Breeze_Admin' ) ) {
-        $no_caching->breeze_cache();
-    }
-
-    // WP Optimize Caching.
-    if ( class_exists( 'WP_Optimize' ) ) {
-        $no_caching->wp_optimize_cache();
-    }
-
-    // Cache Enabler.
-    if ( class_exists( 'Cache_Enabler' ) ) {
-        $no_caching->cache_enabler_cache();
-    }
-
-    // Swift Performance Lite.
-    if ( class_exists( 'Swift_Performance_Lite' ) ) {
-        $no_caching->swift_performance_cache();
-    }
-
-    // Comet Cache.
-    if ( is_plugin_active( 'comet-cache/comet-cache.php' ) ) {
-        $no_caching->comet_cache();
-    }
-
-    // HyperCache.
-    if ( class_exists( 'HyperCache' ) ) {
-        $no_caching->hyper_cache();
-    }
-
-    if ( ! empty( $feed_config ) ) {
-        foreach ( $feed_config as $key => $val ) {
-
-            // When no products changed and user enabled the option to only update the feed when products changed.
-            $update_this_feed = 'yes';
-            if ( ( isset( $val['products_changed'] ) ) && ( $products_changes == 'no' ) ) {
-                $update_this_feed = 'no';
-            }
-
-            // Force garbage collection dump.
-            gc_enable();
-            gc_collect_cycles();
-
-            // Only process projects that are active.
-            if ( ( $val['active'] == 'true' ) && ( ! empty( $val ) ) && ( $update_this_feed == 'yes' ) && ( isset( $val['cron'] ) ) ) {
-
-                if ( ( $val['cron'] == 'daily' ) && ( $hour == 07 ) ) {
-                    $batch_project = 'batch_project_' . $val['project_hash'];
-
-                    if ( ! get_option( $batch_project ) ) {
-                        update_option( $batch_project, $val, 'no' );
-                        $start_project = woosea_continue_batch( $val['project_hash'] );
-                    } else {
-                        $start_project = woosea_continue_batch( $val['project_hash'] );
-                    }
-
-                    unset( $start_project );
-                } elseif ( ( $val['cron'] == 'twicedaily' ) && ( $hour == 19 || $hour == 07 ) ) {
-                    $batch_project = 'batch_project_' . $val['project_hash'];
-
-                    if ( ! get_option( $batch_project ) ) {
-                        update_option( $batch_project, $val, 'no' );
-                        $start_project = woosea_continue_batch( $val['project_hash'] );
-                    } else {
-                        $start_project = woosea_continue_batch( $val['project_hash'] );
-                    }
-
-                    unset( $start_project );
-                } elseif ( ( $val['cron'] == 'twicedaily' || $val['cron'] == 'daily' ) && ( $val['running'] == 'processing' ) ) {
-                    // Re-start daily and twicedaily projects that are hanging.
-                    $batch_project = 'batch_project_' . $val['project_hash'];
-
-                    if ( ! get_option( $batch_project ) ) {
-                        update_option( $batch_project, $val, 'no' );
-                        $start_project = woosea_continue_batch( $val['project_hash'] );
-                    } else {
-                        $start_project = woosea_continue_batch( $val['project_hash'] );
-                    }
-
-                    unset( $start_project );
-                } elseif ( ( $val['cron'] == 'no refresh' ) && ( $hour == 26 ) ) {
-                    // It is never hour 26, so this project will never refresh.
-                } elseif ( $val['cron'] == 'hourly' ) {
-                    $batch_project = 'batch_project_' . $val['project_hash'];
-
-                    if ( ! get_option( $batch_project ) ) {
-                        update_option( $batch_project, $val, 'no' );
-                        $start_project = woosea_continue_batch( $val['project_hash'] );
-                    } else {
-                        $start_project = woosea_continue_batch( $val['project_hash'] );
-                    }
-
-                    unset( $start_project );
-                }
-            }
-        }
-    }
-
-    // set products update flag back to no.
-    update_option( 'woosea_allow_update', 'no' );
-}
-
-/**
- * Update product amounts for project.
- *
- * @param string $project_hash The project hash.
- * @param int    $nr_products The amount of products in the feed.
- */
-function woosea_nr_products( $project_hash, $nr_products ) {
-    $feed_config = get_option( 'cron_projects' );
-
-    foreach ( $feed_config as $key => $val ) {
-        if ( $val['project_hash'] == $project_hash ) {
-            $feed_config[ $key ]['nr_products'] = $nr_products;
-        }
-    }
-
-    update_option( 'cron_projects', $feed_config, 'no' );
-}
-
-/**
- * Update cron projects with last update timestamp.
- *
- * @param string $project_hash The project hash.
- *
- * @return string $last_updated The last updated timestamp.
- */
-function woosea_last_updated( $project_hash ) {
-    $feed_config  = get_option( 'cron_projects' );
-    $last_updated = date( 'd M Y H:i' );
-
-    foreach ( $feed_config as $key => $val ) {
-        if ( isset( $val['project_hash'] ) && ( $val['project_hash'] == $project_hash ) ) {
-            $upload_dir = wp_upload_dir();
-            $base       = $upload_dir['basedir'];
-            $path       = $base . '/woo-product-feed-pro/' . $val['fileformat'];
-            $file       = $path . '/' . sanitize_file_name( $val['filename'] ) . '.' . $val['fileformat'];
-
-            $last_updated = date( 'd M Y H:i' );
-
-            if ( file_exists( $file ) ) {
-                $last_updated                        = date( 'd M Y H:i', filemtime( $file ) );
-                $feed_config[ $key ]['last_updated'] = date( 'd M Y H:i', filemtime( $file ) );
-            } else {
-                $feed_config[ $key ]['last_updated'] = date( 'd M Y H:i' );
-            }
-        }
-    }
-
-    update_option( 'cron_projects', $feed_config, 'no' );
-
-    return $last_updated;
-}
-
-/**
  * Process next batch for product feed.
  *
  * @param string $project_hash The project hash.
  */
-function woosea_continue_batch( $project_hash ) {
-    $batch_project = 'batch_project_' . $project_hash;
-    $val           = get_option( $batch_project );
-
-    if ( ( ! empty( $val ) ) && ( is_array( $val ) ) ) {
+function woosea_continue_batch( $feed_id ) {
+    $feed = new Product_Feed( $feed_id );
+    if ( $feed->id ) {
         $line           = new WooSEA_Get_Products();
-        $final_creation = $line->woosea_get_products( $val );
-        $last_updated   = woosea_last_updated( $val['project_hash'] );
+        $final_creation = $line->woosea_get_products( $feed );
 
         // Clean up the single event project configuration.
         unset( $line );
         unset( $final_creation );
-        unset( $last_updated );
     }
 }
 add_action( 'woosea_create_batch_event', 'woosea_continue_batch', 1, 1 );
@@ -4785,7 +3962,7 @@ function woosea_before_product_save( $post_id ) {
             );
 
             if ( ! get_option( 'product_changes' ) ) {
-                update_option( 'product_changes', $before, '', 'yes' );
+                update_option( 'product_changes', $before, false );
             }
         }
     }
@@ -4842,13 +4019,13 @@ function woosea_on_product_save( $product_id ) {
                     $diff['product_id'] = $product_id;
                 } else {
                     // Enable the product changed flag.
-                    update_option( 'woosea_allow_update', 'no' );
+                    update_option( 'woosea_allow_update', false );
                 }
 
                 delete_option( 'product_changes' );
             } else {
                 // Enable the product changed flag.
-                update_option( 'woosea_allow_update', 'no' );
+                update_option( 'woosea_allow_update', false );
             }
         }
     }
@@ -4879,16 +4056,5 @@ function woosea_manage_settings() {
 function woosea_manage_license() {
     $html = new Construct_Admin_Pages();
     $html->set_page( 'woosea-key' );
-    echo $html->get_page();
-}
-
-/**
- * Function for emptying all projects in cron at once.
- * Kill-switch for all configured projects, be carefull!
- */
-function woosea_clear() {
-    $html = new Construct_Admin_Pages();
-    $html->set_page( 'woosea-clear' );
-    delete_option( 'cron_projects' );
     echo $html->get_page();
 }

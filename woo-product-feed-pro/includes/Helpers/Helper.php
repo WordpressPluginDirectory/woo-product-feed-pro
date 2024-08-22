@@ -117,4 +117,92 @@ class Helper {
 
         return $plugins;
     }
+
+    /**
+     * Utility function that determines if a plugin is active or not.
+     *
+     * @since 13.3.4
+     * @access public
+     *
+     * @param string $plugin_basename Plugin base name. Ex. woocommerce/woocommerce.php.
+     * @return boolean True if active, false otherwise.
+     */
+    public static function is_plugin_active( $plugin_basename ) {
+        // Makes sure the plugin is defined before trying to use it.
+        if ( ! function_exists( 'is_plugin_active' ) ) {
+            include_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        return is_plugin_active( $plugin_basename );
+    }
+
+    /**
+     * Utility function that determines if a plugin is installed or not.
+     *
+     * @since 13.3.4
+     * @access public
+     *
+     * @param string $plugin_basename Plugin base name. Ex. woocommerce/woocommerce.php.
+     * @return boolean True if active, false otherwise.
+     */
+    public static function is_plugin_installed( $plugin_basename ) {
+        $plugin_file_path = trailingslashit( WP_PLUGIN_DIR ) . plugin_basename( $plugin_basename );
+        return file_exists( $plugin_file_path );
+    }
+
+    /**
+     * Utility function that determines if the current page is a Product Feed Pro page or not.
+     *
+     * @since 13.3.4
+     * @access public
+     *
+     * @return boolean True if pfp page, false otherwise.
+     */
+    public static function is_pfp_page() {
+        $screen      = get_current_screen();
+        $is_pfp_page = strpos( $screen->id, 'product-feed-pro' ) !== false;
+        return apply_filters( 'pfp_is_pfp_page', $is_pfp_page );
+    }
+
+    /**
+     * Utility function that determines if the lite notice bar should be shown or not.
+     *
+     * @since 13.3.4
+     * @access public
+     *
+     * @return boolean True if lite notice bar should be shown, false otherwise.
+     */
+    public static function is_show_notice_bar_lite() {
+        $show = false;
+        if ( self::is_pfp_page() ) {
+            $show = true;
+        }
+        return apply_filters( 'pfp_show_notice_bar_lite', $show );
+    }
+
+    /**
+     * Check if a submenu is registered.
+     *
+     * @since 13.3.4
+     * @access public
+     *
+     * @param string $menu_slug    The menu slug.
+     * @param string $submenu_slug The submenu slug.
+     * @return boolean
+     */
+    public static function is_submenu_registered( $menu_slug, $submenu_slug ) {
+        global $submenu;
+
+        if ( ! isset( $submenu[ $menu_slug ] ) ) {
+            return false;
+        }
+
+        foreach ( $submenu[ $menu_slug ] as $submenu_item ) {
+            if ( $submenu_slug === $submenu_item[2] ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

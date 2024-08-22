@@ -56,6 +56,9 @@ class App {
         register_activation_hook( WOOCOMMERCESEA_FILE, array( $this, 'activation_actions' ) );
         register_deactivation_hook( WOOCOMMERCESEA_FILE, array( $this, 'deactivation_actions' ) );
 
+        // Execute codes that need to run on 'init' hook.
+        add_action( 'init', array( $this, 'initialize' ) );
+
         /***************************************************************************
          * Run the plugin
          ***************************************************************************
@@ -98,6 +101,27 @@ class App {
 
         flush_rewrite_rules();
     }
+
+    /**
+     * Method that houses codes to be executed on init hook.
+     *
+     * @since 13.3.5.1
+     * @access public
+     */
+    public function initialize() {
+        // Execute activation codebase if not yet executed on plugin activation ( Mostly due to plugin dependencies ).
+        $installed_version = get_site_option( WOOCOMMERCESEA_OPTION_INSTALLED_VERSION, false );
+
+        if ( version_compare( $installed_version, Helper::get_plugin_version(), '!=' ) || get_option( 'adt_pfp_activation_code_triggered', false ) !== 'yes' ) {
+            if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
+                require_once ABSPATH . '/wp-admin/includes/plugin.php';
+            }
+
+            $sitewide = is_plugin_active_for_network( 'woo-product-feed-pro/woocommerce-sea.php' );
+            $this->activation_actions( $sitewide );
+        }
+    }
+
 
     /**
      * Run the plugin classes.

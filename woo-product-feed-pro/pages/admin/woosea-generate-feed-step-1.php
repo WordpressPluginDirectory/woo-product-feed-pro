@@ -1,4 +1,6 @@
 <?php
+use AdTribes\PFP\Factories\Product_Feed;
+
 /**
  * Change default footer text, asking to review our plugin.
  *
@@ -34,19 +36,16 @@ $nonce = wp_create_nonce( 'woosea_ajax_nonce' );
  * Update project configuration
  */
 if ( array_key_exists( 'project_hash', $_GET ) ) {
-    $project        = WooSEA_Update_Project::get_project_data( sanitize_text_field( $_GET['project_hash'] ) );
-    $channel_data   = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_GET['channel_hash'] ) );
-    $manage_project = 'yes';
+    $feed = new Product_Feed( sanitize_text_field( $_GET['project_hash'] ) );
+    if ( $feed->id ) {
+        $feed_mappings = $feed->mappings;
+        $channel_data  = $feed->channel;
 
-    if ( isset( $project['WPML'] ) ) {
-        if ( ( is_plugin_active( 'sitepress-multilingual-cms' ) ) || ( function_exists( 'icl_object_id' ) ) ) {
-            if ( ! class_exists( 'Polylang' ) ) {
-                // Get WPML language
-                global $sitepress;
-                $lang = $project['WPML'];
-                $sitepress->switch_lang( $lang );
-            }
-        }
+        $channel_hash = $feed->channel_hash;
+        $project_hash = $feed->legacy_project_hash;
+
+        $count_mappings = count( $feed_mappings );
+        $manage_project = 'yes';
     }
 } else {
     // Sanitize values in multi-dimensional POST array
@@ -67,19 +66,15 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
     } else {
         $_POST = array();
     }
-    $project      = WooSEA_Update_Project::update_project( $_POST );
+    $feed         = WooSEA_Update_Project::update_project( $_POST );
     $channel_data = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_POST['channel_hash'] ) );
 
-    if ( isset( $project['WPML'] ) ) {
-        if ( function_exists( 'icl_object_id' ) ) {
-            if ( ! class_exists( 'Polylang' ) ) {
-                // Get WPML language
-                global $sitepress;
-                $lang = $project['WPML'];
-                $sitepress->switch_lang( $lang );
-            }
-        }
-    }
+    $channel_hash = $feed['channel_hash'];
+    $project_hash = $feed['project_hash'];
+
+    $feed_mappings  = array();
+    $count_mappings = 0;
+
 }
 
 function woosea_hierarchical_term_tree( $category, $prev_mapped ) {
@@ -177,6 +172,15 @@ function woosea_hierarchical_term_tree( $category, $prev_mapped ) {
     );
     return wp_kses_normalize_entities( $r, $allowed_tags );
 }
+
+/**
+ * Action hook to add content before the product feed manage page.
+ *
+ * @param int                      $step         Step number.
+ * @param string                   $project_hash Project hash.
+ * @param array|Product_Feed|null  $feed         Product_Feed object or array of project data.
+ */
+do_action( 'adt_before_product_feed_manage_page', 1, $project_hash, $feed );
 ?>
 
 <div class="wrap">
@@ -207,8 +211,8 @@ function woosea_hierarchical_term_tree( $category, $prev_mapped ) {
                         <?php
                         // Get already mapped categories
                         $prev_mapped = array();
-                        if ( isset( $project['mappings'] ) ) {
-                            foreach ( $project['mappings'] as $map_key => $map_value ) {
+                        if ( ! empty( $feed_mappings ) ) {
+                            foreach ( $feed_mappings as $map_key => $map_value ) {
                                 if ( strlen( $map_value['map_to_category'] ) > 0 ) {
                                     $map_value['criteria']                   = str_replace( '\\', '', $map_value['criteria'] );
                                     $prev_mapped[ $map_value['categoryId'] ] = $map_value['map_to_category'];
@@ -227,18 +231,18 @@ function woosea_hierarchical_term_tree( $category, $prev_mapped ) {
 
                         <tr>
                             <td colspan="3">
-                                <input type="hidden" id="channel_hash" name="channel_hash" value="<?php echo "$project[channel_hash]"; ?>">
+                                <input type="hidden" id="channel_hash" name="channel_hash" value="<?php echo esc_attr( $channel_hash ); ?>">
                                 <?php
                                 if ( isset( $manage_project ) ) {
                                 ?>
                                     <input type="hidden" name="project_update" id="project_update" value="yes" />
-                                    <input type="hidden" id="project_hash" name="project_hash" value="<?php echo "$project[project_hash]"; ?>">
+                                    <input type="hidden" id="project_hash" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
                                     <input type="hidden" name="step" value="100">
                                     <input type="submit" value="Save mappings" />
                                 <?php
                                 } else {
                                 ?>
-                                    <input type="hidden" id="project_hash" name="project_hash" value="<?php echo "$project[project_hash]"; ?>">
+                                    <input type="hidden" id="project_hash" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
                                     <input type="hidden" name="step" value="4">
                                     <input type="submit" value="Save mappings" />
                                 <?php
@@ -251,74 +255,7 @@ function woosea_hierarchical_term_tree( $category, $prev_mapped ) {
 
                 </table>
             </div>
-
-            <div class="woo-product-feed-pro-table-right">
-                <table class="woo-product-feed-pro-table">
-                    <tr>
-                        <td><strong><?php esc_html_e( 'Why upgrade to Elite?', 'woo-product-feed-pro' ); ?></strong></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <?php esc_html_e( 'Enjoy all privileges of our Elite features and priority support and upgrade to the Elite version of our plugin now!', 'woo-product-feed-pro' ); ?>
-                            <ul>
-                                <li><strong>1.</strong> <?php esc_html_e( 'Priority support: get your feeds live faster', 'woo-product-feed-pro' ); ?></li>
-                                <li><strong>2.</strong> <?php esc_html_e( 'More products approved by Google', 'woo-product-feed-pro' ); ?></li>
-                                <li><strong>3.</strong> <?php esc_html_e( 'Add GTIN, brand and more fields to your store', 'woo-product-feed-pro' ); ?></li>
-                                <li><strong>4.</strong> <?php esc_html_e( 'Exclude individual products from your feeds', 'woo-product-feed-pro' ); ?></li>
-                                <li><strong>5.</strong> <?php esc_html_e( 'WPML support', 'woo-product-feed-pro' ); ?></li>
-                                <li><strong>6.</strong> <?php esc_html_e( 'Aelia currency switcher support', 'woo-product-feed-pro' ); ?></li>
-                                <li><strong>7.</strong> <?php esc_html_e( 'Curcy currency switcher support', 'woo-product-feed-pro' ); ?></li>
-                                <li><strong>8.</strong> <?php esc_html_e( 'Facebook pixel feature', 'woo-product-feed-pro' ); ?></li>
-                                <li><strong>9.</strong> <?php esc_html_e( 'Polylang support', 'woo-product-feed-pro' ); ?></li>
-                            </ul>
-                            <strong>
-                                <a href="https://adtribes.io/pro-vs-elite/?utm_source=pfp&utm_medium=page1&utm_campaign=why-upgrade-box" target="_blank"><?php esc_html_e( 'Upgrade to Elite here!', 'woo-product-feed-pro' ); ?></a>
-                            </strong>
-                        </td>
-                    </tr>
-                </table><br />
-
-                <table class="woo-product-feed-pro-table">
-                    <tr>
-                        <td><strong><?php esc_html_e( 'We have got you covered!', 'woo-product-feed-pro' ); ?></strong></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <?php esc_html_e( 'Need assistance? Check out our:', 'woo-product-feed-pro' ); ?>
-                            <ul>
-                                <li><strong><a href="https://adtribes.io/support/?utm_source=pfp&utm_medium=page1&utm_campaign=faq" target="_blank"><?php esc_html_e( 'Frequently Asked Questions', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong><a href="https://www.youtube.com/channel/UCXp1NsK-G_w0XzkfHW-NZCw" target="_blank"><?php esc_html_e( 'YouTube tutorials', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong><a href="https://adtribes.io/tutorials/?utm_source=pfp&utm_medium=page1&utm_campaign=tutorials" target="_blank"><?php esc_html_e( 'Tutorials', 'woo-product-feed-pro' ); ?></a></strong></li>
-                            </ul>
-                            <?php esc_html_e( 'Or just reach out to us at', 'woo-product-feed-pro' ); ?> <strong><a href="https://wordpress.org/support/plugin/woo-product-feed-pro/" target="_blank"><?php esc_html_e( 'our WordPress forum', 'woo-product-feed-pro' ); ?></a></strong> <?php esc_html_e( 'and we will make sure your product feeds will be up-and-running within no-time.', 'woo-product-feed-pro' ); ?>
-                        </td>
-                    </tr>
-                </table><br />
-
-                <table class="woo-product-feed-pro-table">
-                    <tr>
-                        <td><strong><?php esc_html_e( 'Our latest tutorials', 'woo-product-feed-pro' ); ?></strong></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <ul>
-                                <li><strong>1. <a href="https://adtribes.io/setting-up-your-first-google-shopping-product-feed/?utm_source=pfp&utm_medium=page1&utm_campaign=first shopping feed" target="_blank"><?php esc_html_e( 'Create a Google Shopping feed', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>2. <a href="https://adtribes.io/feature-product-data-manipulation/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=product_data_manipulation" target="_blank"><?php esc_html_e( 'Product data manipulation', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>3. <a href="https://adtribes.io/how-to-create-filters-for-your-product-feed/?utm_source=pfp&utm_medium=page1&utm_campaign=how to create filters" target="_blank"><?php esc_html_e( 'How to create filters for your product feed', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>4. <a href="https://adtribes.io/how-to-create-rules/?utm_source=pfp&utm_medium=page1&utm_campaign=how to create rules" target="_blank"><?php esc_html_e( 'How to set rules for your product feed', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>5. <a href="https://adtribes.io/add-gtin-mpn-upc-ean-product-condition-optimised-title-and-brand-attributes/?utm_source=pfp&utm_medium=page1&utm_campaign=adding fields" target="_blank"><?php esc_html_e( 'Adding GTIN, Brand, MPN and more', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>6. <a href="https://adtribes.io/woocommerce-structured-data-bug/?utm_source=pfp&utm_medium=page1&utm_campaign=structured data bug" target="_blank"><?php esc_html_e( 'WooCommerce structured data markup bug', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>7. <a href="https://adtribes.io/wpml-support/?utm_source=pfp&utm_medium=page1&utm_campaign=wpml support" target="_blank"><?php esc_html_e( 'Enable WPML support', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>8. <a href="https://adtribes.io/aelia-currency-switcher-feature/?utm_source=pfp&utm_medium=page1&utm_campaign=aelia support" target="_blank"><?php esc_html_e( 'Enable Aelia currency switcher support', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>9. <a href="https://adtribes.io/help-my-feed-processing-is-stuck/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=feed stuck" target="_blank"><?php esc_html_e( 'Help, my feed is stuck!', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>10. <a href="https://adtribes.io/help-i-have-none-or-less-products-in-my-product-feed-than-expected/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=too few products" target="_blank"><?php esc_html_e( 'Help, my feed has no or too few products!', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>11. <a href="https://adtribes.io/polylang-support-product-feeds/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=polylang support" target="_blank"><?php esc_html_e( 'How to use the Polylang feature', 'woo-product-feed-pro' ); ?></a></strong></li>
-                                <li><strong>12. <a href="https://adtribes.io/curcy-currency-switcher-feature/?utm_source=pfp&utm_medium=page1&utm_campaign=curcy support" target="_blank"><?php esc_html_e( 'Enable Curcy currency switcher support', 'woo-product-feed-pro' ); ?></a></strong></li>
-                            </ul>
-                        </td>
-                    </tr>
-                </table><br />
-            </div>
+            <?php require_once WOOCOMMERCESEA_VIEWS_ROOT_PATH . 'view-sidebar.php'; ?>
         </div>
     </div>
 </div>
