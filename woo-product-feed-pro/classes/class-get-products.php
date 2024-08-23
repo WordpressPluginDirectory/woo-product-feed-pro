@@ -186,6 +186,9 @@ class WooSEA_Get_Products {
         // GA tracking is disabled, so remove from array
         if ( $feed->utm_enabled ) {
             $channel_field = $feed->get_channel( 'field' );
+            if ( empty( $channel_field ) ) {
+                return '';
+            }
 
             // Create Array of Google Analytics UTM codes
             $utm = array(
@@ -742,6 +745,9 @@ class WooSEA_Get_Products {
         $add_all_shipping  = 'no';
         $add_all_shipping  = get_option( 'add_all_shipping' );
         $feed_channel      = $feed->get_channel();
+        if ( empty( $feed_channel ) ) {
+            return array();
+        }
 
         // Normal shipping set-up
         $zone_count = count( $shipping_arr ) + 1;
@@ -1220,6 +1226,12 @@ class WooSEA_Get_Products {
         $external_path = $external_base . '/woo-product-feed-pro/' . $feed->file_format;
         $external_file = $external_path . '/' . sanitize_file_name( $feed->file_name ) . '.' . $feed->file_format;
 
+        // Get the feed configuration
+        $feed_config = $feed->get_channel();
+        if ( empty( $feed_config ) ) {
+            return;
+        }
+
         // Check if directory in uploads exists, if not create one
         if ( ! file_exists( $path ) ) {
             wp_mkdir_p( $path );
@@ -1230,16 +1242,16 @@ class WooSEA_Get_Products {
             unlink( $file );
         }
 
-        // Get the feed configuration
-        $feed_config = $feed->get_channel();
-
         // Check if there is a channel feed class that we need to use
         if ( $feed_config['fields'] != 'standard' ) {
             if ( ! class_exists( 'WooSEA_' . $feed_config['fields'] ) ) {
-                require plugin_dir_path( __FILE__ ) . '/channels/class-' . $feed_config['fields'] . '.php';
-                $channel_class      = 'WooSEA_' . $feed_config['fields'];
-                $channel_attributes = $channel_class::get_channel_attributes();
-                update_option( 'channel_attributes', $channel_attributes, false );
+                $channel_file_path = plugin_dir_path( __FILE__ ) . '/channels/class-' . $feed_config['fields'] . '.php';
+                if ( file_exists( $channel_file_path ) ) {
+                    require $channel_file_path;
+                    $channel_class      = 'WooSEA_' . $feed_config['fields'];
+                    $channel_attributes = $channel_class::get_channel_attributes();
+                    update_option( 'channel_attributes', $channel_attributes, false );
+                }
             } else {
                 $channel_attributes = get_option( 'channel_attributes' );
             }
@@ -1416,7 +1428,7 @@ class WooSEA_Get_Products {
                     $xml = new SimpleXMLElement( '<?xml version="1.0" encoding="utf-8"?><yml_catalog></yml_catalog>' );
                     $xml->addAttribute( 'date', date( 'Y-m-d H:i' ) );
                     $shop = $xml->addChild( 'shop' );
-                    $shop->addChild( 'name', htmlspecialchars( $feed->tittle ) );
+                    $shop->addChild( 'name', htmlspecialchars( $feed->title ) );
                     $shop->addChild( 'company', get_bloginfo() );
                     $shop->addChild( 'url', home_url() );
                     // $shop->addChild('platform', 'WooCommerce');
@@ -1499,7 +1511,7 @@ class WooSEA_Get_Products {
                 } elseif ( $feed_config['name'] == 'Zap.co.il' ) {
                     $xml = new SimpleXMLElement( '<?xml version="1.0" encoding="utf-8"?><STORE></STORE>' );
                     $xml->addChild( 'datetime', date( 'Y-m-d H:i:s' ) );
-                    $xml->addChild( 'title', htmlspecialchars( $feed->get_tittle() ) );
+                    $xml->addChild( 'title', htmlspecialchars( $feed->title ) );
                     $xml->addChild( 'link', home_url() );
                     $xml->addChild( 'description', 'WooCommerce Product Feed PRO - This product feed is created with the free Advanced Product Feed PRO for WooCommerce plugin from AdTribes.io. For all your support questions check out our FAQ on https://www.adtribes.io or e-mail to: support@adtribes.io ' );
                     $xml->addChild( 'agency', 'AdTribes.io' );
@@ -1508,7 +1520,7 @@ class WooSEA_Get_Products {
                 } elseif ( $feed_config['name'] == 'Salidzini.lv' ) {
                     $xml = new SimpleXMLElement( '<?xml version="1.0" encoding="utf-8"?><root></root>' );
                     $xml->addChild( 'datetime', date( 'Y-m-d H:i:s' ) );
-                    $xml->addChild( 'title', htmlspecialchars( $feed->get_tittle() ) );
+                    $xml->addChild( 'title', htmlspecialchars( $feed->title ) );
                     $xml->addChild( 'link', home_url() );
                     $xml->addChild( 'description', 'WooCommerce Product Feed PRO - This product feed is created with the free Advanced Product Feed PRO for WooCommerce plugin from AdTribes.io. For all your support questions check out our FAQ on https://www.adtribes.io or e-mail to: support@adtribes.io ' );
                     $xml->addChild( 'agency', 'AdTribes.io' );
@@ -1521,7 +1533,7 @@ class WooSEA_Get_Products {
                     $xml->addAttribute( 'xsi:xsi:noNamespaceSchemaLocation', 'http://www.google.com/shopping/reviews/schema/product/2.3/product_reviews.xsd' );
                     $xml->addChild( 'version', '2.3' );
                     $aggregator = $xml->addChild( 'aggregator' );
-                    $aggregator->addChild( 'name', htmlspecialchars( $feed->get_tittle() ) );
+                    $aggregator->addChild( 'name', htmlspecialchars( $feed->title ) );
                     $publisher = $xml->addChild( 'publisher' );
                     $publisher->addChild( 'name', get_bloginfo( 'name' ) );
                     $publisher->addChild( 'favicon', get_site_icon_url() );
@@ -1575,7 +1587,7 @@ class WooSEA_Get_Products {
                     if ( ( $feed_config['name'] == 'Pinterest RSS Board' ) && ( empty( $xml->channel ) ) ) {
                         $productz = $xml->addChild( 'channel' );
                         $productz = $xml->channel->addChild( 'title', get_bloginfo( 'name' ) );
-                        $productz = $xml->channel->addChild( 'description', htmlspecialchars( $feed->tittle ) );
+                        $productz = $xml->channel->addChild( 'description', htmlspecialchars( $feed->title ) );
                         $productz = $xml->channel->addChild( 'lastBuildDate', date( 'Y-m-d H:i:s' ) );
                         $productz = $xml->channel->addChild( 'generator', 'Product Feed Pro for WooCommerce by AdTribes.io' );
                     }
@@ -2198,113 +2210,115 @@ class WooSEA_Get_Products {
 
         // Check if there is a channel feed class that we need to use
         $fields = $feed->get_channel( 'fields' );
-        if ( empty( $fields ) ) {
-            $fields = 'google_shopping';
-        }
+        if ( ! empty( $fields ) ) {
 
-        if ( $fields != 'standard' ) {
-            if ( ! class_exists( 'WooSEA_' . $fields ) ) {
-                require plugin_dir_path( __FILE__ ) . 'channels/class-' . $fields . '.php';
-                $channel_class      = 'WooSEA_' . $fields;
-                $channel_attributes = $channel_class::get_channel_attributes();
-                update_option( 'channel_attributes', $channel_attributes, false );
-            } else {
-                $channel_attributes = get_option( 'channel_attributes' );
-            }
-        }
-
-        // Append or write to file
-        $fp = fopen( $file, 'a+' );
-
-        // Set proper UTF encoding BOM for CSV files
-        if ( $header == 'true' ) {
-            if ( ! preg_match( '/fruugo/i', $fields ) ) {
-                fputs( $fp, $bom = chr( 0xEF ) . chr( 0xBB ) . chr( 0xBF ) );
-            }
-        }
-
-        // Write each row of the products array
-        foreach ( $products as $row ) {
-
-            foreach ( $row as $k => $v ) {
-                $pieces = explode( ',', $v );
-                foreach ( $pieces as $k_inner => $v ) {
-                    if ( ( $fields != 'standard' ) && ( $fields != 'customfeed' ) ) {
-                        $v = $this->get_alternative_key( $channel_attributes, $v );
+            if ( $fields != 'standard' ) {
+                if ( ! class_exists( 'WooSEA_' . $fields ) ) {
+                    $channel_file_path = plugin_dir_path( __FILE__ ) . '/channels/class-' . $fields . '.php';
+                    if ( file_exists( $channel_file_path ) ) {
+                        require $channel_file_path;
+                        $channel_class      = 'WooSEA_' . $fields;
+                        $channel_attributes = $channel_class::get_channel_attributes();
+                        update_option( 'channel_attributes', $channel_attributes, false );
                     }
-
-                    // For CSV fileformat the keys need to get stripped of the g:
-                    if ( $header === 'true' && in_array( $feed->file_format, array( 'csv', 'txt', 'tsv' ), true ) ) {
-                        $v = str_replace( 'g:', '', $v );
-                    }
-
-                    // Remove any double quotes from the values.
-                    $v                  = trim( $v, "\"'" );
-                    $pieces[ $k_inner ] = $v;
-                }
-
-                // Convert tab delimiter
-                if ( $feed->delimiter == 'tab' ) {
-                    $csv_delimiter = "\t";
                 } else {
-                    $csv_delimiter = $feed->delimiter;
+                    $channel_attributes = get_option( 'channel_attributes' );
                 }
+            }
 
-                if ( $fields == 'google_local' ) {
-                    $tab_line = '';
+            // Append or write to file
+            $fp = fopen( $file, 'a+' );
 
-                    if ( $header == 'false' ) {
-                        // Get the store codes
-                        foreach ( $feed->attributes as $k => $v ) {
-                            if ( preg_match( '/\|/', $k ) ) {
-                                $stores_local = $k;
-                            }
+            // Set proper UTF encoding BOM for CSV files
+            if ( $header == 'true' ) {
+                if ( ! preg_match( '/fruugo/i', $fields ) ) {
+                    fputs( $fp, $bom = chr( 0xEF ) . chr( 0xBB ) . chr( 0xBF ) );
+                }
+            }
+
+            // Write each row of the products array
+            foreach ( $products as $row ) {
+
+                foreach ( $row as $k => $v ) {
+                    $pieces = explode( ',', $v );
+                    foreach ( $pieces as $k_inner => $v ) {
+                        if ( ( $fields != 'standard' ) && ( $fields != 'customfeed' ) ) {
+                            $v = $this->get_alternative_key( $channel_attributes, $v );
                         }
 
-                        $store_ids = explode( '|', $stores_local );
-                        if ( is_array( $store_ids ) ) {
+                        // For CSV fileformat the keys need to get stripped of the g:
+                        if ( $header === 'true' && in_array( $feed->file_format, array( 'csv', 'txt', 'tsv' ), true ) ) {
+                            $v = str_replace( 'g:', '', $v );
+                        }
 
-                            foreach ( $store_ids as $store_key => $store_value ) {
-                                $pieces[1] = $store_value;
+                        // Remove any double quotes from the values.
+                        $v                  = trim( $v, "\"'" );
+                        $pieces[ $k_inner ] = $v;
+                    }
 
-                                if ( ! empty( $store_value ) ) {
-                                    foreach ( $pieces as $t_key => $t_value ) {
-                                        $tab_line .= $t_value . "$csv_delimiter";
-                                    }
-                                    $tab_line  = rtrim( $tab_line, $csv_delimiter );
-                                    $tab_line .= PHP_EOL;
+                    // Convert tab delimiter
+                    if ( $feed->delimiter == 'tab' ) {
+                        $csv_delimiter = "\t";
+                    } else {
+                        $csv_delimiter = $feed->delimiter;
+                    }
+
+                    if ( $fields == 'google_local' ) {
+                        $tab_line = '';
+
+                        if ( $header == 'false' ) {
+                            // Get the store codes
+                            foreach ( $feed->attributes as $k => $v ) {
+                                if ( preg_match( '/\|/', $k ) ) {
+                                    $stores_local = $k;
                                 }
                             }
-                            fwrite( $fp, $tab_line );
+
+                            $store_ids = explode( '|', $stores_local );
+                            if ( is_array( $store_ids ) ) {
+
+                                foreach ( $store_ids as $store_key => $store_value ) {
+                                    $pieces[1] = $store_value;
+
+                                    if ( ! empty( $store_value ) ) {
+                                        foreach ( $pieces as $t_key => $t_value ) {
+                                            $tab_line .= $t_value . "$csv_delimiter";
+                                        }
+                                        $tab_line  = rtrim( $tab_line, $csv_delimiter );
+                                        $tab_line .= PHP_EOL;
+                                    }
+                                }
+                                fwrite( $fp, $tab_line );
+                            } else {
+                                // Only one store code entered
+                                foreach ( $pieces as $t_key => $t_value ) {
+                                    $tab_line .= $t_value . "$csv_delimiter";
+                                }
+
+                                $tab_line  = rtrim( $tab_line, $csv_delimiter );
+                                $tab_line .= PHP_EOL;
+                                fwrite( $fp, $tab_line );
+                            }
                         } else {
-                            // Only one store code entered
                             foreach ( $pieces as $t_key => $t_value ) {
                                 $tab_line .= $t_value . "$csv_delimiter";
                             }
-
                             $tab_line  = rtrim( $tab_line, $csv_delimiter );
                             $tab_line .= PHP_EOL;
                             fwrite( $fp, $tab_line );
                         }
                     } else {
-                        foreach ( $pieces as $t_key => $t_value ) {
-                            $tab_line .= $t_value . "$csv_delimiter";
-                        }
-                        $tab_line  = rtrim( $tab_line, $csv_delimiter );
-                        $tab_line .= PHP_EOL;
-                        fwrite( $fp, $tab_line );
-                    }
-                } else {
-                    // $pieces = array_map( 'trim', $pieces );
-                    // $tofile = fputcsv( $fp, $pieces, $csv_delimiter, '"' );
+                        // $pieces = array_map( 'trim', $pieces );
+                        // $tofile = fputcsv( $fp, $pieces, $csv_delimiter, '"' );
 
-                    $pieces = implode( $csv_delimiter, $pieces );
-                    $tofile = fputs( $fp, $pieces . PHP_EOL );
+                        $pieces = implode( $csv_delimiter, $pieces );
+                        $tofile = fputs( $fp, $pieces . PHP_EOL );
+                    }
                 }
             }
+            // Close the file
+            fclose( $fp );
         }
-        // Close the file
-        fclose( $fp );
 
         // Return external location of feed
         return $external_file;
@@ -2316,6 +2330,10 @@ class WooSEA_Get_Products {
      * @since 13.3.5 Updated the parameters to feed id.
      */
     public function woosea_get_products( $feed ) {
+        if ( ! Product_Feed_Helper::is_a_product_feed( $feed ) ) {
+            return;
+        }
+
         $nr_products_processed = $feed->total_products_processed;
         $file_format           = $feed->file_format;
         $feed_channel          = $feed->channel;
@@ -2323,6 +2341,9 @@ class WooSEA_Get_Products {
         $feed_attributes       = $feed->attributes;
         $feed_rules            = $feed->rules;
         $feed_filters          = $feed->filters;
+        if ( empty( $feed_channel ) ) {
+            return false;
+        }
 
         // Get total of published products to process.
         if ( $feed->create_preview ) {
@@ -4951,6 +4972,9 @@ class WooSEA_Get_Products {
     public function woosea_calculate_value( $feed, $xml_product ) {
         $feed_channel    = $feed->channel;
         $feed_attributes = $feed->attributes;
+        if ( empty ( $feed_channel ) || empty( $feed_attributes ) ) {
+            return $xml_product;
+        }
 
         // trim whitespaces from attribute values
         $xml_product = array_map( 'trim', $xml_product );

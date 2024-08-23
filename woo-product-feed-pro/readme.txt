@@ -5,7 +5,7 @@ License URI: http://www.gnu.org/licenses/gpl.html
 Tags: Google Shopping Feed, Meta feed, Facebook catalog feed, WooCommerce Product Feed, Product Feed
 Requires at least: 5.4
 Tested up to: 6.6
-Stable tag: 13.3.5.1
+Stable tag: 13.3.5.2
 
 Most popular WooCommerce product feed plugin supporting Google shopping feed, meta/facebook feed, bing product feed & more.
 
@@ -380,6 +380,12 @@ Questions left or unanswered? Please do not hesitate to contact us at support@ad
 8. Set the basic configurations for your product feed
 
 === Changelog ===
+
+= 13.3.5.2 (2024-08-23) =
+* Bug Fix: Fatal error on system log page
+* Bug Fix: Rules and filter's condition not saving properly
+* Bug Fix: Error: Failed opening channel class files
+* Improvement: Integration: Auto exclude product feed posts and feed urls from WP Rocket
 
 = 13.3.5.1 (2024-08-22) =
 * Bug Fix: Product Feed data is not migrated to custom post type on update

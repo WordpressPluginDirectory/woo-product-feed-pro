@@ -37,7 +37,7 @@ class WooSEA_Get_Admin_Notifications {
         $debug_product_feeds = array();
         if ( $product_feeds_query->have_posts() ) {
             foreach ( $product_feeds_query->get_posts() as $product_feed ) {
-                $debug_product_feeds[ $product_feed->ID ] = $product_feed;
+                $debug_product_feeds[ $product_feed->id ] = $product_feed;
             }
         }
 

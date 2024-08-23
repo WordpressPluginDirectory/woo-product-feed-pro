@@ -46,14 +46,15 @@ class Product_Feed_Post_Type extends Abstract_Class {
             'description'         => __( 'Product Feed CPT', 'woo-product-feed-pro' ),
             'labels'              => $labels,
             'query_var'           => true,
-            'rewrite'             => array(
-                'slug'       => Product_Feed::POST_TYPE,
-                'with_front' => false,
-                'pages'      => false,
-            ),
+            'rewrite'             => false,
             'can_export'          => true,
             'exclude_from_search' => true,
-            'publicly_queryable'  => true,
+            'hierarchical'        => false,
+            'taxonomies'          => array(),
+            'show_in_nav_menus'   => false,
+            'show_in_admin_bar'   => false,
+            'public'              => false,
+            'publicly_queryable'  => false,
             'capability_type'     => 'post',
             'show_in_rest'        => false, // Disable default REST for Order Form Custom Post Type.
         );

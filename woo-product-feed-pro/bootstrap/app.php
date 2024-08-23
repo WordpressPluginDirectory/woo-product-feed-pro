@@ -305,6 +305,7 @@ class App {
 App::instance()->register_objects(
     array_merge(
         require_once WOOCOMMERCESEA_PATH . 'bootstrap/class-objects.php',
+        require_once WOOCOMMERCESEA_PATH . 'bootstrap/integration-objects.php',
     )
 );
 

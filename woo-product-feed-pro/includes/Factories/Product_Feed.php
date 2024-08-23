@@ -284,9 +284,55 @@ class Product_Feed {
                 if ( is_bool( $value ) ) {
                     $value = $value ? 'yes' : 'no';
                 }
+
+                // Filter meta value.
+                $value = $this->_filter_meta_value( $value, $key );
+
                 update_post_meta( $this->id, self::META_PREFIX . $key, $value );
             }
         }
+    }
+
+    /**
+     * Filter meta value.
+     *
+     * @since 13.3.5
+     * @access private
+     *
+     * @param mixed  $value Meta value.
+     * @param string $key Meta key.
+     *
+     * @return mixed
+     */
+    private function _filter_meta_value( $value, $key ) {
+        switch ( $key ) {
+            case 'filters':
+                $value = $this->_filter_feed_filters_mapping_meta_value( $value );
+        }
+        return $value;
+    }
+
+    /**
+     * Filter feed filter mapping meta value.
+     *
+     * @since 13.3.5
+     * @access private
+     *
+     * @param array $value Rules meta value.
+     *
+     * @return array
+     */
+    private function _filter_feed_filters_mapping_meta_value( $value ) {
+        if ( ! is_array( $value ) || empty( $value ) ) {
+            return $value;
+        }
+
+        foreach ( $value as $i => $rule ) {
+            // Use array map to filter the rule values for 'condition' key!
+            $value[ $i ]['condition'] = html_entity_decode( $rule['condition'] );
+        }
+
+        return $value;
     }
 
     /**

@@ -17,6 +17,21 @@ use AdTribes\PFP\Factories\Product_Feed;
 class Product_Feed_Helper {
 
     /**
+     * Check if object is a Product_Feed.
+     *
+     * This method is used to check if the object is a product feed.
+     *
+     * @since 13.3.5
+     * @access public
+     *
+     * @param mixed $feed The feed object.
+     * @return bool
+     */
+    public static function is_a_product_feed( $feed ) {
+        return ( is_a( $feed, 'AdTribes\PFP\Factories\Product_Feed' ) || is_a( $feed, 'AdTribes\PFE\Factories\Product_Feed' ) );
+    }
+
+    /**
      * Get country code from legacy country name.
      *
      * This method is used to get the country code from the legacy country name.
