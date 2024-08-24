@@ -4,6 +4,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+// phpcs:disable
+
 use AdTribes\PFP\Factories\Product_Feed_Query;
 use AdTribes\PFP\Helpers\Product_Feed_Helper;
 
@@ -31,7 +33,7 @@ foreach ( $product_feeds_query->get_posts() as $product_feed ) :
 ?>
     <form action="" method="post">
         <?php wp_nonce_field( 'woosea_ajax_nonce' ); ?>
-        <tr>
+        <tr class="<?php echo 'processing' === $product_feed->status ? 'processing' : ''; ?>">
             <td>
                 <label class="woo-product-feed-pro-switch">
                     <input type="hidden" name="manage_record" value="<?php echo esc_attr( $product_feed->legacy_project_hash ); ?>">

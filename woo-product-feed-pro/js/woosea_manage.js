@@ -4,6 +4,7 @@ jQuery(function ($) {
   var project_status = null;
   var get_value = null;
   var tab_value = null;
+  var isRefreshRunning = false;
 
   // make sure to only check the feed status on the woosea_manage_feed page
   url = new URL(window.location.href);
@@ -15,30 +16,7 @@ jQuery(function ($) {
   }
 
   if (get_value == 'woosea_manage_feed' && woosea_manage_params.total_product_feeds > 0) {
-    jQuery(function ($) {
-      var nonce = $('#_wpnonce').val();
-
-      jQuery
-        .ajax({
-          method: 'POST',
-          url: ajaxurl,
-          dataType: 'json',
-          data: {
-            action: 'woosea_check_processing',
-            security: nonce,
-          },
-        })
-        .done(function (data) {
-          if (data.processing == 'true') {
-            myInterval = setInterval(woosea_check_perc, 10000);
-          } else {
-            console.log('No refresh interval is needed, all feeds are ready');
-          }
-        })
-        .fail(function (data) {
-          console.log('Failed AJAX Call :( /// Return Data: ' + data);
-        });
-    });
+    woosea_check_perc(); // check percentage directly on load.
   }
 
   $('.dismiss-review-notification, .review-notification .notice-dismiss').on('click', function () {
@@ -711,6 +689,7 @@ jQuery(function ($) {
     if (action == 'refresh') {
       var popup_dialog = confirm('Are you sure you want to refresh the product feed?');
       if (popup_dialog == true) {
+
         jQuery.ajax({
           method: 'POST',
           url: ajaxurl,
@@ -721,29 +700,31 @@ jQuery(function ($) {
           },
         });
 
-        // Replace status of project to processing
-        $('table tbody')
-          .find('input[name="manage_record"]')
-          .each(function () {
-            var hash = this.value;
-            if (hash == project_hash) {
-              $('.woo-product-feed-pro-blink_off_' + hash).text(function () {
-                $(this).addClass('woo-product-feed-pro-blink_me');
-                var status = $('.woo-product-feed-pro-blink_off_' + hash).text();
-                myInterval = setInterval(woosea_check_perc, 5000);
-                if (status == 'ready') {
-                  return $(this).text().replace('ready', 'processing (0%)');
-                } else if (status == 'stopped') {
-                  return $(this).text().replace('stopped', 'processing (0%)');
-                } else if (status == 'not run yet') {
-                  return $(this).text().replace('not run yet', 'processing (0%)');
-                } else {
-                  // it should not be coming here at all
-                  return $(this).text().replace('ready', 'processing (0%)');
-                }
-              });
+        var $input = $('table tbody')
+        .find('input[name="manage_record"][value="' + project_hash + '"]');
+        var $row = $input.closest('tr');
+        var hash = $input.val();
+
+        if (hash == project_hash) {
+          $('.woo-product-feed-pro-blink_off_' + hash).text(function () {
+            $(this).addClass('woo-product-feed-pro-blink_me');
+            var status = $('.woo-product-feed-pro-blink_off_' + hash).text();
+            if (!isRefreshRunning) {
+              woosea_check_perc();
+            }
+            $row.addClass('processing');
+            if (status == 'ready') {
+              return $(this).text().replace('ready', 'processing (0%)');
+            } else if (status == 'stopped') {
+              return $(this).text().replace('stopped', 'processing (0%)');
+            } else if (status == 'not run yet') {
+              return $(this).text().replace('not run yet', 'processing (0%)');
+            } else {
+              // it should not be coming here at all
+              return $(this).text().replace('ready', 'processing (0%)');
             }
           });
+        }
       }
     }
   });
@@ -751,58 +732,44 @@ jQuery(function ($) {
   function woosea_check_perc() {
     // Check if we need to UP the processing percentage
     var nonce = $('#_wpnonce').val();
+    const hashes = $('table tbody tr.processing input[name="manage_record"]').toArray().map((el) => el.value);
 
-    $('table tbody')
-      .find('input[name="manage_record"]')
-      .each(function () {
-        var hash = this.value;
-        jQuery.ajax({
-          method: 'POST',
-          url: ajaxurl,
-          data: {
-            action: 'woosea_project_processing_status',
-            security: nonce,
-            project_hash: hash,
-          },
-          success: function (response) {
-            if (response.data.proc_perc < 100) {
-              if (response.data.running != 'stopped') {
-                $('#woosea_proc_' + hash).addClass('woo-product-feed-pro-blink_me');
-                return $('#woosea_proc_' + hash).text('processing (' + response.data.proc_perc + '%)');
+    // Stop the interval when there are no more feeds in processing status.
+    if (hashes.length < 1) {
+      isRefreshRunning = false;
+      return;
+    }
+
+    isRefreshRunning = true;
+
+    checkStatusXHR = jQuery.ajax({
+      method: 'POST',
+      url: ajaxurl,
+      data: {
+        action: 'woosea_project_processing_status',
+        security: nonce,
+        project_hashes: hashes,
+      },
+      success: function (response) {
+        if (response.data.length > 0) {
+          response.data.forEach((project) => {
+            var $status = $('#woosea_proc_' + project.hash);
+            if (project.proc_perc < 100) {
+              if (project.running != 'stopped') {
+                $status.addClass('woo-product-feed-pro-blink_me');
+                return $status.text('processing (' + project.proc_perc + '%)');
               }
-            } else if (response.data.proc_perc == 100) {
-              //	clearInterval(myInterval);
-              $('#woosea_proc_' + hash).removeClass('woo-product-feed-pro-blink_me');
-              return $('#woosea_proc_' + hash).text('ready');
-            } else if (response.data.proc_perc == 999) {
-              // Do not do anything
-            } else {
-              //	clearInterval(myInterval);
+            } else if (project.proc_perc >= 100) {
+              $status.removeClass('woo-product-feed-pro-blink_me');
+              $status.closest('tr').removeClass('processing');
+              return $status.text('ready');
             }
-          },
-        });
-
-        // Check if we can kill the refresh interval
-        // Kill interval when all feeds are done processing
-        jQuery
-          .ajax({
-            method: 'POST',
-            url: ajaxurl,
-            data: {
-              action: 'woosea_check_processing',
-              security: nonce,
-            },
-          })
-          .done(function (response) {
-            if (response.data.processing == 'false') {
-              clearInterval(myInterval);
-              console.log('Kill interval, all feeds are ready');
-            }
-          })
-          .fail(function (data) {
-            console.log('Failed AJAX Call :( /// Return Data: ' + data);
           });
-      });
+        }
+
+        woosea_check_perc();
+      }
+    });
   }
 
   $('#adt_migrate_to_custom_post_type').on('click', function () {

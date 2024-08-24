@@ -193,7 +193,8 @@ class Product_Feed_Admin extends Abstract_Class {
         $published_products = apply_filters( 'adt_product_feed_total_published_products', $published_products, $feed );
 
         // Update the feed with the total number of products.
-        $feed->products_count = $published_products;
+        $feed->products_count     = intval( $published_products );
+        $total_products_processed = $feed->total_products_processed;
 
         /**
          * Batch processing.
@@ -202,7 +203,7 @@ class Product_Feed_Admin extends Abstract_Class {
          * The batching logic is from the legacy code base as it's has the batch size.
          * We need to refactor this logic so it's not stupid.
          */
-        if ( $feed->total_products_processed >= $published_products || $batch_size >= $published_products ) { // End of processing.
+        if ( $total_products_processed >= $published_products || $batch_size >= $published_products ) { // End of processing.
             $upload_dir = wp_upload_dir();
             $base       = $upload_dir['basedir'];
             $path       = $base . '/woo-product-feed-pro/' . $feed->file_format;
@@ -214,9 +215,6 @@ class Product_Feed_Admin extends Abstract_Class {
                 wp_delete_file( $tmp_file );
             }
 
-            // In 2 minutes from now check the amount of products in the feed and update the history count.
-            wp_schedule_single_event( time() + 120, 'woosea_update_project_stats', array( $feed->id ) );
-
             // Set status to ready.
             $feed->status = 'ready';
 
@@ -225,18 +223,35 @@ class Product_Feed_Admin extends Abstract_Class {
 
             // Set last updated date and time.
             $feed->last_updated = gmdate( 'd M Y H:i' );
-        } else { // Continue processing.
-            // Set the next scheduled event.
-            if ( ! wp_next_scheduled( 'woosea_create_batch_event', array( $feed->id ) ) ) {
-                wp_schedule_single_event( time() + 2, 'woosea_create_batch_event', array( $feed->id ) );
-            }
 
+            $feed->save();
+
+            // In 2 minutes from now check the amount of products in the feed and update the history count.
+            if ( wp_schedule_single_event( time(), 'woosea_update_project_stats', array( $feed->id ) ) ) {
+                spawn_cron( time() );
+            } else {
+                // Something went wrong with scheduling the cron, try again in case it was an intermittent failure.
+                wp_schedule_single_event( time(), 'woosea_update_project_stats', array( $feed->id ) );
+                spawn_cron( time() );
+            }
+        } else { // Continue processing.
             $feed->status = 'processing';
             // Update current processing status and numbers.
             $feed->total_products_processed = $total_products_processed + $batch_size;
-        }
 
-        $feed->save();
+            $feed->save();
+
+            // Set the next scheduled event.
+            if ( ! wp_next_scheduled( 'woosea_create_batch_event', array( $feed->id ) ) ) {
+                if ( wp_schedule_single_event( time(), 'woosea_create_batch_event', array( $feed->id ) ) ) {
+                    spawn_cron( time() );
+                } else {
+                    // Something went wrong with scheduling the cron, try again in case it was an intermittent failure.
+                    wp_schedule_single_event( time(), 'woosea_create_batch_event', array( $feed->id ) );
+                    spawn_cron( time() );
+                }
+            }
+        }
     }
 
 
@@ -416,7 +431,13 @@ class Product_Feed_Admin extends Abstract_Class {
          * Legacy code base.
          * In 1 minute from now check the amount of products in the feed and update the history count.
          */
-        wp_schedule_single_event( time() + 60, 'woosea_update_project_stats', array( $feed->id ) );
+        if ( wp_schedule_single_event( time(), 'woosea_update_project_stats', array( $feed->id ) ) ) {
+            spawn_cron( time() );
+        } else {
+            // Something went wrong with scheduling the cron, try again in case it was an intermittent failure.
+            wp_schedule_single_event( time(), 'woosea_update_project_stats', array( $feed->id ) );
+            spawn_cron( time() );
+        }
 
         do_action( 'adt_after_cancel_product_feed', $feed );
 

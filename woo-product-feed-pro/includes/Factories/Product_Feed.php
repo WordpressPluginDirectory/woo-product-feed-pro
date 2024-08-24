@@ -369,6 +369,11 @@ class Product_Feed {
             $this->data['file_url'] = $this->get_file_url();
         }
 
+        // Set default delimiter.
+        if ( '' === $this->delimiter ) {
+            $this->set_default_delimiter();
+        }
+
         return true;
     }
 
@@ -495,6 +500,26 @@ class Product_Feed {
     }
 
     /**
+     * Set default delimiter.
+     *
+     * @since 13.3.5.3
+     * @access protected
+     *
+     * @return string
+     */
+    protected function set_default_delimiter() {
+        $default_delimiter = '';
+        switch ( $this->file_format ) {
+            case 'tsv':
+                return "\t";
+            default:
+                return ',';
+        }
+
+        $this->data['delimiter'] = $default_delimiter;
+    }
+
+    /**
      * Get product feed running process percentage.
      *
      * @since 13.3.5
@@ -573,7 +598,8 @@ class Product_Feed {
 
         // Remove old history products.
         if ( count( $this->data['history_products'] ) > $max_history_products ) {
-            $this->data['history_products'] = array_slice( $this->data['history_products'], 0, $max_history_products, true );
+            // trim the array to the max history products but preserve the last updated key.
+            $this->data['history_products'] = array_slice( $this->data['history_products'], - $max_history_products, null, true );
         }
     }
 

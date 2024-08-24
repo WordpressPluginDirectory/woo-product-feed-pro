@@ -2410,6 +2410,7 @@ class WooSEA_Get_Products {
          * Only add fields to the file that the user selected
          * Construct header line for CSV ans TXT files, for XML create the XML root and header
          */
+        $products = array();
         if ( $file_format != 'xml' ) {
             if ( ! empty( $feed_attributes ) && $nr_products_processed == 0 ) {
                 $attr = '';
@@ -4941,7 +4942,7 @@ class WooSEA_Get_Products {
         /**
          * Write row to CSV/TXT or XML file
          */
-        if ( $file_format != 'xml' ) {
+        if ( $file_format != 'xml' && is_array( $products ) && ! empty( $products ) ) {
             unset( $products[0] );
             $file = $this->woosea_create_csvtxt_feed( array_filter( $products ), $feed, 'false' );
         } else {

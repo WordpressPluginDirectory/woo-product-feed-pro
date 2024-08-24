@@ -87,14 +87,11 @@ class Cron extends Abstract_Class {
         $max_history_products = apply_filters( 'adt_product_feed_max_history_products', 10 );
 
         $products_count = 0;
-        $file           = $feed->get_file_url();
+        $file           = $feed->get_file_path();
         $file_format    = $feed->file_format;
+        $products_count = file_exists( $file ) ? $this->get_product_counts_from_file( $file, $file_format, $feed ) : 0;
 
-        if ( file_exists( $file ) ) {
-            $products_count = file_exists( $file ) ? $this->get_product_counts_from_file( $file, $file_format, $feed ) : 0;
-        }
-
-        $history_products = $feed->add_history_product( $products_count );
+        $feed->add_history_product( $products_count );
         $feed->save();
     }
 
@@ -112,15 +109,15 @@ class Cron extends Abstract_Class {
 
         switch ( $file_format ) {
             case 'xml':
-                $xml                   = simplexml_load_file( $file, 'SimpleXMLElement', LIBXML_NOCDATA );
-                $feed_channel          = $feed->get_channel();
+                $xml          = simplexml_load_file( $file, 'SimpleXMLElement', LIBXML_NOCDATA );
+                $feed_channel = $feed->get_channel();
 
-                if ($feed_channel['name'] == 'Yandex') {
-                    $products_count = isset($xml->offers->offer) ? count($xml->offers->offer) : 0;
-                } elseif ($feed_channel['taxonomy'] == 'none') {
-                    $products_count = is_countable($xml->product) ? count($xml->product) : 0;
+                if ( $feed_channel['name'] == 'Yandex' ) {
+                    $products_count = isset( $xml->offers->offer ) ? count( $xml->offers->offer ) : 0;
+                } elseif ( $feed_channel['taxonomy'] == 'none' ) {
+                    $products_count = is_countable( $xml->product ) ? count( $xml->product ) : 0;
                 } else {
-                    $products_count = count($xml->channel->item);
+                    $products_count = count( $xml->channel->item );
                 }
 
                 break;
@@ -135,7 +132,7 @@ class Cron extends Abstract_Class {
          * Filter the amount of history products in the system report.
          *
          * @since 13.3.5
-         * 
+         *
          * @param int          $products_count The amount of products in the feed file.
          * @param string       $file           The file path.
          * @param string       $file_format    The file format.
