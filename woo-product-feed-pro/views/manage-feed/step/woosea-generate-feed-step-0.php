@@ -1,5 +1,9 @@
 <?php
+// phpcs:disable
+use AdTribes\PFP\Helpers\Helper;
+use AdTribes\PFP\Helpers\Product_Feed_Helper;
 use AdTribes\PFP\Factories\Product_Feed;
+use AdTribes\PFP\Classes\Product_Feed_Attributes;
 
 /**
  * Change default footer text, asking to review our plugin.
@@ -33,26 +37,11 @@ $versions = array(
 $nonce = wp_create_nonce( 'woosea_ajax_nonce' );
 
 $notifications_obj = new WooSEA_Get_Admin_Notifications();
-if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
-    $notifications_box = $notifications_obj->get_admin_notifications( '9', 'false' );
-    $locale            = 'NL';
-} else {
-    $notifications_box = $notifications_obj->get_admin_notifications( '0', 'false' );
-    $default           = wc_get_base_location();
-    $locale            = apply_filters( 'woocommerce_countries_base_country', $default['country'] );
-}
+$notifications_box = $notifications_obj->get_admin_notifications( '0', 'false' );
 
-if ( $versions['PHP'] < 5.6 ) {
-    $notifications_box = $notifications_obj->get_admin_notifications( '11', 'false' );
-}
-
-if ( ! wp_next_scheduled( 'woosea_cron_hook' ) ) {
-    $notifications_box = $notifications_obj->get_admin_notifications( '12', 'false' );
-}
-
-if ( $versions['WooCommerce'] < 3 ) {
-    $notifications_box = $notifications_obj->get_admin_notifications( '13', 'false' );
-}
+$default_location = wc_get_base_location();
+$country          = apply_filters( 'woocommerce_countries_base_country', $default_location['country'] );
+$country          = Product_Feed_Helper::get_legacy_country_from_code( $country );
 
 /**
  * Get shipping zones
@@ -60,25 +49,19 @@ if ( $versions['WooCommerce'] < 3 ) {
 $shipping_zones    = WC_Shipping_Zones::get_zones();
 $nr_shipping_zones = count( $shipping_zones );
 
-/**
- * Get channels
- */
-$channel_configs = get_option( 'channel_statics' );
+$feed         = null;
+$project_hash = isset( $_GET['project_hash'] ) ? sanitize_text_field( $_GET['project_hash'] ) : '';
+if ( array_key_exists( 'project_hash', $_GET ) ) {
+    $feed           = Product_Feed_Helper::get_product_feed( sanitize_text_field( $_GET['project_hash'] ) );
+    $country        = $feed->get_legacy_country();
+    $manage_project = 'yes';
+}
 
 /**
  * Get countries and channels
  */
-$channel_obj = new WooSEA_Attributes();
-$countries   = $channel_obj->get_channel_countries();
-$channels    = $channel_obj->get_channels( $locale );
-
-$feed         = null;
-$project_hash = isset( $_GET['project_hash'] ) ? sanitize_text_field( $_GET['project_hash'] ) : '';
-if ( array_key_exists( 'project_hash', $_GET ) ) {
-    $feed                = new Product_Feed( sanitize_text_field( $_GET['project_hash'] ) );
-    $feed_legacy_country = $feed->get_legacy_country();
-    $manage_project      = 'yes';
-}
+$countries = Product_Feed_Attributes::get_channel_countries();
+$channels  = Product_Feed_Attributes::get_channels( $country );
 
 /**
  * Action hook to add content before the product feed manage page.
@@ -92,37 +75,12 @@ do_action( 'adt_before_product_feed_manage_page', 0, $project_hash, $feed );
 
 <div class="wrap">
     <div class="woo-product-feed-pro-form-style-2">
-        <?php
-        // Set default notification to show
-        $getelite_notice = get_option( 'woosea_getelite_notification' );
-        if ( empty( $getelite_notice['show'] ) ) {
-            $getelite_notice              = array();
-            $getelite_notice['show']      = 'yes';
-            $getelite_notice['timestamp'] = date( 'd-m-Y' );
-        }
-
-        if ( $getelite_notice['show'] != 'no' ) {
-        ?>
-            <div class="notice notice-info get_elite is-dismissible">
-                <p>
-                    <strong><?php esc_html_e( 'Would you like to get more out of your product feeds? Upgrade to the Elite version of the plugin and you will get:', 'woo-product-feed-pro' ); ?></strong><br /></br />
-                    <span class="dashicons dashicons-yes"></span><?php esc_html_e( 'Priority support - we will help you to get your product feed(s) up-and-running;', 'woo-product-feed-pro' ); ?><br />
-                    <span class="dashicons dashicons-yes"></span><?php esc_html_e( 'GTIN, Brand, MPN, EAN, Condition and more fields for your product feeds', 'woo-product-feed-pro' ); ?> [<a href="https://adtribes.io/add-gtin-mpn-upc-ean-product-condition-optimised-title-and-brand-attributes/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=upgradenoticeaddingfields" target="_blank"><?php esc_html_e( 'Read more', 'woo-product-feed-pro' ); ?></a>];<br />
-                    <span class="dashicons dashicons-yes"></span><?php esc_html_e( 'Solve Googe Shopping price mismatch product disapprovals', 'woo-product-feed-pro' ); ?> [<a href="https://adtribes.io/woocommerce-structured-data-bug/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=upgradenoticestructureddatabug" target="_blank"><?php esc_html_e( 'Read more', 'woo-product-feed-pro' ); ?></a>];<br />
-                    <span class="dashicons dashicons-yes"></span><?php esc_html_e( 'Advanced product data manipulation', 'woo-product-feed-pro' ); ?> [<a href="https://adtribes.io/feature-product-data-manipulation/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=upgradenoticeproductdatamanipulation" target="_blank"><?php esc_html_e( 'Read more', 'woo-product-feed-pro' ); ?></a>];<br />
-                    <span class="dashicons dashicons-yes"></span><?php esc_html_e( 'WPML support - including their currency switcher', 'woo-product-feed-pro' ); ?> [<a href="https://adtribes.io/wpml-support/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=upgradenoticewpmlsupport" target="_blank"><?php esc_html_e( 'Read more', 'woo-product-feed-pro' ); ?></a>];<br />
-                    <span class="dashicons dashicons-yes"></span><?php esc_html_e( 'Aelia  & Curcy currency switcher support', 'woo-product-feed-pro' ); ?> [<a href="https://adtribes.io/aelia-currency-switcher-feature/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=upgradenoticeaeliasupport" target="_blank"><?php esc_html_e( 'Read more', 'woo-product-feed-pro' ); ?></a>];<br />
-                    <span class="dashicons dashicons-yes"></span><?php esc_html_e( 'Polylang support', 'woo-product-feed-pro' ); ?> [<a href="https://adtribes.io/polylang-support-product-feeds/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=upgradenoticepolylangsupport" target="_blank"><?php esc_html_e( 'Read more', 'woo-product-feed-pro' ); ?></a>];<br />
-                    <span class="dashicons dashicons-yes"></span><?php esc_html_e( 'Facebook pixel feature', 'woo-product-feed-pro' ); ?> [<a href="https://adtribes.io/facebook-pixel-feature/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=upgradenoticefacebookpixelfeature" target="_blank"><?php esc_html_e( 'Read more', 'woo-product-feed-pro' ); ?></a>];<br /><br />
-                    <a class="button button-pink" href="https://adtribes.io/pro-vs-elite/?utm_source=pfp&utm_medium=manage-feed&utm_campaign=upgradetoelitenoticebutton" target="_blank"><?php esc_html_e( 'Upgrade To Elite', 'woo-product-feed-pro' ); ?></a>
-                </p>
-            </div>
-        <?php
-        }
-        ?>
+        <?php require_once WOOCOMMERCESEA_VIEWS_ROOT_PATH . 'notices/view-upgrade-to-elite-notice.php'; ?>
         <div class="woo-product-feed-pro-form-style-2-heading">
             <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank"><img class="logo" src="<?php echo esc_attr( WOOCOMMERCESEA_PLUGIN_URL . '/images/adt-logo.png' ); ?>" alt="<?php esc_attr_e( 'AdTribes', 'woo-product-feed-pro' ); ?>"></a> 
+            <?php if ( Helper::is_show_logo_upgrade_button() ) : ?>
             <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank" class="logo-upgrade">Upgrade to Elite</a>
+            <?php endif; ?>
             <h1 class="title"><?php esc_html_e( 'General feed settings', 'woo-product-feed-pro' ); ?></h1>
         </div>
 
@@ -148,13 +106,23 @@ do_action( 'adt_before_product_feed_manage_page', 0, $project_hash, $feed );
                                     </div>
                                 </td>
                             </tr>
+                            <?php
+
+                            /**
+                             * Action hook to add content before the country field.
+                             *
+                             * @since 13.3.6
+                             * @param array|Product_Feed|null $feed Product_Feed object or array of project data.
+                             */
+                            do_action( 'adt_general_feed_settings_before_country_field', $feed );
+                            ?>
                             <tr>
                                 <td><span><?php esc_html_e( 'Country', 'woo-product-feed-pro' ); ?>:</span></td>
                                 <td>
                                     <select name="countries" id="countries" class="select-field woo-sea-select2">
                                         <option><?php esc_html_e( 'Select a country', 'woo-product-feed-pro' ); ?></option>
                                         <?php foreach ( $countries as $value ) : ?>
-                                            <?php if ( $feed && ( $value == $feed_legacy_country ) ) : ?>
+                                            <?php if ( $feed && ( $value == $country ) ) : ?>
                                                 <option value="<?php echo esc_attr( $value ); ?>" selected><?php echo esc_html( $value ); ?></option>
                                             <?php else : ?>
                                                 <option value="<?php echo esc_attr( $value ); ?>"><?php echo esc_html( $value ); ?></option>

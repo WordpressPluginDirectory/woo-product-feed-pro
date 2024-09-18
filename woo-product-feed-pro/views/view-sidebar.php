@@ -4,6 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+use AdTribes\PFP\Helpers\Helper;
 
 /**
  * PFP Sidebar template
@@ -12,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 ?>
 <div class="woo-product-feed-pro-table-right">
-
+    <?php if ( Helper::is_show_sidebar_upgrade_column() ) : ?>
     <table class="woo-product-feed-pro-table">
         <tr>
             <td><strong><?php esc_html_e( 'Upgrade To Elite', 'woo-product-feed-pro' ); ?></strong></td>
@@ -35,6 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             </td>
         </tr>
     </table><br />
+    <?php endif; ?>
 
     <table class="woo-product-feed-pro-table">
         <tr>

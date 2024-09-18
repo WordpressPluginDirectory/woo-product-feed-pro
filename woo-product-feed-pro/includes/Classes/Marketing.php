@@ -9,6 +9,7 @@ namespace AdTribes\PFP\Classes;
 
 use AdTribes\PFP\Abstracts\Abstract_Class;
 use AdTribes\PFP\Helpers\Helper;
+use AdTribes\PFP\Traits\Singleton_Trait;
 
 /**
  * General wp-admin related functionalities and/or overrides.
@@ -16,6 +17,8 @@ use AdTribes\PFP\Helpers\Helper;
  * @since 13.3.4
  */
 class Marketing extends Abstract_Class {
+
+    use Singleton_Trait;
 
     /**
      * Marketing submenu list.
@@ -168,7 +171,7 @@ class Marketing extends Abstract_Class {
         $step = 1;
 
         if ( ! isset( $this->marketing_submenus[ $plugin_key ] ) ) {
-            return $status;
+            return $step;
         }
 
         $plugin = $this->marketing_submenus[ $plugin_key ];

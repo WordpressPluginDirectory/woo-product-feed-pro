@@ -76,15 +76,42 @@ class Activation extends Abstract_Class {
         // Update current installed plugin version.
         update_site_option( WOOCOMMERCESEA_OPTION_INSTALLED_VERSION, Helper::get_plugin_version() );
 
-        /***************************************************************************
-         * Run legacy activation class.
-         ***************************************************************************
-         *
-         * This class is responsible for running the activation checks.
-         * It is a legacy class and should be removed in future versions.
+        // Unschedule the cron job if it exists to ensure there will be only one of this hook scheduled hourly.
+        if ( wp_next_scheduled( 'woosea_cron_hook' ) ) {
+            wp_clear_scheduled_hook( 'woosea_cron_hook' );
+        }
+
+        /**
+         * Function for setting a cron job for regular creation of the feed
+         * Will create a new event when an old one exists, which will be deleted first
          */
-        require WOOCOMMERCESEA_PATH . 'classes/class-activate.php';
-        \WooSEA_Activation::activate_checks();
+        wp_schedule_event( time(), 'hourly', 'woosea_cron_hook' );
+
+        /**
+         * Register date of first activation of plugin
+         * We need this date in order to only show the
+         * Review notification request once
+         */
+        if ( ! get_option( 'woosea_first_activation' ) ) {
+            update_option( 'woosea_first_activation', time(), false );
+        }
+
+        if ( ! get_option( 'woosea_count_activation' ) ) {
+            update_option( 'woosea_count_activation', 1, false );
+        } else {
+            $count_activation = get_option( 'woosea_count_activation' );
+            $new_activation   = $count_activation + 1;
+            update_option( 'woosea_count_activation', $new_activation, false );
+        }
+
+        /**
+         * Delete the debug.log file from the uploads directory if it exists.
+         */
+        $upload_dir = wp_upload_dir();
+        $debug_file = $upload_dir['basedir'] . '/woo-product-feed-pro/logs/debug.log';
+        if ( file_exists( $debug_file ) ) {
+            unlink($debug_file); // phpcs:ignore
+        }
 
         update_option( 'adt_pfp_activation_code_triggered', 'yes' );
     }

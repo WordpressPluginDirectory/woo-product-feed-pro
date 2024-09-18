@@ -1,5 +1,10 @@
 <?php
+// phpcs:disable
+use AdTribes\PFP\Helpers\Helper;
 use AdTribes\PFP\Factories\Product_Feed;
+use AdTribes\PFP\Classes\Product_Feed_Admin;
+use AdTribes\PFP\Classes\Product_Feed_Attributes;
+use AdTribes\PFP\Helpers\Product_Feed_Helper;
 
 /**
  * Change default footer text, asking to review our plugin.
@@ -28,8 +33,8 @@ $notifications_box = $notifications_obj->get_admin_notifications( '7', 'false' )
 /**
  * Create product attribute object
  */
-$attributes_obj     = new WooSEA_Attributes();
-$attribute_dropdown = $attributes_obj->get_product_attributes();
+$product_feed_attributes = new Product_Feed_Attributes();
+$attribute_dropdown      = $product_feed_attributes->get_attributes();
 
 /**
  * Update or get project configuration
@@ -39,7 +44,7 @@ $nonce = wp_create_nonce( 'woosea_ajax_nonce' );
  * Update or get project configuration
  */
 if ( array_key_exists( 'project_hash', $_GET ) ) {
-    $feed = new Product_Feed( sanitize_text_field( $_GET['project_hash'] ) );
+    $feed = Product_Feed_Helper::get_product_feed( sanitize_text_field( $_GET['project_hash'] ) );
     if ( $feed->id ) {
         $feed_attributes = $feed->attributes;
         $channel_data    = $feed->channel;
@@ -77,8 +82,8 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
     } else {
         $_POST = array();
     }
-    $feed         = WooSEA_Update_Project::update_project( $_POST );
-    $channel_data = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_POST['channel_hash'] ) );
+    $feed         = Product_Feed_Admin::update_temp_product_feed( $_POST );
+    $channel_data = Product_Feed_Helper::get_channel_from_legacy_channel_hash( sanitize_text_field( $_POST['channel_hash'] ) );
 
     $channel_hash = $feed['channel_hash'];
     $project_hash = $feed['project_hash'];
@@ -111,7 +116,7 @@ $currency = apply_filters( 'adt_product_feed_currency', get_woocommerce_currency
 /**
  * Create channel attribute object
  */
-require plugin_dir_path( __FILE__ ) . '../../classes/channels/class-' . $channel_data['fields'] . '.php';
+require WOOCOMMERCESEA_CHANNEL_CLASS_ROOT_PATH . 'class-' . $channel_data['fields'] . '.php';
 $obj        = 'WooSEA_' . $channel_data['fields'];
 $fields_obj = new $obj();
 $attributes = $fields_obj->get_channel_attributes();
@@ -126,7 +131,9 @@ $attributes = $fields_obj->get_channel_attributes();
     <div class="woo-product-feed-pro-form-style-2">
         <div class="woo-product-feed-pro-form-style-2-heading">
             <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank"><img class="logo" src="<?php echo esc_attr( WOOCOMMERCESEA_PLUGIN_URL . '/images/adt-logo.png' ); ?>" alt="<?php esc_attr_e( 'AdTribes', 'woo-product-feed-pro' ); ?>"></a>
+            <?php if ( Helper::is_show_logo_upgrade_button() ) : ?>
             <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank" class="logo-upgrade">Upgrade to Elite</a>
+            <?php endif; ?>
             <h1 class="title"><?php esc_html_e( 'Field mapping', 'woo-product-feed-pro' ); ?></h1>
         </div>
 
@@ -158,7 +165,7 @@ $attributes = $fields_obj->get_channel_attributes();
                         foreach ( $attributes as $row_key => $row_value ) {
                             foreach ( $row_value as $row_k => $row_v ) {
                                 if ( $row_v['format'] == 'required' ) {
-                    ?>
+                                ?>
                                     <tr class="rowCount <?php echo "$c"; ?>">
                                         <td><input type="hidden" name="attributes[<?php echo "$c"; ?>][rowCount]" value="<?php echo "$c"; ?>">
                                             <input type="checkbox" name="record" class="checkbox-field">
@@ -200,17 +207,25 @@ $attributes = $fields_obj->get_channel_attributes();
                                             <select name="attributes[<?php echo "$c"; ?>][mapfrom]" class="select-field woo-sea-select2">
                                                 <option></option>
                                                 <?php
-                                                foreach ( $attribute_dropdown as $drop_key => $drop_value ) {
-                                                    if ( array_key_exists( 'woo_suggest', $row_v ) ) {
-                                                        if ( $row_v['woo_suggest'] == $drop_key ) {
-                                                            echo "<option value='$drop_key' selected>$drop_value</option>";
-                                                        } else {
-                                                            echo "<option value='$drop_key'>$drop_value</option>";
-                                                        }
-                                                    } else {
-                                                        echo "<option value='$drop_key'>$drop_value</option>";
-                                                    }
-                                                }
+                                                if ( ! empty( $attribute_dropdown ) ) :
+                                                    foreach ( $attribute_dropdown as $group_name => $attribute ) :
+                                                    ?>
+                                                        <optgroup label='<?php echo esc_html( $group_name ); ?>'>
+                                                        <?php
+                                                        if ( ! empty( $attribute ) ) :
+                                                            foreach ( $attribute as $attr => $attr_label ) :
+                                                            ?>
+                                                                <option 
+                                                                    value="<?php echo esc_attr( $attr ); ?>"
+                                                                    <?php echo array_key_exists( 'woo_suggest', $row_v ) && $row_v['woo_suggest'] == $attr ? 'selected' : ''; ?>
+                                                                >
+                                                                    <?php echo esc_html( $attr_label ); ?>
+                                                                </option>
+                                                                <?php
+                                                            endforeach;
+                                                        endif;
+                                                    endforeach;
+                                                endif;
                                                 ?>
                                             </select>
                                         </td>
@@ -247,7 +262,6 @@ $attributes = $fields_obj->get_channel_attributes();
                                     <input type="text" name="attributes[<?php echo "$attribute_key"; ?>][prefix]" class="input-field-medium" value="<?php echo "$prefix"; ?>">
                                 </td>
                                 <td>
-
                                     <?php
                                     if ( array_key_exists( 'static_value', $attribute_array ) ) {
                                         echo "<input type=\"text\" name=\"attributes[$attribute_key][mapfrom]\" class=\"input-field-midsmall\" value=\"$attribute_array[mapfrom]\"><input type=\"hidden\" name=\"attributes[$attribute_key][static_value]\" value=\"true\">";
@@ -256,13 +270,25 @@ $attributes = $fields_obj->get_channel_attributes();
                                         <select name="attributes[<?php echo "$attribute_key"; ?>][mapfrom]" class="select-field woo-sea-select2">
                                             <option></option>
                                             <?php
-                                            foreach ( $attribute_dropdown as $drop_key => $drop_value ) {
-                                                if ( $feed_attributes[ $attribute_key ]['mapfrom'] == $drop_key ) {
-                                                    echo "<option value='$drop_key' selected>$drop_value</option>";
-                                                } else {
-                                                    echo "<option value='$drop_key'>$drop_value</option>";
-                                                }
-                                            }
+                                            if ( ! empty( $attribute_dropdown ) ) :
+                                                foreach ( $attribute_dropdown as $group_name => $attribute ) :
+                                                ?>
+                                                    <optgroup label='<?php echo esc_html( $group_name ); ?>'>
+                                                    <?php
+                                                    if ( ! empty( $attribute ) ) :
+                                                        foreach ( $attribute as $attr => $attr_label ) :
+                                                        ?>
+                                                            <option 
+                                                                value="<?php echo esc_attr( $attr ); ?>"
+                                                                <?php echo $feed_attributes[ $attribute_key ]['mapfrom'] === $attr ? 'selected' : ''; ?>
+                                                            >
+                                                                <?php echo esc_html( $attr_label ); ?>
+                                                            </option>
+                                                            <?php
+                                                        endforeach;
+                                                    endif;
+                                                endforeach;
+                                            endif;
                                             ?>
                                         </select>
                                     <?php

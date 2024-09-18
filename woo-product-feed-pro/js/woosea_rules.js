@@ -11,34 +11,37 @@ jQuery(document).ready(function ($) {
         method: 'POST',
         url: ajaxurl,
         data: {
-          action: 'woosea_ajax',
+          action: 'woosea_ajax_get_attributes',
+          type: 'html',
           security: nonce,
-          rowCount: rowCount,
         },
       })
-      .done(function (data) {
-        data = JSON.parse(data);
+      .done(function (response) {
+        if (!response.success) {
+          console.log('Error: ' + response.message);
+          return;
+        }
 
         if (TrueRowCount == 0) {
           $('#woosea-ajax-table')
             .find('tbody:first')
             .append(
               '<tr><td><input type="hidden" name="rules[' +
-                data.rowCount +
+                rowCount +
                 '][rowCount]" value="' +
-                data.rowCount +
+                rowCount +
                 '"><input type="checkbox" name="record" class="checkbox-field"></td><td><i>Filter:</i></td><td><select name="rules[' +
-                data.rowCount +
+                rowCount +
                 '][attribute]" id="rules_' +
-                data.rowCount +
+                rowCount +
                 '" class="select-field woo-sea-select2">' +
-                data.dropdown +
+                response.data +
                 '</select></td><td><select name="rules[' +
-                data.rowCount +
+                rowCount +
                 '][condition]" class="select-field woo-sea-select2"><option value="contains">contains</option><option value="containsnot">does not contain</option><option value="=">is equal to</option><option value="!=">is not equal to</option><option value=">">is greater than</option><option value=">=">is greater or equal to</option><option value="<">is less than</option><option value="=<">is less or equal to</option><option value="empty">is empty</option><option value="notempty">is not empty</option></select></td><td><input type="text" name="rules[' +
                 rowCount +
                 '][criteria]" class="input-field-large" id="criteria_' +
-                data.rowCount +
+                rowCount +
                 '"></td><td><input type="checkbox" name="rules[' +
                 rowCount +
                 '][cs]" class="checkbox-field" alt="Case sensitive"></td><td><select name="rules[' +
@@ -48,21 +51,21 @@ jQuery(document).ready(function ($) {
         } else {
           $(
             '<tr><td><input type="hidden" name="rules[' +
-              data.rowCount +
+              rowCount +
               '][rowCount]" value="' +
-              data.rowCount +
+              rowCount +
               '"><input type="checkbox" name="record" class="checkbox-field"></td><td><i>Filter:</i></td><td><select name="rules[' +
-              data.rowCount +
+              rowCount +
               '][attribute]" id="rules_' +
-              data.rowCount +
+              rowCount +
               '" class="select-field woo-sea-select2">' +
-              data.dropdown +
+              response.data +
               '</select></td><td><select name="rules[' +
-              data.rowCount +
+              rowCount +
               '][condition]" class="select-field woo-sea-select2"><option value="contains">contains</option><option value="containsnot">does not contain</option><option value="=">is equal to</option><option value="!=">is not equal to</option><option value=">">is greater than</option><option value=">=">is greater or equal to</option><option value="<">is less than</option><option value="=<">is less or equal to</option><option value="empty">is empty</option><option value="notempty">is not empty</option></select></td><td><input type="text" name="rules[' +
               rowCount +
               '][criteria]" class="input-field-large" id="criteria_' +
-              data.rowCount +
+              rowCount +
               '"></td><td><input type="checkbox" name="rules[' +
               rowCount +
               '][cs]" class="checkbox-field" alt="Case sensitive"></td><td><select name="rules[' +
@@ -114,42 +117,45 @@ jQuery(document).ready(function ($) {
         method: 'POST',
         url: ajaxurl,
         data: {
-          action: 'woosea_ajax',
+          action: 'woosea_ajax_get_attributes',
+          type: 'html',
           security: nonce,
-          rowCount: rowCount,
         },
       })
-      .done(function (data) {
-        data = JSON.parse(data);
+      .done(function (response) {
+        if (!response.success) {
+          console.log('Error: ' + response.message);
+          return;
+        }
 
         if (TrueRowCount == 0) {
           $('#woosea-ajax-table')
             .find('tbody:first')
             .append(
               '<tr><td><input type="hidden" name="rules2[' +
-                data.rowCount +
+                rowCount +
                 '][rowCount]" value="' +
-                data.rowCount +
+                rowCount +
                 '"><input type="checkbox" name="record" class="checkbox-field"></td><td><i>Rule:</i></td><td><select name="rules2[' +
-                data.rowCount +
+                rowCount +
                 '][attribute]" class="select-field woo-sea-select2">' +
-                data.dropdown +
+                response.data +
                 '</select></td><td><select name="rules2[' +
-                data.rowCount +
+                rowCount +
                 '][condition]" class="select-field woo-sea-select2"  id="condition_' +
-                data.rowCount +
+                rowCount +
                 '""><option value="contains">contains</option><option value="containsnot">does not contain</option><option value="=">is equal to</option><option value="!=">is not equal to</option><option value=">">is greater than</option><option value=">=">is greater or equal to</option><option value="<">is less than</option><option value="=<">is less or equal to</option><option value="empty">is empty</option><option value="multiply">multiply</option><option value="divide">divide</option><option value="plus">plus</option><option value="minus">minus</option><option value="findreplace">find and replace</option></select></td><td><input type="text" name="rules2[' +
                 rowCount +
                 '][criteria]" class="input-field-large"></td><td><input type="checkbox" name="rules2[' +
                 rowCount +
                 '][cs]" class="checkbox-field" alt="Case sensitive" id="cs_' +
-                data.rowCount +
+                rowCount +
                 '"></td><td><select name="rules2[' +
-                data.rowCount +
+                rowCount +
                 '][than_attribute]" class="select-field woo-sea-select2" id="than_attribute_' +
                 rowCount +
                 '" style="width:300px;">' +
-                data.dropdown +
+                response.data +
                 '</select> </td><td><input type="text" name="rules2[' +
                 rowCount +
                 '][newvalue]" class="input-field-large" id="is-field_' +
@@ -159,29 +165,29 @@ jQuery(document).ready(function ($) {
         } else {
           $(
             '<tr><td><input type="hidden" name="rules2[' +
-              data.rowCount +
+              rowCount +
               '][rowCount]" value="' +
-              data.rowCount +
+              rowCount +
               '"><input type="checkbox" name="record" class="checkbox-field"></td><td><i>Rule:</i></td><td><select name="rules2[' +
-              data.rowCount +
+              rowCount +
               '][attribute]" class="select-field woo-sea-select2">' +
-              data.dropdown +
+              response.data +
               '</select></td><td><select name="rules2[' +
-              data.rowCount +
+              rowCount +
               '][condition]" class="select-field woo-sea-select2"  id="condition_' +
-              data.rowCount +
+              rowCount +
               '""><option value="contains">contains</option><option value="containsnot">does not contain</option><option value="=">is equal to</option><option value="!=">is not equal to</option><option value=">">is greater than</option><option value=">=">is greater or equal to</option><option value="<">is less than</option><option value="=<">is less or equal to</option><option value="empty">is empty</option><option value="multiply">multiply</option><option value="divide">divide</option><option value="plus">plus</option><option value="minus">minus</option><option value="findreplace">find and replace</option></select></td><td><input type="text" name="rules2[' +
               rowCount +
               '][criteria]" class="input-field-large"></td><td><input type="checkbox" name="rules2[' +
               rowCount +
               '][cs]" class="checkbox-field" alt="Case sensitive" id="cs_' +
-              data.rowCount +
+              rowCount +
               '"></td><td><select name="rules2[' +
-              data.rowCount +
+              rowCount +
               '][than_attribute]" class="select-field woo-sea-select2" id="than_attribute_' +
               rowCount +
               '" style="width:150px;">' +
-              data.dropdown +
+              response.data +
               '</select> </td><td><input type="text" name="rules2[' +
               rowCount +
               '][newvalue]" class="input-field-large" id="is-field_' +
@@ -276,7 +282,7 @@ jQuery(document).ready(function ($) {
       .find('input[name="record"]')
       .each(function () {
         if ($(this).is(':checked')) {
-          $(this).parents('tr').remove();
+          $(this).closest('tr').remove();
         }
       });
   });

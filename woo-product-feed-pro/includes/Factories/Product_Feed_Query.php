@@ -8,6 +8,7 @@
 namespace AdTribes\PFP\Factories;
 
 use WP_Query;
+use AdTribes\PFP\Helpers\Product_Feed_Helper;
 
 /**
  * For querying order forms.
@@ -52,7 +53,7 @@ class Product_Feed_Query extends WP_Query {
         if ( ! in_array( $this->get( 'fields' ), array( 'ids', 'id=>parent' ), true ) ) {
             $this->posts = array_map(
                 function ( $post ) {
-                    return Product_Feed::get_instance( $post, $this->context );
+                    return Product_Feed_Helper::get_product_feed( $post, $this->context );
                 },
                 $this->posts
             );

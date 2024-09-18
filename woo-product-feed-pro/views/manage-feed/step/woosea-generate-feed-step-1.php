@@ -1,5 +1,8 @@
 <?php
 use AdTribes\PFP\Factories\Product_Feed;
+use AdTribes\PFP\Classes\Product_Feed_Admin;
+use AdTribes\PFP\Helpers\Product_Feed_Helper;
+use AdTribes\PFP\Helpers\Helper;
 
 /**
  * Change default footer text, asking to review our plugin.
@@ -36,7 +39,7 @@ $nonce = wp_create_nonce( 'woosea_ajax_nonce' );
  * Update project configuration
  */
 if ( array_key_exists( 'project_hash', $_GET ) ) {
-    $feed = new Product_Feed( sanitize_text_field( $_GET['project_hash'] ) );
+    $feed = Product_Feed_Helper::get_product_feed( sanitize_text_field( $_GET['project_hash'] ) );
     if ( $feed->id ) {
         $feed_mappings = $feed->mappings;
         $channel_data  = $feed->channel;
@@ -66,8 +69,8 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
     } else {
         $_POST = array();
     }
-    $feed         = WooSEA_Update_Project::update_project( $_POST );
-    $channel_data = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_POST['channel_hash'] ) );
+    $feed         = Product_Feed_Admin::update_temp_product_feed( $_POST );
+    $channel_data = Product_Feed_Helper::get_channel_from_legacy_channel_hash( sanitize_text_field( $_POST['channel_hash'] ) );
 
     $channel_hash = $feed['channel_hash'];
     $project_hash = $feed['project_hash'];
@@ -187,7 +190,9 @@ do_action( 'adt_before_product_feed_manage_page', 1, $project_hash, $feed );
     <div class="woo-product-feed-pro-form-style-2">
         <div class="woo-product-feed-pro-form-style-2-heading">
             <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank"><img class="logo" src="<?php echo esc_attr( WOOCOMMERCESEA_PLUGIN_URL . '/images/adt-logo.png' ); ?>" alt="<?php esc_attr_e( 'AdTribes', 'woo-product-feed-pro' ); ?>"></a> 
+            <?php if ( Helper::is_show_logo_upgrade_button() ) : ?>
             <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank" class="logo-upgrade">Upgrade to Elite</a>
+            <?php endif; ?>
             <h1 class="title"><?php esc_html_e( 'Category mapping', 'woo-product-feed-pro' ); ?></h1>
         </div>
 

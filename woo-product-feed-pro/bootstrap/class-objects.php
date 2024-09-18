@@ -8,6 +8,7 @@
 
 use AdTribes\PFP\Classes\WP_Admin;
 use AdTribes\PFP\Classes\Product_Feed_Admin;
+use AdTribes\PFP\Classes\Product_Feed_Attributes;
 use AdTribes\PFP\Classes\Cron;
 use AdTribes\PFP\Classes\Heartbeat;
 use AdTribes\PFP\Classes\Marketing;
@@ -16,10 +17,11 @@ use AdTribes\PFP\Post_Types\Product_Feed_Post_Type;
 defined( 'ABSPATH' ) || exit;
 
 return array(
-    new Product_Feed_Admin(),
-    new Cron(),
-    new Heartbeat(),
-    new Product_Feed_Post_Type(),
-    new WP_Admin(),
-    new Marketing(),
+    Product_Feed_Admin::instance(),
+    Product_Feed_Attributes::instance(),
+    Cron::instance(),
+    Heartbeat::instance(),
+    WP_Admin::instance(),
+    Marketing::instance(),
+    Product_Feed_Post_Type::instance(),
 );

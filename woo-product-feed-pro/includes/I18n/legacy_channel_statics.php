@@ -85,7 +85,7 @@ return array(
         ),
         'Facebook Catalog Feed / Instagram'    => array(
             'channel_hash' => 'a80023c048bcf50aa70821992617d970',
-            'name'         => 'Facebook Catalog Feed / Instagram',
+            'name'         => 'Meta / Facebook Catalog Feed / Instagram',
             'fields'       => 'facebook_drm',
             'taxonomy'     => 'google_shopping',
             'utm_source'   => 'Facebook Catalog Feed',
@@ -724,6 +724,7 @@ return array(
             'type'         => 'Comparison shopping engine',
         ),
     ),
+    'French Guiana'               => array(),
     'Gabon'                       => array(),
     'Gambia'                      => array(),
     'Georgia'                     => array(),
@@ -1059,7 +1060,7 @@ return array(
     ),
     'Ghana'                       => array(),
     'Greece'                      => array(
-        'Incurvy'  => array(
+        'Incurvy'   => array(
             'channel_hash' => 'b9c15c9c8b92b028ece8171dc10a1dcc',
             'name'         => 'Incurvy',
             'fields'       => 'customfeed',
@@ -1067,7 +1068,7 @@ return array(
             'utm_source'   => 'Incurvy.com',
             'type'         => 'Marketplace',
         ),
-        'Shopflix' => array(
+        'Shopflix'  => array(
             'channel_hash' => 'edef5ac2c42264023ed18a3da1eff2c6',
             'name'         => 'Shopflix',
             'fields'       => 'shopflix',
@@ -1075,7 +1076,7 @@ return array(
             'utm_source'   => 'Shopflix.gr',
             'type'         => 'Marketplace',
         ),
-        'Skroutz'  => array(
+        'Skroutz'   => array(
             'channel_hash' => 'd4e5a1ae056299a65ce0d2b72b83ac00',
             'name'         => 'Skroutz',
             'fields'       => 'skroutz',
@@ -1083,7 +1084,15 @@ return array(
             'utm_source'   => 'Skroutz.gr',
             'type'         => 'Comparison shopping engine',
         ),
-        'Glami'    => array(
+        'Bestprice' => array(
+            'channel_hash' => '3678b92a2e469b2d32d2918275b54f1b',
+            'name'         => 'Bestprice',
+            'fields'       => 'bestprice',
+            'taxonomy'     => 'none',
+            'utm_source'   => 'Bestprice.gr',
+            'type'         => 'Comparison shopping engine',
+        ),
+        'Glami'     => array(
             'channel_hash' => '5eb6e7e39596930e78c653c83699ef04',
             'name'         => 'Glami.gr',
             'fields'       => 'glami',
@@ -1093,6 +1102,7 @@ return array(
         ),
     ),
     'Grenada'                     => array(),
+    'Guadeloupe'                  => array(),
     'Guatemala'                   => array(),
     'Guinea'                      => array(),
     'Guinea-Bissau'               => array(),
@@ -1257,6 +1267,7 @@ return array(
     'Mali'                        => array(),
     'Malta'                       => array(),
     'Marshall Islands'            => array(),
+    'Martinique'                  => array(),
     'Mauritania'                  => array(),
     'Mauritius'                   => array(),
     'Mexico'                      => array(
@@ -1533,7 +1544,9 @@ return array(
             'type'         => 'Comparison shopping engine',
         ),
     ),
+    'Puerto Rico'                 => array(),
     'Qatar'                       => array(),
+    'Reunion'                     => array(),
     'Romania'                     => array(
         'Okazzi'    => array(
             'channel_hash' => '21a027b99bad4b38aecc8adbfbc216c0',

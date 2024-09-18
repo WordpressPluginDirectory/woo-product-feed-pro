@@ -32,6 +32,24 @@ class Product_Feed_Helper {
     }
 
     /**
+     * Product feed instance.
+     *
+     * @since 13.3.6
+     * @access public
+     *
+     * @param int|string|WP_Post $feed    Feed ID, project hash (legacy) or WP_Post object.
+     * @param string             $context The context of the product feed.
+     * @return Product_Feed
+     */
+    public static function get_product_feed( $feed = 0, $context = 'view' ) {
+        if ( class_exists( 'AdTribes\PFE\Factories\Product_Feed' ) ) {
+            return new \AdTribes\PFE\Factories\Product_Feed( $feed, $context );
+        } else {
+            return new Product_Feed( $feed, $context );
+        }
+    }
+
+    /**
      * Get country code from legacy country name.
      *
      * This method is used to get the country code from the legacy country name.
@@ -88,34 +106,6 @@ class Product_Feed_Helper {
             }
         }
         return null;
-    }
-
-    /**
-     * Get product feed setting URL.
-     *
-     * @since 13.3.5
-     * @access public
-     *
-     * @param int $id Feed ID.
-     * @param int $step Step number.
-     *
-     * @return string
-     */
-    public static function get_product_feed_setting_url( $id, $step = 0 ) {
-        $feed = new Product_Feed( $id );
-        if ( ! $feed ) {
-            return '';
-        }
-
-        $args = array(
-            'page'         => 'woo-product-feed-pro',
-            'action'       => 'edit_project',
-            'project_hash' => $feed->legacy_project_hash,
-            'channel_hash' => $feed->channel_hash,
-            'step'         => $step,
-        );
-
-        return esc_url( add_query_arg( $args, admin_url( 'admin.php' ) ) );
     }
 
     /**

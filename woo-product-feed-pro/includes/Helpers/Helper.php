@@ -84,41 +84,6 @@ class Helper {
     }
 
     /**
-     * Checks required plugins if they are active.
-     *
-     * @since 13.3.3
-     * @access public
-     *
-     * @return array List of plugins that are not active.
-     */
-    public static function missing_required_plugins() {
-
-        $i       = 0;
-        $plugins = array();
-
-        $required_plugins = array(
-            'woocommerce/woocommerce.php',
-        );
-
-        foreach ( $required_plugins as $plugin ) {
-            if ( ! is_plugin_active( $plugin ) ) {
-                $plugin_name                  = explode( '/', $plugin );
-                $plugins[ $i ]['plugin-key']  = $plugin_name[0];
-                $plugins[ $i ]['plugin-base'] = $plugin;
-                $plugins[ $i ]['plugin-name'] = str_replace(
-                    'Woocommerce',
-                    'WooCommerce',
-                    ucwords( str_replace( '-', ' ', $plugin_name[0] ) )
-                );
-            }
-
-            ++$i;
-        }
-
-        return $plugins;
-    }
-
-    /**
      * Utility function that determines if a plugin is active or not.
      *
      * @since 13.3.4
@@ -151,17 +116,30 @@ class Helper {
     }
 
     /**
-     * Utility function that determines if the current page is a Product Feed Pro page or not.
+     * Utility function that determines if the current page is a Product Feed Pro or Elite page or not.
      *
      * @since 13.3.4
      * @access public
      *
-     * @return boolean True if pfp page, false otherwise.
+     * @return boolean True if Product Feed Pro or Elite, false otherwise.
      */
-    public static function is_pfp_page() {
-        $screen      = get_current_screen();
-        $is_pfp_page = strpos( $screen->id, 'product-feed-pro' ) !== false;
-        return apply_filters( 'pfp_is_pfp_page', $is_pfp_page );
+    public static function is_plugin_page() {
+        $screen         = get_current_screen();
+        $is_plugin_page = strpos( $screen->id, 'product-feed-pro' ) !== false || strpos( $screen->id, 'product-feed-elite' ) !== false;
+        return apply_filters( 'adt_is_plugin_page', $is_plugin_page );
+    }
+
+    /**
+     * Utility function that determines if the get elite notice should be shown or not.
+     *
+     * @since 13.3.6
+     * @access public
+     *
+     * @return boolean True if get elite notice should be shown, false otherwise.
+     */
+    public static function is_show_get_elite_notice() {
+        $show = 'yes' === get_option( 'woosea_getelite_notification', 'yes' );
+        return apply_filters( 'adt_pfp_show_get_elite_notice', $show );
     }
 
     /**
@@ -174,10 +152,34 @@ class Helper {
      */
     public static function is_show_notice_bar_lite() {
         $show = false;
-        if ( self::is_pfp_page() ) {
+        if ( self::is_plugin_page() ) {
             $show = true;
         }
-        return apply_filters( 'pfp_show_notice_bar_lite', $show );
+        return apply_filters( 'adt_pfp_show_notice_bar_lite', $show );
+    }
+
+    /**
+     * Utility function that determines if the logo upgrade button should be shown or not.
+     *
+     * @since 13.3.6
+     * @access public
+     *
+     * @return boolean True if logo upgrade button should be shown, false otherwise.
+     */
+    public static function is_show_logo_upgrade_button() {
+        return apply_filters( 'adt_pfp_show_logo_upgrade_button', true );
+    }
+
+    /**
+     * Utility function that determines if the sidebar upgrade column should be shown or not.
+     *
+     * @since 13.3.6
+     * @access public
+     *
+     * @return boolean True if sidebar upgrade column should be shown, false otherwise.
+     */
+    public static function is_show_sidebar_upgrade_column() {
+        return apply_filters( 'adt_pfp_show_sidebar_upgrade_column', true );
     }
 
     /**
@@ -204,5 +206,18 @@ class Helper {
         }
 
         return false;
+    }
+
+    /**
+     * Strip slashes from POST requests.
+     *
+     * @since 13.3.7
+     * @access public
+     *
+     * @param mixed $data The object to strip slashes from.
+     * @return mixed
+     */
+    public static function stripslashes_recursive( $data ) {
+        return is_array( $data ) ? stripslashes_deep( $data ) : stripslashes( $data );
     }
 }

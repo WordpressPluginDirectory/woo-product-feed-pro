@@ -1,5 +1,9 @@
 <?php
+// phpcs:disable
+use AdTribes\PFP\Helpers\Helper;
 use AdTribes\PFP\Factories\Product_Feed;
+use AdTribes\PFP\Classes\Product_Feed_Admin;
+use AdTribes\PFP\Helpers\Product_Feed_Helper;
 
 /**
  * Change default footer text, asking to review our plugin.
@@ -27,12 +31,6 @@ $notifications_obj = new WooSEA_Get_Admin_Notifications();
 $notifications_box = $notifications_obj->get_admin_notifications( '5', $error );
 
 /**
- * Create product attribute object
- */
-$attributes_obj = new WooSEA_Attributes();
-$attributes     = $attributes_obj->get_product_attributes();
-
-/**
  * Update or get project configuration
  */
 $nonce = wp_create_nonce( 'woosea_ajax_nonce' );
@@ -42,7 +40,7 @@ $nonce = wp_create_nonce( 'woosea_ajax_nonce' );
  * Update project configuration
  */
 if ( array_key_exists( 'project_hash', $_GET ) ) {
-    $feed = new Product_Feed( sanitize_text_field( $_GET['project_hash'] ) );
+    $feed = Product_Feed_Helper::get_product_feed( sanitize_text_field( $_GET['project_hash'] ) );
     if ( $feed->id ) {
         $channel_data   = $feed->get_channel();
         $manage_project = 'yes';
@@ -77,13 +75,12 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
     } else {
         $_POST = array();
     }
-    $feed         = WooSEA_Update_Project::update_project( $_POST );
-    $channel_data = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_POST['channel_hash'] ) );
-
+    $feed         = Product_Feed_Admin::update_temp_product_feed( $_POST );
     $channel_hash = $feed['channel_hash'];
     $project_hash = $feed['project_hash'];
+    $channel_data = Product_Feed_Helper::get_channel_from_legacy_channel_hash( $channel_hash );
 
-    $utm_source                    = $feed['name'];
+    $utm_source                    = $channel_data['name'] ?? '';
     $utm_medium                    = 'cpc';
     $utm_campaign                  = $feed['projectname'];
     $utm_enabled                   = true;
@@ -106,7 +103,9 @@ do_action( 'adt_before_product_feed_manage_page', 5, $project_hash, $feed );
             <tbody class="woo-product-feed-pro-body">
                 <div class="woo-product-feed-pro-form-style-2-heading">
                     <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank"><img class="logo" src="<?php echo esc_attr( WOOCOMMERCESEA_PLUGIN_URL . '/images/adt-logo.png' ); ?>" alt="<?php esc_attr_e( 'AdTribes', 'woo-product-feed-pro' ); ?>"></a> 
+                    <?php if ( Helper::is_show_logo_upgrade_button() ) : ?>
                     <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank" class="logo-upgrade">Upgrade to Elite</a>
+                    <?php endif; ?>
                     <h1 class="title"><?php esc_html_e( 'Conversion & Google Analytics settings', 'woo-product-feed-pro' ); ?></h1>
                 </div>
 

@@ -8,7 +8,6 @@
 namespace AdTribes\PFP\Updates;
 
 use AdTribes\PFP\Abstracts\Abstract_Class;
-use AdTribes\PFP\Helpers\Helper;
 use AdTribes\PFP\Helpers\Product_Feed_Helper;
 use AdTribes\PFP\Factories\Product_Feed;
 

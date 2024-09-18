@@ -5,7 +5,7 @@ License URI: http://www.gnu.org/licenses/gpl.html
 Tags: Google Shopping Feed, Meta feed, Facebook catalog feed, WooCommerce Product Feed, Product Feed
 Requires at least: 5.4
 Tested up to: 6.6
-Stable tag: trunk
+Stable tag: 13.3.7
 
 Most popular WooCommerce product feed plugin supporting Google shopping feed, meta/facebook feed, bing product feed & more.
 
@@ -380,6 +380,27 @@ Questions left or unanswered? Please do not hesitate to contact us at support@ad
 8. Set the basic configurations for your product feed
 
 === Changelog ===
+
+= 13.3.7 (2024-09-18) =
+* Bug Fix: Bestprice feed does not work
+* Bug Fix: Description splits into multiple columns in the CSV feed
+* Bug Fix: New line break is not stripped in CSV & TSV feed file
+* Bug Fix: PHP Warning: Undefined variable `$shipping_cost` in `class-get-products.php` on line 1142
+* Bug Fix: Undefined array key "reviewer_name"
+* Bug Fix: Division by zero fatal error happens when calculating process percentage and there's 0 products in the site
+* Improvement: Add filter to allow modification of the feed actions in manage feed table
+* Improvement: Add hook to allow Elite to migrate extra data & refactoring
+* Improvement: Add necessary hooks & refactor code base
+* Improvement: Product_Feed factory: ability to add extra data for new feed
+* Improvement: Remove old `class-activate.php` move the script to new `Activation.php` file
+* Improvement: Sort the feeds alphabetically in the manage feed table page
+* Improvement: refactor and improve the `WooSEA_Attributes` class
+
+= 13.3.6 (2024-08-29) =
+* Bug Fix: Google Analytics UTM is missing in the product link
+* Bug Fix: After creating new product feed the percentage status not being updated until refresh the page
+* Bug Fix: Product Feed Generation processing percentage is not working properly
+* Improvement: Handle Character/text encoding properly
 
 = 13.3.5.3 (2024-08-24) =
 * Bug Fix: Product feed processing stuck when the feed being processed with batching

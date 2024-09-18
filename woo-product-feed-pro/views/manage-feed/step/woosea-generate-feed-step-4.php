@@ -1,5 +1,10 @@
 <?php
+// phpcs:disable
+use AdTribes\PFP\Helpers\Helper;
 use AdTribes\PFP\Factories\Product_Feed;
+use AdTribes\PFP\Classes\Product_Feed_Admin;
+use AdTribes\PFP\Classes\Product_Feed_Attributes;
+use AdTribes\PFP\Helpers\Product_Feed_Helper;
 
 /**
  * Change default footer text, asking to review our plugin.
@@ -28,8 +33,8 @@ $notifications_box = $notifications_obj->get_admin_notifications( '4', 'false' )
 /**
  * Create product attribute object
  */
-$attributes_obj = new WooSEA_Attributes();
-$attributes     = $attributes_obj->get_product_attributes();
+$product_feed_attributes = new Product_Feed_Attributes();
+$attributes              = $product_feed_attributes->get_attributes();
 
 /**
  * Update or get project configuration
@@ -40,7 +45,7 @@ $nonce = wp_create_nonce( 'woosea_ajax_nonce' );
  * Update or get project configuration
  */
 if ( array_key_exists( 'project_hash', $_GET ) ) {
-    $feed = new Product_Feed( sanitize_text_field( $_GET['project_hash'] ) );
+    $feed = Product_Feed_Helper::get_product_feed( sanitize_text_field( $_GET['project_hash'] ) );
     if ( $feed->id ) {
         $feed_rules     = $feed->rules;
         $feed_filters   = $feed->filters;
@@ -80,8 +85,8 @@ if ( array_key_exists( 'project_hash', $_GET ) ) {
         $_POST = array();
     }
 
-    $feed         = WooSEA_Update_Project::update_project( $_POST );
-    $channel_data = WooSEA_Update_Project::get_channel_data( sanitize_text_field( $_POST['channel_hash'] ) );
+    $feed         = Product_Feed_Admin::update_temp_product_feed( $_POST );
+    $channel_data = Product_Feed_Helper::get_channel_from_legacy_channel_hash( sanitize_text_field( $_POST['channel_hash'] ) );
 
     $channel_hash = $feed['channel_hash'];
     $project_hash = $feed['project_hash'];
@@ -103,7 +108,9 @@ do_action( 'adt_before_product_feed_manage_page', 4, $project_hash, $feed );
         <div class="woo-product-feed-pro-form-style-2">
             <div class="woo-product-feed-pro-form-style-2-heading">
                 <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank"><img class="logo" src="<?php echo esc_attr( WOOCOMMERCESEA_PLUGIN_URL . '/images/adt-logo.png' ); ?>" alt="<?php esc_attr_e( 'AdTribes', 'woo-product-feed-pro' ); ?>"></a> 
+                <?php if ( Helper::is_show_logo_upgrade_button() ) : ?>
                 <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank" class="logo-upgrade">Upgrade to Elite</a>
+                <?php endif; ?>
                 <h1 class="title"><?php esc_html_e( 'Feed filters and rules', 'woo-product-feed-pro' ); ?></h1>
             </div>
 
@@ -205,13 +212,25 @@ do_action( 'adt_before_product_feed_manage_page', 4, $project_hash, $feed );
                                     <select name="rules[<?php echo "$rule_key"; ?>][attribute]" class="select-field woo-sea-select2">
                                         <option></option>
                                         <?php
-                                        foreach ( $attributes as $k => $v ) {
-                                            if ( isset( $feed_filters[ $rule_key ]['attribute'] ) && ( $feed_filters[ $rule_key ]['attribute'] == $k ) ) {
-                                                echo "<option value=\"$k\" selected>$v</option>";
-                                            } else {
-                                                echo "<option value=\"$k\">$v</option>";
-                                            }
-                                        }
+                                        if ( ! empty( $attributes ) ) :
+                                            foreach ( $attributes as $group_name => $attribute ) :
+                                            ?>
+                                                <optgroup label='<?php echo esc_html( $group_name ); ?>'>
+                                                <?php
+                                                if ( ! empty( $attribute ) ) :
+                                                    foreach ( $attribute as $attr => $attr_label ) :
+                                                    ?>
+                                                        <option 
+                                                            value="<?php echo esc_attr( $attr ); ?>"
+                                                            <?php echo $feed_filters[ $rule_key ]['attribute'] === $attr ? 'selected' : ''; ?>
+                                                        >
+                                                            <?php echo esc_html( $attr_label ); ?>
+                                                        </option>
+                                                        <?php
+                                                    endforeach;
+                                                endif;
+                                            endforeach;
+                                        endif;
                                         ?>
                                     </select>
                                 </td>
@@ -339,16 +358,28 @@ do_action( 'adt_before_product_feed_manage_page', 4, $project_hash, $feed );
                                     <td><input type="hidden" name="rules2[<?php echo "$rule2_key"; ?>][rowCount]" value="<?php echo "$rule2_key"; ?>"><input type="checkbox" name="record" class="checkbox-field"></td>
                                     <td><i><?php esc_html_e( 'Rule', 'woo-product-feed-pro' ); ?></i></td>
                                 <td>
-                                <select name="rules2[<?php echo "$rule2_key"; ?>][attribute]" class="select-field">
+                                <select name="rules2[<?php echo "$rule2_key"; ?>][attribute]" class="select-field woo-sea-select2">
                                     <option></option>
                                     <?php
-                                    foreach ( $attributes as $k => $v ) {
-                                        if ( isset( $feed_rules[ $rule2_key ]['attribute'] ) && ( $feed_rules[ $rule2_key ]['attribute'] == $k ) ) {
-                                            echo "<option value=\"$k\" selected>$v</option>";
-                                        } else {
-                                            echo "<option value=\"$k\">$v</option>";
-                                        }
-                                    }
+                                    if ( ! empty( $attributes ) ) :
+                                        foreach ( $attributes as $group_name => $attribute ) :
+                                        ?>
+                                            <optgroup label='<?php echo esc_html( $group_name ); ?>'>
+                                            <?php
+                                            if ( ! empty( $attribute ) ) :
+                                                foreach ( $attribute as $attr => $attr_label ) :
+                                                ?>
+                                                    <option 
+                                                        value="<?php echo esc_attr( $attr ); ?>"
+                                                        <?php echo $feed_rules[ $rule2_key ]['attribute'] === $attr ? 'selected' : ''; ?>
+                                                    >
+                                                        <?php echo esc_html( $attr_label ); ?>
+                                                    </option>
+                                                    <?php
+                                                endforeach;
+                                            endif;
+                                        endforeach;
+                                    endif;
                                     ?>
                                 </select>
                                 </td>
@@ -464,17 +495,29 @@ do_action( 'adt_before_product_feed_manage_page', 4, $project_hash, $feed );
                                         }
                                         ?>
                                     </td>
-                                            <td>
+                                    <td>
                                         <select name="rules2[<?php echo "$rule2_key"; ?>][than_attribute]" class="select-field woo-sea-select2" style="width:300px;">
                                             <option></option>
                                             <?php
-                                            foreach ( $attributes as $k => $v ) {
-                                                if ( isset( $feed_rules[ $rule2_key ]['than_attribute'] ) && ( $feed_rules[ $rule2_key ]['than_attribute'] == $k ) ) {
-                                                    echo "<option value=\"$k\" selected>$v</option>";
-                                                } else {
-                                                    echo "<option value=\"$k\">$v</option>";
-                                                }
-                                            }
+                                            if ( ! empty( $attributes ) ) :
+                                                foreach ( $attributes as $group_name => $attribute ) :
+                                                ?>
+                                                    <optgroup label='<?php echo esc_html( $group_name ); ?>'>
+                                                    <?php
+                                                    if ( ! empty( $attribute ) ) :
+                                                        foreach ( $attribute as $attr => $attr_label ) :
+                                                        ?>
+                                                            <option 
+                                                                value="<?php echo esc_attr( $attr ); ?>"
+                                                                <?php echo $feed_rules[ $rule2_key ]['than_attribute'] === $attr ? 'selected' : ''; ?>
+                                                            >
+                                                                <?php echo esc_html( $attr_label ); ?>
+                                                            </option>
+                                                            <?php
+                                                        endforeach;
+                                                    endif;
+                                                endforeach;
+                                            endif;
                                             ?>
                                         </select>
                                     </td>

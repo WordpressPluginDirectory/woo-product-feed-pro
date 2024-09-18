@@ -1,3 +1,55 @@
+= 13.3.7 (2024-09-18) =
+* Bug Fix: Bestprice feed does not work
+* Bug Fix: Description splits into multiple columns in the CSV feed
+* Bug Fix: New line break is not stripped in CSV & TSV feed file
+* Bug Fix: PHP Warning: Undefined variable `$shipping_cost` in `class-get-products.php` on line 1142
+* Bug Fix: Undefined array key "reviewer_name"
+* Bug Fix: Division by zero fatal error happens when calculating process percentage and there's 0 products in the site
+* Improvement: Add filter to allow modification of the feed actions in manage feed table
+* Improvement: Add hook to allow Elite to migrate extra data & refactoring
+* Improvement: Add necessary hooks & refactor code base
+* Improvement: Product_Feed factory: ability to add extra data for new feed
+* Improvement: Remove old `class-activate.php` move the script to new `Activation.php` file
+* Improvement: Sort the feeds alphabetically in the manage feed table page
+* Improvement: refactor and improve the `WooSEA_Attributes` class
+
+= 13.3.6 (2024-08-29) =
+* Bug Fix: Google Analytics UTM is missing in the product link
+* Bug Fix: After creating new product feed the percentage status not being updated until refresh the page
+* Bug Fix: Product Feed Generation processing percentage is not working properly
+* Improvement: Handle Character/text encoding properly
+
+= 13.3.5.3 (2024-08-24) =
+* Bug Fix: Product feed processing stuck when the feed being processed with batching
+* Bug Fix: Multiple AJAX requests runs when refreshing a feed
+
+= 13.3.5.2 (2024-08-23) =
+* Bug Fix: Fatal error on system log page
+* Bug Fix: Rules and filter's condition not saving properly
+* Bug Fix: Error: Failed opening channel class files
+* Improvement: Integration: Auto exclude product feed posts and feed urls from WP Rocket
+
+= 13.3.5.1 (2024-08-22) =
+* Bug Fix: Product Feed data is not migrated to custom post type on update
+
+= 13.3.5 (2024-08-21) =
+* Bug Fix: Identifier requires to update for Google Local Products Inventory feed
+* Bug Fix: Field mapping prefix and suffix adding space after prefix and before suffix
+* Bug Fix: The 'g:' prefix for google feeds channel is not stripped for TSV format
+* Bug Fix: The product category fields is generated with empty value in the first index
+* Improvement: Update menu item to new branding colors
+* Improvement: Refactor product feeds to use custom post type
+* Improvement: Declare WooCommerce HPOS compatibility
+
+= 13.3.4 (2024-07-03) =
+* Improvement: UI/UX: Use Select2 js on large select option input
+* Improvement: UI/UX: Add tooltip on Feed filters and rules columns
+* Improvement: Add lite bar on admin pages
+* Improvement: Add Help and About pages
+* Improvement: Add translation POT file
+* Improvement: Limit the amount of history products in system report
+* Improvement: Update options to not to be autoloaded
+
 = 13.3.3 (2024-06-10) =
 * Bug Fix: PHP Warning on creating product feed without active license
 * Bug Fix: Fatal error on when WooCommerce is not activated

@@ -9,6 +9,7 @@ namespace AdTribes\PFP\Post_Types;
 
 use AdTribes\PFP\Abstracts\Abstract_Class;
 use AdTribes\PFP\Factories\Product_Feed;
+use AdTribes\PFP\Traits\Singleton_Trait;
 
 /**
  * Product_Feed Post Type.
@@ -16,6 +17,8 @@ use AdTribes\PFP\Factories\Product_Feed;
  * @since 13.3.5
  */
 class Product_Feed_Post_Type extends Abstract_Class {
+
+    use Singleton_Trait;
 
     /**
      * Register Product Feed CPT.

@@ -148,6 +148,22 @@
   display: inline;
 }
 
+/* Settings Table */
+table.woo-product-feed-pro-table.woo-product-feed-pro-table--manage-settings {
+  margin-bottom: 2em;
+}
+
+table.woo-product-feed-pro-table.woo-product-feed-pro-table--other-settings {
+  margin-top: 2em;
+}
+
+table.woo-product-feed-pro-table.woo-product-feed-pro-table--manage-settings tr td:nth-child(2),
+table.woo-product-feed-pro-table.woo-product-feed-pro-table--other-settings tr td:nth-child(2) {
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* The switch - the box around the slider */
 .woo-product-feed-pro-switch {
   position: relative;

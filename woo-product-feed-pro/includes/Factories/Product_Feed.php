@@ -125,23 +125,17 @@ class Product_Feed {
             $this->id = absint( $feed->id );
         }
 
+        // Set default data and merge with extra data.
+        $this->data = array_merge(
+            $this->data,
+            $this->extra_data(),
+            apply_filters( 'adt_product_feed_data', array() ) // Third party integration.
+        );
+
         // Load feed data if ID is set.
         if ( $this->id > 0 ) {
             $this->load();
         }
-    }
-
-    /**
-     * Get the product feed instance.
-     *
-     * @param int|string|WP_Post $feed Feed ID, project hash (legacy) or WP_Post object.
-     * @param string             $context Either 'view' or 'edit'.
-     *
-     * @return self
-     */
-    public static function get_instance( $feed = 0, $context = 'view' ) {
-        $instance = new self( $feed, $context );
-        return $instance;
     }
 
     /**
@@ -244,14 +238,25 @@ class Product_Feed {
      * @return int|WP_Error
      */
     public function save() {
-        $post_id = wp_insert_post(
-            array(
-                'ID'          => $this->id,
-                'post_title'  => $this->title,
-                'post_status' => $this->post_status,
-                'post_type'   => self::POST_TYPE,
-            )
-        );
+        $post_id = 0;
+
+        if ( $this->id > 0 ) {
+            $post_id = wp_update_post(
+                array(
+                    'ID'          => $this->id,
+                    'post_title'  => $this->title,
+                    'post_status' => $this->post_status,
+                )
+            );
+        } else {
+            $post_id = wp_insert_post(
+                array(
+                    'post_title'  => $this->title,
+                    'post_status' => $this->post_status,
+                    'post_type'   => self::POST_TYPE,
+                )
+            );
+        }
 
         if ( is_wp_error( $post_id ) ) {
             throw new \Exception( esc_html( 'Error saving product feed: ' . $post_id->get_error_message() ) );
@@ -349,12 +354,6 @@ class Product_Feed {
 
         $this->title       = $post->post_title;
         $this->post_status = $post->post_status;
-
-        $this->data = array_merge(
-            $this->data,
-            $this->extra_data(),
-            apply_filters( 'adt_product_feed_data', array() ) // Third party integration.
-        );
 
         // Load meta data.
         $this->load_meta_data();
@@ -528,7 +527,9 @@ class Product_Feed {
      * @return string
      */
     public function get_processing_percentage() {
-        return 'processing' === $this->data['status'] ? round( ( $this->data['total_products_processed'] / $this->data['products_count'] ) * 100 ) : 0;
+        return 'processing' === $this->data['status'] && 0 < $this->data['products_count']
+            ? round( ( $this->data['total_products_processed'] / $this->data['products_count'] ) * 100 )
+            : 0;
     }
 
     /**
@@ -592,14 +593,33 @@ class Product_Feed {
         // Filter the amount of history products in the system report.
         $max_history_products = apply_filters( 'adt_product_feed_max_history_products', 10 );
 
-        $count_timestamp = gmdate( 'd M Y H:i' );
+        $count_timestamp = gmdate( 'd M Y H:i:s' );
 
-        $this->data['history_products'][ $count_timestamp ] = $products_count;
+        $this->data['history_products'][][ $count_timestamp ] = $products_count;
 
         // Remove old history products.
         if ( count( $this->data['history_products'] ) > $max_history_products ) {
             // trim the array to the max history products but preserve the last updated key.
             $this->data['history_products'] = array_slice( $this->data['history_products'], - $max_history_products, null, true );
+        }
+    }
+
+    /**
+     * Execute product feed batch event.
+     *
+     * @since 13.3.5.4
+     * @access public
+     */
+    public function run_batch_event() {
+        // Set the next scheduled event.
+        if ( ! wp_next_scheduled( 'woosea_create_batch_event', array( $this->id ) ) ) {
+            if ( wp_schedule_single_event( time(), 'woosea_create_batch_event', array( $this->id ) ) ) {
+                spawn_cron( time() );
+            } else {
+                // Something went wrong with scheduling the cron, try again in case it was an intermittent failure.
+                wp_schedule_single_event( time(), 'woosea_create_batch_event', array( $this->id ) );
+                spawn_cron( time() );
+            }
         }
     }
 
@@ -666,9 +686,11 @@ class Product_Feed {
             }
         }
 
+        $data = $this->add_legacy_option_extra_data( $data );
+
         // Revert the deleted 'batch_project_' options.
         if ( ! empty( $data['project_hash'] ) ) {
-            update_option( 'batch_project_' . $data['project_hash'], $data );
+            update_option( 'batch_project_' . $data['project_hash'], $data, false );
         }
 
         $feed_data[] = $data;
@@ -689,13 +711,26 @@ class Product_Feed {
         } else {
             $cron_projects = array_map(
                 function ( $cron_project ) use ( $data ) {
-                    return $cron_project['project_hash'] === $data['project_hash'] ? $data : $cron_project;
+                    return $cron_project['project_hash'] === $data['project_hash'] ? array_merge( $cron_project, $data ) : $cron_project;
                 },
                 $cron_projects
             );
         }
 
-        update_option( 'cron_projects', $cron_projects );
+        update_option( 'cron_projects', $cron_projects, false );
+    }
+
+    /**
+     * Add extra data to the legacy options.
+     *
+     * @since 13.3.7
+     * @access protected
+     *
+     * @param array $data Legacy options.
+     * @return array
+     */
+    protected function add_legacy_option_extra_data( $data ) {
+        return $data;
     }
 
     /**

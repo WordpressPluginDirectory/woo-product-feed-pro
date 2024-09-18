@@ -35,6 +35,16 @@ class App {
     protected $objects;
 
     /**
+     * Holds the failed plugin dependencies.
+     *
+     * @since 13.3.7
+     * @access private
+     *
+     * @var array An array of failed plugin dependencies.
+     */
+    private $_failed_dependencies;
+
+    /**
      * App constructor.
      *
      * @since 13.3.3
@@ -52,9 +62,17 @@ class App {
      * @access public
      */
     public function boot() {
+        // Added support for WooCommerce HPOS (High-Performnce Order Storage).
+        add_action( 'before_woocommerce_init', array( $this, 'hpos_compatibility' ) );
+
+        register_deactivation_hook( WOOCOMMERCESEA_FILE, array( $this, 'deactivation_actions' ) );
+
+        // Check plugin dependencies.
+        if ( ! $this->_check_dependencies() ) {
+            return;
+        }
 
         register_activation_hook( WOOCOMMERCESEA_FILE, array( $this, 'activation_actions' ) );
-        register_deactivation_hook( WOOCOMMERCESEA_FILE, array( $this, 'deactivation_actions' ) );
 
         // Execute codes that need to run on 'init' hook.
         add_action( 'init', array( $this, 'initialize' ) );
@@ -68,9 +86,6 @@ class App {
          * sure that WP_Rewrite global object is already available.
          */
         add_action( 'setup_theme', array( $this, 'run' ), 100 );
-
-        // Added support for WooCommerce HPOS (High-Performnce Order Storage).
-        add_action( 'before_woocommerce_init', array( $this, 'hpos_compatibility' ) );
     }
 
     /**
@@ -132,111 +147,6 @@ class App {
     public function run() {
 
         /***************************************************************************
-         * Check required plugins
-         ***************************************************************************
-         *
-         * We check if the required plugins are active.
-         */
-
-        $missing_required_plugins = Helper::missing_required_plugins();
-        $woo_sea_plugin_data      = get_plugin_data( WOOCOMMERCESEA_FILE );
-
-        $admin_notice = null;
-        if ( ! empty( $missing_required_plugins ) ) {
-
-            $required_plugins = array();
-            foreach ( $missing_required_plugins as $missing_required_plugin ) {
-                $plugin_file = WP_PLUGIN_DIR . "/{$missing_required_plugin['plugin-base']}";
-                if ( file_exists( $plugin_file ) ) {
-                    $plugin_data = get_plugin_data( $plugin_file );
-
-                    $required_plugins[] = sprintf(/* translators: %1$s = opening <a> tag; %2$s = closing </a> tag */
-                        esc_html__(
-                            '%1$sClick here to activate %3$s plugin &rarr;%2$s',
-                            'woo-product-feed-pro'
-                        ),
-                        sprintf(
-                            '<a href="%s" title="%s">',
-                            wp_nonce_url(
-                                self_admin_url(
-                                    'plugins.php?action=activate&plugin='
-                                ) . $missing_required_plugin['plugin-base'],
-                                'activate-plugin_' . $missing_required_plugin['plugin-base']
-                            ),
-                            esc_attr__( 'Activate this plugin', 'woo-product-feed-pro' )
-                        ),
-                        '</a>',
-                        $plugin_data['Name']
-                    );
-                } else {
-
-                    $message = '';
-                    if ( false !== strpos( $missing_required_plugin['plugin-base'], 'woocommerce.php' ) ) {
-                        $message .= sprintf(/* translators: %1$s = opening <p> tag; %2$s = closing </p> tag; %3$s = Product Feed PRO for WooCommerce */
-                            esc_html__(
-                                '%1$sUnable to activate %3$s plugin. Please install and activate WooCoomerce plugin first.%2$s',
-                                'woo-product-feed-pro'
-                            ),
-                            '<p>',
-                            '</p>',
-                            $woo_sea_plugin_data['Name']
-                        );
-                    }
-
-                    $message .= sprintf(/* translators: %1$s = opening <a> tag; %2$s = closing </a> tag */
-                        esc_html__(
-                            '%1$sClick here to install %3$s plugin &rarr;%2$s',
-                            'woo-product-feed-pro'
-                        ),
-                        sprintf(
-                            '<a href="%s" title="%s">',
-                            wp_nonce_url(
-                                self_admin_url(
-                                    'update.php?action=install-plugin&plugin='
-                                ) . $missing_required_plugin['plugin-key'],
-                                'install-plugin_' . $missing_required_plugin['plugin-key']
-                            ),
-                            esc_attr__( 'Install this plugin', 'woo-product-feed-pro' )
-                        ),
-                        '</a>',
-                        $missing_required_plugin['plugin-name']
-                    );
-
-                    $required_plugins[] = $message;
-                }
-            }
-
-            // Initialize the missing required plugins admin notice.
-            $admin_notice = new Admin_Notice(
-                sprintf(/* translators: %1$s = opening <strong> tag; %2$s = closing </strong> tag; %3$s = opening <p> tag; %4$s = closing </p> tag */
-                    esc_html__(
-                        '%3$s%1$sProduct Feed PRO for WooCommerce%2$s plugin is missing dependency:%4$s',
-                        'woo-product-feed-pro'
-                    ),
-                    '<strong>',
-                    '</strong>',
-                    '<p>',
-                    '</p>'
-                ) . '<p>' . implode( '</p><p>', $required_plugins ) . '</p>',
-                'error',
-                'html'
-            );
-        }
-
-        /***************************************************************************
-         * Required plugins check failed
-         ***************************************************************************
-         *
-         * Display the admin notice if the required plugins check failed
-         * and bail out.
-         */
-        if ( null !== $admin_notice ) {
-            $admin_notice->run();
-
-            return;
-        }
-
-        /***************************************************************************
          * Run the plugin classes
          ***************************************************************************
          *
@@ -281,6 +191,90 @@ class App {
         ( new Deactivation( $sitewide ) )->run();
 
         flush_rewrite_rules();
+    }
+
+    /**
+     * Check plugin dependencies.
+     *
+     * @since 13.3.7
+     * @access private
+     */
+    private function _check_dependencies() {
+        $admin_notice                                  = null;
+        $this->_failed_dependencies['missing_plugins'] = $this->_check_missing_required_plugins();
+        if ( ! empty( $this->_failed_dependencies['missing_plugins'] ) ) {
+
+            // Initialize the missing required plugins admin notice.
+            $admin_notice = new Admin_Notice(
+                sprintf(/* translators: %1$s = opening <strong> tag; %2$s = closing </strong> tag; %3$s = opening <p> tag; %4$s = closing </p> tag */
+                    esc_html__(
+                        '%3$s%1$sProduct Feed Pro for WooCommerce %2$splugin missing dependency.%4$s',
+                        'woo-product-feed-pro'
+                    ),
+                    '<strong>',
+                    '</strong>',
+                    '<p>',
+                    '</p>'
+                ),
+                'failed_dependency',
+                'html',
+                $this->_failed_dependencies
+            );
+        }
+
+        /***************************************************************************
+         * Required plugins check failed
+         ***************************************************************************
+         *
+         * Display the admin notice if the required plugins check failed
+         * and bail out.
+         */
+        if ( null !== $admin_notice ) {
+            $admin_notice->run();
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks required plugins if they are active.
+     *
+     * @since 13.3.7
+     * @access public
+     *
+     * @return array List of plugins that are not active.
+     */
+    private static function _check_missing_required_plugins() {
+
+        if ( ! function_exists( 'is_plugin_active' ) ) {
+            include_once ABSPATH . '/wp-admin/includes/plugin.php';
+        }
+
+        $i       = 0;
+        $plugins = array();
+
+        $required_plugins = array(
+            'woocommerce/woocommerce.php',
+        );
+
+        foreach ( $required_plugins as $plugin ) {
+            if ( ! is_plugin_active( $plugin ) ) {
+                $plugin_name                  = explode( '/', $plugin );
+                $plugins[ $i ]['plugin-key']  = $plugin_name[0];
+                $plugins[ $i ]['plugin-base'] = $plugin;
+                $plugins[ $i ]['plugin-name'] = str_replace(
+                    'Woocommerce',
+                    'WooCommerce',
+                    ucwords( str_replace( '-', ' ', $plugin_name[0] ) )
+                );
+            }
+
+            ++$i;
+        }
+
+        return $plugins;
     }
 
     /**

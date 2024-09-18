@@ -3,11 +3,15 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
+
+use AdTribes\PFP\Helpers\Helper;
 ?>
 <div class="adt-license-settings">
     <div class="adt-license-settings-container">
         <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank"><img class="logo" src="<?php echo esc_attr( WOOCOMMERCESEA_PLUGIN_URL . '/images/adt-logo.png' ); ?>" alt="<?php esc_attr_e( 'AdTribes', 'woo-product-feed-pro' ); ?>"></a>
+        <?php if ( Helper::is_show_logo_upgrade_button() ) : ?>
         <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank" class="logo-upgrade">Upgrade to Elite</a>
+        <?php endif; ?>
         <h1 class="title">Licenses</h1>
         <p class="desc"><?php esc_html_e( 'Enter your license keys below to enjoy full access, plugin updates, and support.', 'woo-product-feed-pro' ); ?></p>
         

@@ -1,5 +1,6 @@
 <?php
 //phpcs:disable
+use AdTribes\PFP\Helpers\Helper;
 use AdTribes\PFP\Helpers\Product_Feed_Helper;
 
 $total_projects      = Product_Feed_Helper::get_total_product_feed();
@@ -104,7 +105,9 @@ if ( isset( $_GET['tab'] ) ) {
         <tbody class="woo-product-feed-pro-body">
             <div class="woo-product-feed-pro-form-style-2-heading">
                 <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank"><img class="logo" src="<?php echo esc_attr( WOOCOMMERCESEA_PLUGIN_URL . '/images/adt-logo.png' ); ?>" alt="<?php esc_attr_e( 'AdTribes', 'woo-product-feed-pro' ); ?>"></a>
+                <?php if ( Helper::is_show_logo_upgrade_button() ) : ?>
                 <a href="https://adtribes.io/?utm_source=pfp&utm_medium=logo&utm_campaign=adminpagelogo" target="_blank" class="logo-upgrade">Upgrade to Elite</a>
+                <?php endif; ?>
                 <h1 class="title"><?php echo esc_html( $header_text ); ?></h1>
             </div>
 
@@ -140,22 +143,14 @@ if ( isset( $_GET['tab'] ) ) {
             ?>
 
             <!-- WordPress provides the styling for tabs. -->
-            <h2 class="nav-tab-wrapper">
+            <h2 class="nav-tab-wrapper woo-product-feed-pro-nav-tab-wrapper">
                 <!-- when tab buttons are clicked we jump back to the same page but with a new parameter that represents the clicked tab. accordingly we make it active -->
-                <a href="?page=woosea_manage_settings&tab=woosea_manage_settings" class="nav-tab 
-                        <?php
-                        if ( $active_tab == 'woosea_manage_settings' ) {
-                            echo 'nav-tab-active';
-                        }
-                        ?>
-"><?php _e( 'Plugin settings', 'woo-product-feed-pro' ); ?></a>
-                <a href="?page=woosea_manage_settings&tab=woosea_system_check" class="nav-tab 
-                        <?php
-                        if ( $active_tab == 'woosea_system_check' ) {
-                            echo 'nav-tab-active';
-                        }
-                        ?>
-"><?php _e( 'Plugin systems check', 'woo-product-feed-pro' ); ?></a>
+                <a href="?page=woosea_manage_settings&tab=woosea_manage_settings" data-tab="general" class="nav-tab <?php echo $active_tab == 'woosea_manage_settings' ? esc_attr( 'nav-tab-active' ) : '';?>">
+                    <?php _e( 'Plugin settings', 'woo-product-feed-pro' ); ?>
+                </a>
+                <a href="?page=woosea_manage_settings&tab=woosea_system_check" data-tab="system_check" class="nav-tab <?php echo $active_tab == 'woosea_system_check' ? esc_attr( 'nav-tab-active' ) : ''; ?>">
+                    <?php _e( 'Plugin systems check', 'woo-product-feed-pro' ); ?>
+                </a>
             </h2>
 
             <div class="woo-product-feed-pro-table-wrapper">
@@ -163,8 +158,7 @@ if ( isset( $_GET['tab'] ) ) {
                     <?php
                     if ( $active_tab == 'woosea_manage_settings' ) {
                     ?>
-
-                        <table class="woo-product-feed-pro-table">
+                        <table class="woo-product-feed-pro-table woo-product-feed-pro-table--manage-settings" data-pagename="manage_settings">
                             <tr>
                                 <td><strong><?php _e( 'Plugin setting', 'woo-product-feed-pro' ); ?></strong></td>
                                 <td><strong><?php _e( 'Off / On', 'woo-product-feed-pro' ); ?></strong></td>
@@ -395,13 +389,9 @@ if ( isset( $_GET['tab'] ) ) {
                                     echo "<tr id=\"woosea_batch_size\"><td colspan=\"2\"><span>Insert batch size:</span>&nbsp;<input type=\"hidden\" name=\"nonce_batch\" id=\"nonce_batch\" value=\"$nonce\"><input type=\"text\" class=\"input-field-medium\" id=\"batch_size\" name=\"batch_size\" value=\"$woosea_batch_size\">&nbsp;<input type=\"button\" id=\"save_batch_size\" value=\"Save\"></td></tr>";
                                 }
                                 ?>
-                                <tr> 
-                                    <td colspan="2">
-                                        <input type="button" id="adt_migrate_to_custom_post_type" value="<?php esc_attr_e( 'Migrate to Custom Post Type', 'woo-product-feed-pro' ); ?>" >
-                                    </td>
-                                </tr>
                             </form>
                         </table>
+                        <?php do_action( 'adt_after_manage_settings_table' ); ?>
                     <?php
                     } elseif ( $active_tab == 'woosea_system_check' ) {
                         // Check if the product feed directory is writeable
@@ -535,78 +525,6 @@ if ( isset( $_GET['tab'] ) ) {
                         print '<p>' . __( 'Copy the below text and paste to the support team when requested to help us debug any systems issues with your feeds.', 'woo-product-feed-pro' ) . '</p>';
                         echo "<pre id=\"woo-product-feed-pro-debug-info\">{$debug_info_content}</pre>";
                         print '</div>';
-                    } else {
-                    ?>
-                        <table class="woo-product-feed-pro-table">
-                            <?php
-                            if ( ! get_option( 'woosea_extra_attributes' ) ) {
-                                $extra_attributes = array();
-                            } else {
-                                $extra_attributes = get_option( 'woosea_extra_attributes' );
-                            }
-                            print '<tr><td><strong>Attribute name</strong></td><td><strong>On / Off</strong></td></tr>';
-
-                            $list = array(
-                                'custom_attributes__woosea_brand'           => 'woosea brand',
-                                'custom_attributes__woosea_gtin'            => 'woosea gtin',
-                                'custom_attributes__woosea_ean'             => 'woosea ean',
-                                'custom_attributes__woosea_mpn'             => 'woosea mpn',
-                                'custom_attributes__woosea_optimized_title'         => 'woosea optimized title',
-                                'custom_attributes__woosea_age_group'           => 'woosea age group',
-                                'custom_attributes__woosea_color'           => 'woosea color',
-                                'custom_attributes__woosea_condition'           => 'woosea condition',
-                                'custom_attributes__woosea_cost_of_good_sold'       => 'woosea cost of good sold',
-                                'custom_attributes__woosea_custom_field_0'      => 'woosea custom field 0',
-                                'custom_attributes__woosea_custom_field_1'      => 'woosea custom field 1',
-                                'custom_attributes__woosea_custom_field_2'      => 'woosea custom field 2',
-                                'custom_attributes__woosea_custom_field_3'      => 'woosea custom field 3',
-                                'custom_attributes__woosea_custom_field_4'      => 'woosea custom field 4',
-                                'custom_attributes__woosea_energy_efficiency_class'     => 'woosea energy efficiency class',
-                                'custom_attributes__woosea_exclude_product'         => 'woosea exclude product',
-                                'custom_attributes__woosea_gender'          => 'woosea gender',
-                                'custom_attributes__woosea_installment_amount'      => 'woosea installment amount',
-                                'custom_attributes__woosea_installment_months'      => 'woosea installment months',
-                                'custom_attributes__woosea_is_bundle'           => 'woosea is bundle',
-                                'custom_attributes__woosea_is_promotion'        => 'woosea is promotion',
-                                'custom_attributes__woosea_material'            => 'woosea material',
-                                'custom_attributes__woosea_max_energy_efficiency_class' => 'woosea max energy efficiency class',
-                                'custom_attributes__woosea_min_energy_efficiency_class' => 'woosea min energy efficiency class',
-                                'custom_attributes__woosea_multipack'           => 'woosea multipack',
-                                'custom_attributes__woosea_pattern'             => 'woosea pattern',
-                                'custom_attributes__woosea_size'            => 'woosea size',
-                                'custom_attributes__woosea_unit_pricing_base_measure'   => 'woosea unit pricing base measure',
-                                'custom_attributes__woosea_unit_pricing_measure'    => 'woosea unit pricing measure',
-                                'custom_attributes__woosea_upc'             => 'woosea upc',
-                            );
-
-                            foreach ( $list as $key => $value ) {
-                                // Trim spaces before and after
-                                $value = trim( $value );
-
-                                if ( in_array( $value, $extra_attributes, true ) ) {
-                                    $checked = 'checked';
-                                } else {
-                                    $checked = '';
-                                }
-
-                                if ( strpos( $key, 'woosea' ) ) {
-                                    $value_display = str_replace( 'woosea', '', $value );
-
-                                    echo "<tr id=\"$key\"><td><span>$value_display</span></td>";
-                                    print '<td>';
-                            ?>
-                                    <label class="woo-product-feed-pro-switch">
-                                        <input type="hidden" name="manage_attribute" value="<?php echo "$key"; ?>"><input type="checkbox" id="attribute_active" name="<?php echo "$value"; ?>" class="checkbox-field" value="<?php echo "$key"; ?>" <?php echo "$checked"; ?>>
-                                        <div class="woo-product-feed-pro-slider round"></div>
-                                    </label>
-                            <?php
-                                    print '</td>';
-                                    print '</tr>';
-                                }
-                            }
-                            ?>
-                        </table>
-                    <?php
                     }
                     ?>
                 </div>

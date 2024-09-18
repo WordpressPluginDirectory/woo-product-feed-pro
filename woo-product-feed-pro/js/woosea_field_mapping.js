@@ -33,14 +33,17 @@ jQuery(document).ready(function ($) {
         method: 'POST',
         url: ajaxurl,
         data: {
-          action: 'woosea_fieldmapping_dropdown',
-          rowCount: rowCount,
+          action: 'woosea_ajax_get_attributes',
           security: nonce,
           channel_hash: channel_hash,
+          type: 'html',
         },
       })
-      .done(function (data) {
-        data = JSON.parse(data);
+      .done(function (response) {
+        if (!response.success) {
+          console.log('Error: ' + response.message);
+          return;
+        }
 
         $('#woosea-fieldmapping-table').append(
           '<tr><td><input type="hidden" name="attributes[' +
@@ -50,13 +53,13 @@ jQuery(document).ready(function ($) {
             '"><input type="checkbox" name="record" class="checkbox-field"></td><td><select name="attributes[' +
             rowCount +
             '][attribute]" class="select-field woo-sea-select2">' +
-            data.field_options +
+            response.data.field_options +
             '</select></td><td><input type="text" name="attributes[' +
             rowCount +
             '][prefix]" class="input-field-medium"></td><td><select name="attributes[' +
             rowCount +
             '][mapfrom]" class="select-field woo-sea-select2">' +
-            data.attribute_options +
+            response.data.attribute_options +
             '</select></td><td><input type="text" name="attributes[' +
             rowCount +
             '][suffix]" class="input-field-medium"></td></tr>'
@@ -104,14 +107,17 @@ jQuery(document).ready(function ($) {
         method: 'POST',
         url: ajaxurl,
         data: {
-          action: 'woosea_fieldmapping_dropdown',
+          action: 'woosea_ajax_get_attributes',
           security: nonce,
-          rowCount: rowCount,
-          channel_hash: channel_hash,
+          type: 'html',
         },
       })
-      .done(function (data) {
-        data = JSON.parse(data);
+      .done(function (response) {
+        if (!response.success) {
+          console.log('Error: ' + response.message);
+          return;
+        }
+
         $('#woosea-fieldmapping-table').append(
           '<tr><td><input type="hidden" name="attributes[' +
             rowCount +
@@ -124,7 +130,7 @@ jQuery(document).ready(function ($) {
             '][prefix]" class="input-field-medium"></td><td><select name="attributes[' +
             rowCount +
             '][mapfrom]" class="select-field woo-sea-select2">' +
-            data.attribute_options +
+            response.data +
             '</select></td><td><input type="text" name="attributes[' +
             rowCount +
             '][suffix]" class="input-field-medium"></td></tr>'
