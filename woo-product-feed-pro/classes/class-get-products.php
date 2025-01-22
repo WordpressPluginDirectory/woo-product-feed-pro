@@ -2,6 +2,8 @@
 //phpcs:disable
 use AdTribes\PFP\Helpers\Helper;
 use AdTribes\PFP\Helpers\Product_Feed_Helper;
+use AdTribes\PFP\Classes\Shipping_Data;
+use AdTribes\PFP\Helpers\Formatting;
 
 /**
  * Class for generating the actual feeds
@@ -41,7 +43,7 @@ class WooSEA_Get_Products {
             // This is to prevent words from sticking together.
             $string = str_replace('<', ' <', $string);
             $string = strip_shortcodes( strip_tags( $string ) );
-            $string = htmlentities( $string, ENT_QUOTES | ENT_SUBSTITUTE | ENT_XML1, 'UTF-8' );
+            $string = htmlentities( $string, ENT_QUOTES | ENT_SUBSTITUTE | ENT_XML1, 'UTF-8', false );
 
             // Remove new line breaks.
             $string = str_replace( array( "\r", "\n" ), '', $string );
@@ -710,453 +712,6 @@ class WooSEA_Get_Products {
     }
 
     /**
-     * Get shipping cost for product
-     */
-    public function woosea_get_shipping_cost( $class_cost_id, $feed, $price, $tax_rates, $fullrate, $shipping_zones, $product_id, $item_group_id ) {
-        $shipping_cost     = '';
-        $shipping_arr      = array();
-        $zone_count        = 0;
-        $nr_shipping_zones = count( $shipping_zones );
-        $zone_details      = array();
-        $currency          = apply_filters( 'adt_product_feed_shipping_cost_currency', get_woocommerce_currency(), $feed );
-        $add_all_shipping  = 'no';
-        $add_all_shipping  = get_option( 'add_all_shipping' );
-        $feed_channel      = $feed->get_channel();
-        if ( empty( $feed_channel ) ) {
-            return array();
-        }
-
-        // Normal shipping set-up
-        $zone_count = count( $shipping_arr ) + 1;
-
-        foreach ( $shipping_zones as $zone ) {
-            // Start with a clean shipping zone
-            $zone_details            = array();
-            $zone_details['country'] = '';
-
-            // Start with a clean postal code
-            $postal_code = array();
-
-            foreach ( $zone['zone_locations'] as $zone_type ) {
-                $code_from_config = $feed->country;
-
-                // Only add shipping zones to the feed for specific feed country
-                $ship_found = strpos( $zone_type->code, $code_from_config );
-
-                if ( ( $ship_found !== false ) || ( $add_all_shipping == 'yes' ) ) {
-                    if ( $zone_type->type == 'country' ) {
-                        // This is a country shipping zone
-                        $zone_details['country'] = $zone_type->code;
-                    } elseif ( $zone_type->type == 'code' ) {
-                        // This is a country shipping zone
-                        $zone_details['country'] = $zone_type->code;
-                    } elseif ( $zone_type->type == 'state' ) {
-                        // This is a state shipping zone, split of country
-                        $zone_expl               = explode( ':', $zone_type->code );
-                        $zone_details['country'] = $zone_expl[0];
-
-                        // Adding a region is only allowed for these countries
-                        $region_countries = array( 'US', 'JP', 'AU' );
-                        if ( in_array( $zone_details['country'], $region_countries ) ) {
-                            $zone_details['region'] = $zone_expl[1];
-                        }
-                    } elseif ( $zone_type->type == 'postcode' ) {
-                        // Create an array of postal codes so we can loop over it later
-                        if ( $feed_channel['taxonomy'] == 'google_shopping' ) {
-                            $zone_type->code = str_replace( '...', '-', $zone_type->code );
-                        }
-                        array_push( $postal_code, $zone_type->code );
-                    }
-
-                    // Get the g:services and g:prices, because there could be multiple services the $shipping_arr could multiply again
-                    // g:service = "Method title - Shipping class costs"
-                    // for example, g:service = "Estimated Shipping - Heavy shipping". g:price would be 180
-                    $shipping_methods = $zone['shipping_methods'];
-
-                    foreach ( $shipping_methods as $k => $v ) {
-                        $method           = $v->method_title;
-                        $method_id        = $v->id;
-                        $shipping_rate_id = $v->instance_id;
-
-                        if ( $v->enabled == 'yes' ) {
-                            if ( empty( $zone_details['country'] ) ) {
-                                $zone_details['service'] = $zone['zone_name'] . ' ' . $v->title;
-                            } else {
-                                $zone_details['service'] = $zone['zone_name'] . ' ' . $v->title . ' ' . $zone_details['country'];
-                            }
-                            $taxable = $v->tax_status;
-
-                            if ( isset( $v->instance_settings['cost'] ) ) {
-                                $shipping_cost = $v->instance_settings['cost'];
-                                $shipping_cost = str_replace( '* [qty]', '', $shipping_cost );
-                                $shipping_cost = trim( $shipping_cost );     // trim white spaces
-
-                                if ( $shipping_cost > 0 ) {
-                                    $shipping_cost = apply_filters( 'adt_product_feed_convert_shipping_cost', $shipping_cost, $feed, $v );
-
-                                    if ( $taxable == 'taxable' ) {
-                                        foreach ( $tax_rates as $k_inner => $w ) {
-                                            if ( ( isset( $w['shipping'] ) ) && ( $w['shipping'] == 'yes' ) ) {
-                                                $rate = ( ( $fullrate ) / 100 );
-
-                                                $shipping_cost = str_replace( ',', '.', $shipping_cost );
-                                                if ( ! is_string( $shipping_cost ) ) {
-                                                    $shipping_cost = $shipping_cost * $rate;
-                                                    $shipping_cost = round( $shipping_cost, 2 );
-                                                }
-                                                $shipping_cost = wc_format_localized_price( $shipping_cost );
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // WooCommerce Table Rate - Bolder Elements
-                            if ( $method_id == 'table_rate' || $method_id == 'betrs_shipping' || $method_id == 'fish_n_ships' ) {
-                                // Set shipping cost variable
-                                $shipping_cost = 0;
-
-                                if ( ! empty( $product_id ) ) {
-                                    // Add product to cart
-                                    if ( ( isset( $product_id ) ) && ( $product_id > 0 ) ) {
-                                        $quantity = 1;
-                                        if ( ! empty( $code_from_config ) ) {
-                                            defined( 'WC_ABSPATH' ) || exit;
-
-                                            // Load cart functions which are loaded only on the front-end.
-                                            include_once WC_ABSPATH . 'includes/wc-cart-functions.php';
-                                            include_once WC_ABSPATH . 'includes/class-wc-cart.php';
-
-                                            wc_load_cart();
-
-                                            WC()->customer->set_shipping_country( $zone_details['country'] );
-
-                                            if ( isset( $zone_details['region'] ) ) {
-                                                WC()->customer->set_shipping_state( wc_clean( $zone_details['region'] ) );
-                                            }
-
-                                            if ( isset( $zone_details['postal_code'] ) ) {
-                                                WC()->customer->set_shipping_postcode( wc_clean( $zone_details['postal_code'] ) );
-                                            }
-
-                                            if ( is_numeric( $product_id ) ) {
-                                                if ( ! is_bool( $product_id ) ) {
-                                                    WC()->cart->add_to_cart( $product_id, $quantity );
-                                                }
-                                            }
-
-                                            // Read cart and get schipping costs
-                                            foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-                                                $total_cost    = WC()->cart->get_total();
-                                                $shipping_cost = WC()->cart->get_shipping_total();
-                                                $shipping_tax  = WC()->cart->get_shipping_tax();
-                                                $shipping_cost = ( $shipping_cost + $shipping_tax );
-                                                $shipping_cost = wc_format_localized_price( $shipping_cost );
-                                            }
-
-                                            // Make sure to empty the cart again
-                                            WC()->cart->empty_cart();
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Official WooCommerce Table Rate plugin
-                            if ( $method_id == 'table_rate' ) {
-                                if ( Helper::is_plugin_active( 'woocommerce-table-rate-shipping/woocommerce-table-rate-shipping.php' ) ) {
-                                    // Set shipping cost
-                                    $shipping_cost = 0;
-
-                                    if ( ! empty( $product_id ) ) {
-                                        // Add product to cart
-                                        if ( ( isset( $product_id ) ) && ( $product_id > 0 ) ) {
-                                            $quantity = 1;
-                                            if ( ! empty( $code_from_config ) ) {
-                                                defined( 'WC_ABSPATH' ) || exit;
-
-                                                // Load cart functions which are loaded only on the front-end.
-                                                include_once WC_ABSPATH . 'includes/wc-cart-functions.php';
-                                                include_once WC_ABSPATH . 'includes/class-wc-cart.php';
-
-                                                wc_load_cart();
-
-                                                WC()->customer->set_shipping_country( $zone_details['country'] );
-
-                                                if ( isset( $zone_details['region'] ) ) {
-                                                    WC()->customer->set_shipping_state( wc_clean( $zone_details['region'] ) );
-                                                }
-
-                                                if ( isset( $zone_details['postal_code'] ) ) {
-                                                    WC()->customer->set_shipping_postcode( wc_clean( $zone_details['postal_code'] ) );
-                                                }
-
-                                                if ( is_numeric( $product_id ) ) {
-                                                    WC()->cart->add_to_cart( $product_id, $quantity );
-                                                }
-
-                                                // Read cart and get schipping costs
-                                                foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-                                                    $total_cost    = WC()->cart->get_total();
-                                                    $shipping_cost = WC()->cart->get_shipping_total();
-                                                    $shipping_tax  = WC()->cart->get_shipping_tax();
-                                                    $shipping_cost = ( $shipping_cost + $shipping_tax );
-                                                    $shipping_cost = wc_format_localized_price( $shipping_cost );
-                                                }
-
-                                                // Make sure to empty the cart again
-                                                WC()->cart->empty_cart();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // CLASS SHIPPING COSTS
-                            if ( ( isset( $v->instance_settings[ $class_cost_id ] ) ) && ( $class_cost_id != 'no_class_cost' ) ) {
-                                if ( is_numeric( $v->instance_settings[ $class_cost_id ] ) ) {
-                                    $shipping_cost = $v->instance_settings[ $class_cost_id ];
-
-                                    $shipping_cost = apply_filters( 'adt_product_feed_convert_shipping_cost', $shipping_cost, $feed, $v );
-
-                                    if ( $taxable == 'taxable' ) {
-                                        foreach ( $tax_rates as $k_inner => $w ) {
-                                            if ( ( isset( $w['shipping'] ) ) && ( $w['shipping'] == 'yes' ) ) {
-                                                $rate          = ( ( $w['rate'] + 100 ) / 100 );
-                                                $shipping_cost = $shipping_cost * $rate;
-                                                $shipping_cost = round( $shipping_cost, 2 );
-                                                $shipping_cost = wc_format_localized_price( $shipping_cost );
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    $shipping_cost = $v->instance_settings[ $class_cost_id ];
-                                    $shipping_cost = str_replace( '[qty]', '1', $shipping_cost );
-                                    $ship_piece    = explode( ' ', $shipping_cost );
-                                    $shipping_cost = $ship_piece[0];
-                                    $mathString    = trim( $shipping_cost );     // trim white spaces
-
-                                    if ( preg_match( '/fee percent/', $mathString ) ) {
-                                        $shipcost_piece = explode( '+', $mathString );
-                                        $mathString     = trim( $shipcost_piece[0] );
-
-                                        $fee_percent = preg_match( '/percent="([0-9]+)"/', $shipcost_piece[1], $matches );
-                                        $add_on      = ( $matches[1] / 100 ) * ceil( $price );
-                                        $mathString  = $mathString + $add_on;
-                                    }
-                                    $mathString = str_replace( '..', '.', $mathString );    // remove input mistakes from users using shipping formula's
-                                    $mathString = str_replace( ',', '.', $mathString );    // remove input mistakes from users using shipping formula's
-                                    $mathString = preg_replace( '[^0-9\+-\*\/\(\)]', '', $mathString );    // remove any non-numbers chars; exception for math operators
-                                    $mathString = str_replace( array( '\'', '"', ',' ), '', $mathString );
-
-                                    if ( ! empty( $mathString ) ) {
-                                        $shipping_cost = $mathString;
-                                        if ( $taxable == 'taxable' ) {
-                                            foreach ( $tax_rates as $k_inner => $w ) {
-                                                if ( ( isset( $w['shipping'] ) ) && ( $w['shipping'] == 'yes' ) ) {
-                                                    $rate = ( ( $w['rate'] + 100 ) / 100 );
-                                                    if ( is_numeric( $shipping_cost ) ) {
-                                                        $shipping_cost = $shipping_cost * $rate;
-                                                        $shipping_cost = round( $shipping_cost, 2 );
-                                                        $shipping_cost = wc_format_localized_price( $shipping_cost );
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    $shipping_cost = apply_filters( 'adt_product_feed_convert_shipping_cost', $shipping_cost, $feed, $v );
-                                }
-
-                                // Set shipping cost
-                                if ( ! empty( $product_id ) ) {
-                                    // Add product to cart
-                                    if ( isset( $product_id ) ) {
-                                        $quantity = 1;
-
-                                        if ( ! empty( $code_from_config ) ) {
-                                            defined( 'WC_ABSPATH' ) || exit;
-
-                                            // Load cart functions which are loaded only on the front-end.
-                                            include_once WC_ABSPATH . 'includes/wc-cart-functions.php';
-                                            include_once WC_ABSPATH . 'includes/class-wc-cart.php';
-
-                                            wc_load_cart();
-
-                                            WC()->cart->empty_cart();
-                                            WC()->customer->set_shipping_country( $zone_details['country'] );
-
-                                            if ( isset( $zone_details['region'] ) ) {
-                                                WC()->customer->set_shipping_state( wc_clean( $zone_details['region'] ) );
-                                            }
-
-                                            if ( isset( $zone_details['postal_code'] ) ) {
-                                                WC()->customer->set_shipping_postcode( wc_clean( $zone_details['postal_code'] ) );
-                                            }
-
-                                            if ( ( is_numeric( $product_id ) ) && ( $product_id > 0 ) && ( ! empty( $product_id ) ) ) {
-                                                WC()->cart->empty_cart();
-                                                WC()->cart->add_to_cart( $product_id, $quantity );
-                                            }
-
-                                            $shipping_cost = 0;
-                                            // Read cart and get schipping costs
-                                            foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-                                                $total_cost    = WC()->cart->get_total();
-                                                $shipping_cost = WC()->cart->get_shipping_total();
-                                                $shipping_tax  = round( WC()->cart->get_shipping_tax(), 2 );
-                                                $shipping_cost = ( $shipping_cost + $shipping_tax );
-                                                $shipping_cost = wc_format_localized_price( $shipping_cost );
-                                            }
-                                            // Make sure to empty the cart again
-                                            WC()->cart->empty_cart();
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Check if we need to remove the local pick-up shipping method from the product feed
-                            if ( $v->id == 'local_pickup' ) {
-                                $remove_local_pickup = 'no';
-                                $remove_local_pickup = get_option( 'local_pickup_shipping' );
-
-                                if ( $remove_local_pickup == 'yes' ) {
-                                    unset( $zone_details );
-                                    unset( $shipping_cost );
-                                }
-                            }
-
-                            // Check if we need to remove the wholesale shipping method from the product feed
-                            if ( Helper::is_plugin_active( 'woocommerce-wholesale-prices/woocommerce-wholesale-prices.bootstrap.php' ) ) {
-                                // Check if we need to remove some wholesale shipping methods from the product feed
-                                $wwpp_settings_mapped_methods_for_wholesale_users_only = get_option( 'wwpp_settings_mapped_methods_for_wholesale_users_only' );
-
-                                // Only remove the shipping method from feed when user explicitly configured so
-                                if ( isset( $wwpp_settings_mapped_methods_for_wholesale_users_only ) && ( $wwpp_settings_mapped_methods_for_wholesale_users_only == 'yes' ) ) {
-                                    $wwpp_wholesale_shipping_methods = get_option( 'wwpp_option_wholesale_role_shipping_zone_method_mapping' );
-                                    if ( is_array( $wwpp_wholesale_shipping_methods ) ) {
-                                        foreach ( $wwpp_wholesale_shipping_methods as $wwpp_k => $wwpp_v ) {
-                                            if ( $wwpp_v['shipping_method'] == $v->instance_id ) {
-                                                unset( $zone_details );
-                                                unset( $shipping_cost );
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Free shipping costs if minimum fee has been reached
-                            if ( $v->id == 'free_shipping' ) {
-                                $minimum_fee = apply_filters( 'adt_product_feed_free_shipping_minimum_fee', $v->min_amount, $v, $feed );
-
-                                // Set type to double otherwise the >= doesn't work
-                                settype( $price, 'double' );
-                                settype( $minimum_fee, 'double' );
-
-                                // Only Free Shipping when product price is over or equal to minimum order fee
-                                if ( $price >= $minimum_fee ) {
-                                    $shipping_cost         = 0;
-                                    $zone_details['price'] = trim( $currency . ' ' . $shipping_cost );
-                                    $zone_details['free']  = 'yes';
-                                } else {
-                                    // There are no free shipping requirements
-                                    if ( $v->requires == '' ) {
-                                        $shipping_cost         = 0;
-                                        $zone_details['price'] = trim( $currency . ' ' . $shipping_cost );
-                                        $zone_details['free']  = 'yes';
-                                    } else {
-                                        // No Free Shipping Allowed for this product
-                                        // unset($zone_details);
-                                        unset( $zone_details['service'] );
-                                        unset( $zone_details['price'] );
-                                        unset( $shipping_cost );
-                                    }
-                                }
-
-                                // User do not want to have free shipping in their feed
-                                $remove_free_shipping = 'no';
-                                $remove_free_shipping = get_option( 'remove_free_shipping' );
-
-                                if ( $remove_free_shipping == 'yes' ) {
-                                    unset( $zone_details['service'] );
-                                    unset( $zone_details['price'] );
-                                    unset( $shipping_cost );
-                                }
-                            }
-
-                            if ( isset( $zone_details ) ) {
-                                // For Heureka remove currency
-                                if ( $feed_channel['fields'] == 'heureka' ) {
-                                    $currency = '';
-                                }
-
-                                if ( isset( $shipping_cost ) ) {
-                                    if ( strlen( $shipping_cost ) > 0 ) {
-                                        if ( $feed->ship_suffix == false ) {
-                                            $zone_details['price'] = trim( $currency . ' ' . $shipping_cost );
-                                        } else {
-                                            $zone_details['price'] = trim( $shipping_cost );
-                                        }
-                                    } elseif ( isset( $shipping_cost ) ) {
-                                        $zone_details['price'] = trim( $currency . ' ' . $shipping_cost );
-                                    }
-                                }
-                            }
-
-                            // This shipping zone has postal codes so multiply the zone details
-                            $nr_postals = count( $postal_code );
-                            if ( $nr_postals > 0 ) {
-                                for ( $x = 0; $x <= count( $postal_code ); ) {
-                                    ++$zone_count;
-                                    if ( ! empty( $postal_code[ $x ] ) ) {
-                                        $zone_details['postal_code'] = $postal_code[ $x ];
-                                        $shipping_arr[ $zone_count ] = $zone_details;
-                                    }
-                                    ++$x;
-                                }
-                            } elseif ( isset( $zone_details ) ) {
-                                ++$zone_count;
-                                $shipping_arr[ $zone_count ] = $zone_details;
-                            }
-                        }
-                    }
-
-                    $shipping_arr = apply_filters( 'adt_product_feed_shipping_cost_arr', $shipping_arr, $shipping_zones, $feed );
-                }
-            }
-        }
-
-        // Remove other shipping classes when free shipping is relevant
-        $free_check = 'yes';
-
-        if ( in_array( $free_check, array_column( $shipping_arr, 'free' ) ) ) { // search value in the array
-            foreach ( $shipping_arr as $k => $v ) {
-                if ( ! in_array( $free_check, $v ) ) {
-
-                    // User do not want to have free shipping in their feed
-                    // Only remove the other shipping classes when free shipping is not being removed
-                    $remove_free_shipping = 'no';
-                    $remove_free_shipping = get_option( 'remove_free_shipping' );
-
-                    if ( $remove_free_shipping == 'no' ) {
-                        unset( $shipping_arr[ $k ] );
-                    }
-                }
-            }
-        }
-
-        // Fix empty services and country
-        foreach ( $shipping_arr as $k => $v ) {
-            if ( empty( $v['service'] ) ) {
-                unset( $shipping_arr[ $k ] );
-            }
-            if ( empty( $v['country'] ) ) {
-                unset( $shipping_arr[ $k ] );
-            }
-        }
-        return apply_filters( 'adt_product_feed_shipping_cost', $shipping_arr, $shipping_zones, $feed );
-    }
-
-    /**
      * Log queries, used for debugging errors
      */
     public function woosea_create_query_log( $query, $filename ) {
@@ -1412,10 +967,11 @@ class WooSEA_Get_Products {
                     $currency->addAttribute( 'id', $main_currency );
                     $currency->addAttribute( 'rate', '1' );
 
-                    $args               = array(
-                        'taxonomy' => 'product_cat',
+                    $product_categories = get_terms(
+                        array(
+                            'taxonomy' => 'product_cat',
+                        ) 
                     );
-                    $product_categories = get_terms( 'product_cat', $args );
 
                     $count = count( $product_categories );
                     if ( $count > 0 ) {
@@ -1913,12 +1469,12 @@ class WooSEA_Get_Products {
                                 } elseif ( $k == 'categoryId' ) {
 
                                     if ( $feed_config['name'] == 'Yandex' ) {
-                                        $args = array(
-                                            'taxonomy' => 'product_cat',
-                                        );
-
                                         // $category = $product->addChild('categories');
-                                        $product_categories = get_terms( 'product_cat', $args );
+                                        $product_categories = get_terms(
+                                            array(
+                                             'taxonomy' => 'product_cat',
+                                            ) 
+                                        );
                                         $count              = count( $product_categories );
                                         $cat                = explode( '||', $v );
 
@@ -2187,7 +1743,7 @@ class WooSEA_Get_Products {
         $fields = $feed->get_channel( 'fields' );
 
         if ( ! empty( $fields ) ) {
-
+            $channel_attributes = array();
             if ( $fields != 'standard' ) {
                 if ( ! class_exists( 'WooSEA_' . $fields ) ) {
                     $channel_file_path = plugin_dir_path( __FILE__ ) . '/channels/class-' . $fields . '.php';
@@ -2195,10 +1751,7 @@ class WooSEA_Get_Products {
                         require $channel_file_path;
                         $channel_class      = 'WooSEA_' . $fields;
                         $channel_attributes = $channel_class::get_channel_attributes();
-                        update_option( 'channel_attributes', $channel_attributes, false );
                     }
-                } else {
-                    $channel_attributes = get_option( 'channel_attributes' );
                 }
             }
 
@@ -2217,6 +1770,7 @@ class WooSEA_Get_Products {
                 foreach ( $row as $k => $v ) {
                     $pieces = explode( "','", $v );
                     if ( ! empty( $pieces ) ) {
+                        $tab_line = '';
                         foreach ( $pieces as $k_inner => $v ) {
                             if ( ( $fields != 'standard' ) && ( $fields != 'customfeed' ) ) {
                                 $v = $this->get_alternative_key( $channel_attributes, $v );
@@ -2243,54 +1797,15 @@ class WooSEA_Get_Products {
                             $csv_delimiter = $feed->delimiter;
                         }
     
-                        if ( $fields == 'google_local' ) {
-                            $tab_line = '';
-    
-                            if ( $header == 'false' ) {
-                                // Get the store codes
-                                foreach ( $feed->attributes as $k => $v ) {
-                                    if ( preg_match( '/\|/', $k ) ) {
-                                        $stores_local = $k;
-                                    }
-                                }
-    
-                                $store_ids = explode( '|', $stores_local );
-                                if ( is_array( $store_ids ) ) {
-    
-                                    foreach ( $store_ids as $store_key => $store_value ) {
-                                        $pieces[1] = $store_value;
-    
-                                        if ( ! empty( $store_value ) ) {
-                                            foreach ( $pieces as $t_key => $t_value ) {
-                                                $tab_line .= $t_value . "$csv_delimiter";
-                                            }
-                                            $tab_line  = rtrim( $tab_line, $csv_delimiter );
-                                            $tab_line .= PHP_EOL;
-                                        }
-                                    }
-                                    fwrite( $fp, $tab_line );
-                                } else {
-                                    // Only one store code entered
-                                    foreach ( $pieces as $t_key => $t_value ) {
-                                        $tab_line .= $t_value . "$csv_delimiter";
-                                    }
-    
-                                    $tab_line  = rtrim( $tab_line, $csv_delimiter );
-                                    $tab_line .= PHP_EOL;
-                                    fwrite( $fp, $tab_line );
-                                }
-                            } else {
-                                foreach ( $pieces as $t_key => $t_value ) {
-                                    $tab_line .= $t_value . "$csv_delimiter";
-                                }
-                                $tab_line  = rtrim( $tab_line, $csv_delimiter );
-                                $tab_line .= PHP_EOL;
-                                fwrite( $fp, $tab_line );
-                            }
-                        } else {
-                            $pieces = array_map( 'trim', $pieces );
-                            fputcsv( $fp, $pieces, $csv_delimiter );
+                        foreach ( $pieces as $t_key => $t_value ) {
+                            $tab_line .= $t_value . "$csv_delimiter";
                         }
+                        $tab_line  = rtrim( $tab_line, $csv_delimiter );
+                        $tab_line .= PHP_EOL;
+                        fwrite( $fp, $tab_line );
+                    } else {
+                        $pieces = array_map( 'trim', $pieces );
+                        fputcsv( $fp, $pieces, $csv_delimiter );
                     }
                 }
             }
@@ -2306,8 +1821,13 @@ class WooSEA_Get_Products {
      * Get products that are eligable for adding to the file.
      *
      * @since 13.3.5 Updated the parameters to feed id.
+     * @since 13.4.1 Add offset and batch size parameters.
+     *
+     * @param Product_Feed $feed The product feed instance.
+     * @param int          $offset The offset of the batch.
+     * @param int          $batch_size The batch size.
      */
-    public function woosea_get_products( $feed ) {
+    public function woosea_get_products( $feed, $offset = 0, $batch_size = 0 ) {
         if ( ! Product_Feed_Helper::is_a_product_feed( $feed ) ) {
             return;
         }
@@ -2335,65 +1855,6 @@ class WooSEA_Get_Products {
          * @param Product_Feed $feed The product feed instance.
          */
         do_action( 'woosea_before_get_products', $feed );
-
-        // Get total of published products to process.
-        if ( $feed->create_preview ) {
-            // User would like to see a preview of their feed, retrieve only 5 products by default.
-            $published_products = apply_filters( 'adt_product_feed_preview_products', 5, $feed );
-        } elseif ( $feed->include_product_variations ) {
-            $published_products = Product_Feed_Helper::get_total_published_products( true );
-        } else {
-            $published_products = Product_Feed_Helper::get_total_published_products();
-        }
-
-        /**
-         * Filter the total number of products to process.
-         *
-         * @since 13.3.5
-         *
-         * @param int $published_products Total number of published products to process.
-         * @param \AdTribes\PFP\Factories\Product_Feed $feed The product feed instance.
-         */
-        $published_products = apply_filters( 'adt_product_feed_total_published_products', $published_products, $feed );
-
-        $versions = array(
-            'PHP'         => (float) phpversion(),
-            'Wordpress'   => get_bloginfo( 'version' ),
-            'WooCommerce' => WC()->version,
-            'Plugin'      => WOOCOMMERCESEA_PLUGIN_VERSION,
-        );
-
-        /**
-         * Do not change these settings, they are here to prevent running into memory issues
-         */
-        if ( $versions['PHP'] < 5.6 ) {
-            // Old version, process a maximum of 50 products per batch
-            $nr_batches = ceil( $published_products / 50 );
-        } elseif ( $versions['PHP'] == 5.6 ) {
-            // Old version, process a maximum of 100 products per batch
-            $nr_batches = ceil( $published_products / 200 );
-        } else {
-            // Fast PHP version, process a 750 products per batch
-            $nr_batches = ceil( $published_products / 750 );
-
-            if ( $published_products > 50000 ) {
-                $nr_batches = ceil( $published_products / 2500 );
-            } else {
-                $nr_batches = ceil( $published_products / 750 );
-            }
-        }
-
-        /**
-         * User set his own batch size
-         */
-        $woosea_batch_size = get_option( 'woosea_batch_size' );
-        if ( ! empty( $woosea_batch_size ) ) {
-            if ( is_numeric( $woosea_batch_size ) ) {
-                $nr_batches = ceil( $published_products / $woosea_batch_size );
-            }
-        }
-
-        $offset_step_size = ( 0 < $published_products && 0 < $nr_batches ) ? ceil( $published_products / $nr_batches ) : 0;
 
         /**
          * Check if the [attributes] array in the project_config is of expected format.
@@ -2464,8 +1925,8 @@ class WooSEA_Get_Products {
         // Construct WP query
         $wp_query = array(
             'post_type'              => $post_type,
-            'posts_per_page'         => $offset_step_size,
-            'offset'                 => $nr_products_processed,
+            'posts_per_page'         => $batch_size,
+            'offset'                 => $offset,
             'post_status'            => 'publish',
             'orderby'                => 'date',
             'order'                  => 'desc',
@@ -2529,6 +1990,9 @@ class WooSEA_Get_Products {
             $parent_id          = wp_get_post_parent_id( $product_id );
             $parent_product     = $parent_id > 0 ? wc_get_product( $parent_id ) : null;
             $product_data['id'] = $product_id;
+
+            // Set country code.
+            $country_code  = $feed->country ?? '';
 
             // Only products that have been sold are allowed to go through
             if ( $feed->utm_total_product_orders_lookback > 0 ) {
@@ -2613,21 +2077,9 @@ class WooSEA_Get_Products {
 
             $cat_alt    = array();
             $cat_term   = '';
-            $categories = array();
-
-            if ( $product_data['item_group_id'] > 0 ) {
-                $cat_obj = get_the_terms( $product_data['item_group_id'], 'product_cat' );
-            } else {
-                $cat_obj = get_the_terms( $product_data['id'], 'product_cat' );
-            }
-
-            if ( $cat_obj ) {
-                foreach ( $cat_obj as $cat_term ) {
-                    $cat_alt[] = $cat_term->term_id;
-                }
-            }
             $cat_order  = '';
-            $categories = $cat_alt;
+            $categories = $parent_id ? $parent_product->get_category_ids() : $product->get_category_ids();
+            $cat_alt    = $categories;
 
             // Determine real category hierarchy
             $cat_order = array();
@@ -2688,7 +2140,6 @@ class WooSEA_Get_Products {
                     }
                 }
                 $categories = $cat_alt;
-                // unset($cat_alt);
             }
 
             $product_data['category_path'] = '';
@@ -2940,15 +2391,10 @@ class WooSEA_Get_Products {
             $product_data['menu_order'] = get_post_field( 'menu_order', $product_data['id'] );
             $product_data['currency']   = apply_filters( 'adt_product_data_currency', get_woocommerce_currency() );
 
-            $sales_price_from = get_post_meta( $product_data['id'], '_sale_price_dates_from', true );
-            $sales_price_to   = get_post_meta( $product_data['id'], '_sale_price_dates_to', true );
-
-            if ( ! empty( $sales_price_from ) and ! empty( $sales_price_to ) ) {
-                if ( ! empty( $sales_price_from ) ) {
-                    $sales_price_date_from                     = date( 'Y-m-d', intval( $sales_price_from ) );
-                    $sales_price_date_to                       = date( 'Y-m-d', intval( $sales_price_to ) );
-                    $product_data['sale_price_effective_date'] = $sales_price_date_from . '/' . $sales_price_date_to;
-                }
+            if ( $product->is_on_sale() ) {
+                $sales_price_date_from                     = Formatting::format_date( $product->get_date_on_sale_from(), $feed );
+                $sales_price_date_to                       = Formatting::format_date( $product->get_date_on_sale_to(), $feed );
+                $product_data['sale_price_effective_date'] = $sales_price_date_from . '/' . $sales_price_date_to;
             } else {
                 $product_data['sale_price_effective_date'] = '';
             }
@@ -3037,16 +2483,12 @@ class WooSEA_Get_Products {
             }
 
             $product_data['shipping'] = 0;
-            $tax_rates                = WC_Tax::get_base_tax_rates( $product->get_tax_class() );
-            $all_standard_taxes       = WC_Tax::get_rates_for_tax_class( '' );
             $shipping_class_id        = $product->get_shipping_class_id();
-            // $shipping_class= $product->get_shipping_class();
 
             $class_cost_id = 'class_cost_' . $shipping_class_id;
             if ( $class_cost_id == 'class_cost_0' ) {
                 $class_cost_id = 'no_class_cost';
             }
-            // unset($shipping_class_id);
 
             $product_data['shipping_label'] = $product->get_shipping_class();
             $term                           = get_term_by( 'slug', $product->get_shipping_class(), 'product_shipping_class' );
@@ -3054,9 +2496,46 @@ class WooSEA_Get_Products {
                 $product_data['shipping_label_name'] = $term->name;
             }
 
+            $base_tax_rates = \WC_Tax::get_base_tax_rates( $product->get_tax_class() );
+            $tax_rates = Product_Feed_Helper::find_tax_rates( 
+                array(
+                    'country'   => $feed->country ?? '',
+                    'state'     => '',
+                    'postcode'  => '',
+                    'city'      => '',
+                    'tax_class' => $product->get_tax_class(),
+                ),
+                $feed,
+                $product 
+            );
+
             // Get product prices
-            $product_data['price'] = wc_get_price_including_tax( $product, array( 'price' => $product->get_price() ) );
-            $product_data['price'] = wc_format_decimal( $product_data['price'], 2 );
+            $product_data['price']                = Product_Feed_Helper::get_price_including_tax( $product->get_price(), $tax_rates, $feed, $product );
+            $product_data['regular_price']        = Product_Feed_Helper::get_price_including_tax( $product->get_regular_price(), $tax_rates, $feed, $product );
+            $product_data['system_price']         = Product_Feed_Helper::get_price_including_tax( $product->get_price(), $base_tax_rates, $feed, $product );
+            $product_data['system_regular_price'] = Product_Feed_Helper::get_price_including_tax( $product->get_regular_price(), $base_tax_rates, $feed, $product );
+
+            // Determine the gross prices of products.
+            // The 'price_forced' is the price including tax.
+            $product_data['price_forced']                = Product_Feed_Helper::get_price_including_tax( $product->get_price(), $tax_rates, $feed, $product );
+            $product_data['regular_price_forced']        = Product_Feed_Helper::get_price_including_tax( $product->get_regular_price(), $tax_rates, $feed, $product );
+            $product_data['system_price_forced']         = Product_Feed_Helper::get_price_including_tax( $product->get_price(), $base_tax_rates, $feed, $product );
+            $product_data['system_regular_price_forced'] = Product_Feed_Helper::get_price_including_tax( $product->get_regular_price(), $base_tax_rates, $feed, $product );
+
+            // The 'net_price' is the price excluding tax.
+            $product_data['net_price']                = Product_Feed_Helper::get_price_excluding_tax( $product->get_price(), $tax_rates, $feed, $product );
+            $product_data['net_regular_price']        = Product_Feed_Helper::get_price_excluding_tax( $product->get_regular_price(), $tax_rates, $feed, $product );
+            $product_data['system_net_price']         = Product_Feed_Helper::get_price_excluding_tax( $product->get_price(), $base_tax_rates, $feed, $product );
+            $product_data['system_net_regular_price'] = Product_Feed_Helper::get_price_excluding_tax( $product->get_regular_price(), $base_tax_rates, $feed, $product );
+
+            if ( $product->is_on_sale() ) {
+                $product_data['sale_price']               = Product_Feed_Helper::get_price_including_tax( $product->get_sale_price(), $tax_rates, $feed, $product );
+                $product_data['sale_price_forced']        = Product_Feed_Helper::get_price_including_tax( $product->get_sale_price(), $tax_rates, $feed, $product );
+                $product_data['net_sale_price']           = Product_Feed_Helper::get_price_excluding_tax( $product->get_sale_price(), $tax_rates, $feed, $product );
+                $product_data['system_sale_price']        = Product_Feed_Helper::get_price_including_tax( $product->get_sale_price(), $base_tax_rates, $feed, $product );
+                $product_data['system_sale_price_forced'] = Product_Feed_Helper::get_price_excluding_tax( $product->get_sale_price(), $base_tax_rates, $feed, $product );
+                $product_data['system_net_sale_price']    = Product_Feed_Helper::get_price_including_tax( $product->get_sale_price(), $base_tax_rates, $feed, $product );
+            }
 
             $args = array(
                 'ex_tax_label'       => false,
@@ -3067,59 +2546,37 @@ class WooSEA_Get_Products {
                 'price_format'       => get_woocommerce_price_format(),
             );
 
-            $dec_price = wc_price( $product_data['price'], $args );
-            preg_match( '/<bdi>(.*?)&nbsp;/', $dec_price, $matches );
-            if ( isset( $matches[1] ) ) {
-                $product_data['separator_price'] = $matches[1];
-            }
-            // unset($dec_price);
-
-            $product_data['sale_price']    = wc_get_price_including_tax( $product, array( 'price' => $product->get_sale_price() ) );
-            $product_data['sale_price']    = wc_format_decimal( $product_data['sale_price'], 2 );
-            $product_data['regular_price'] = wc_get_price_including_tax( $product, array( 'price' => $product->get_regular_price() ) );
-            $product_data['regular_price'] = wc_format_decimal( $product_data['regular_price'], 2 );
-
-            $dec_regular_price = wc_price( $product_data['regular_price'], $args );
-            preg_match( '/<bdi>(.*?)&nbsp;/', $dec_regular_price, $matches_reg );
-            if ( isset( $matches_reg[1] ) ) {
-                $product_data['separator_regular_price'] = $matches_reg[1];
-            }
-            // unset($dec_regular_price);
-
-            $dec_sale_price = wc_price( $product_data['sale_price'], $args );
-            preg_match( '/<bdi>(.*?)&nbsp;/', $dec_sale_price, $matches_sale );
-            if ( isset( $matches_sale[1] ) ) {
-                $product_data['separator_sale_price'] = $matches_sale[1];
-            }
-            // unset($dec_sale_price);
-
-            // Untouched raw system pricing - DO NOT CHANGE THESE
-            $float_system_net_price                   = floatval( wc_get_price_excluding_tax( $product ) );
-            $product_data['system_net_price']         = round( $float_system_net_price, 2 );
-            $product_data['system_net_price']         = wc_format_decimal( $product_data['system_net_price'], 2 );
-            $product_data['system_net_sale_price']    = wc_format_decimal( wc_get_price_excluding_tax( $product, array( 'price' => $product->get_sale_price() ) ), 2 );
-            $product_data['system_net_regular_price'] = wc_format_decimal( wc_get_price_excluding_tax( $product, array( 'price' => $product->get_regular_price() ) ), 2 );
-
-            // System regular price
-            $float_system_regular_price           = floatval( $product->get_regular_price() );
-            $product_data['system_regular_price'] = round( $float_system_regular_price, 2 );
-            $product_data['system_regular_price'] = wc_format_decimal( $product_data['system_regular_price'], 2 );
-
-            // System sale price
-            $float_system_sale_price = floatval( $product->get_sale_price() );
-            if ( $float_system_sale_price > 0 ) {
-                $product_data['system_sale_price'] = round( $float_system_sale_price, 2 );
-                $product_data['system_sale_price'] = wc_format_decimal( $product_data['system_sale_price'], 2 );
-                $sale_price                        = $product_data['system_sale_price'];
+            if ( isset( $product_data['price'] ) ) {
+                $dec_price = wc_price( $product_data['price'], $args );
+                preg_match( '/<bdi>(.*?)&nbsp;/', $dec_price, $matches );
+                if ( isset( $matches[1] ) ) {
+                    $product_data['separator_price'] = $matches[1];
+                }
+                // unset($dec_price);
             }
 
-            $code_from_config  = $feed->country;
-            $nr_standard_rates = count( $all_standard_taxes );
+            if ( isset( $product_data['regular_price'] ) ) {
+                $dec_regular_price = wc_price( $product_data['regular_price'], $args );
+                preg_match( '/<bdi>(.*?)&nbsp;/', $dec_regular_price, $matches_reg );
+                if ( isset( $matches_reg[1] ) ) {
+                    $product_data['separator_regular_price'] = $matches_reg[1];
+                }
+            }
 
+            if ( isset( $product_data['sale_price'] ) ) {
+                $dec_sale_price = wc_price( $product_data['sale_price'], $args );
+                preg_match( '/<bdi>(.*?)&nbsp;/', $dec_sale_price, $matches_sale );
+                if ( isset( $matches_sale[1] ) ) {
+                    $product_data['separator_sale_price'] = $matches_sale[1];
+                }
+            }
+
+            $all_standard_taxes = WC_Tax::get_rates_for_tax_class( '' );
+            $nr_standard_rates  = count( $all_standard_taxes );
             if ( ! empty( $all_standard_taxes ) && ( $nr_standard_rates > 1 ) ) {
                 foreach ( $all_standard_taxes as $rate ) {
                     $rate_arr = get_object_vars( $rate );
-                    if ( $rate_arr['tax_rate_country'] == $code_from_config ) {
+                    if ( $rate_arr['tax_rate_country'] == $country_code ) {
                         $tax_rates[1]['rate'] = $rate_arr['tax_rate'];
                     }
                     unset( $rate_arr );
@@ -3199,45 +2656,6 @@ class WooSEA_Get_Products {
                             }
                         }
                     }
-                }
-            }
-
-            if ( array_key_exists( 'sale_price', $product_data ) ) {
-                if ( $product_data['regular_price'] == $product_data['sale_price'] ) {
-                    $product_data['sale_price'] = '';
-                }
-            }
-
-            // Determine the gross prices of products
-            $tax_rates_first = $tax_rates_first['rate'];
-            if ( $product->get_price() ) {
-                $product_data['price_forced'] = round( wc_get_price_excluding_tax( $product, array( 'price' => $product->get_price() ) ) * ( 100 + $tax_rates_first ) / 100, 2 );
-            }
-
-            if ( $product->get_regular_price() ) {
-                $product_data['regular_price_forced'] = round( wc_get_price_excluding_tax( $product, array( 'price' => $product->get_regular_price() ) ) * ( 100 + $tax_rates_first ) / 100, 2 );
-                $product_data['net_regular_price']    = round( wc_get_price_excluding_tax( $product, array( 'price' => $product->get_regular_price() ) ), 2 );
-            }
-
-            if ( $product->get_sale_price() ) {
-                $product_data['sale_price_forced'] = round( wc_get_price_excluding_tax( $product, array( 'price' => $product->get_sale_price() ) ) * ( 100 + $tax_rates_first ) / 100, 2 );
-                $product_data['net_sale_price']    = round( wc_get_price_excluding_tax( $product, array( 'price' => $product->get_sale_price() ) ), 2 );
-
-                // We do not want to have 0 sale price values in the feed
-                if ( $product_data['net_sale_price'] == 0 ) {
-                    $product_data['net_sale_price'] = '';
-                }
-            }
-
-            $float_net_price           = floatval( wc_get_price_excluding_tax( $product ) );
-            $product_data['net_price'] = round( $float_net_price, 2 );
-            $product_data['net_price'] = wc_format_decimal( $product_data['net_price'], 2 );
-
-            $price = wc_get_price_including_tax( $product, array( 'price' => $product->get_price() ) );
-
-            if ( array_key_exists( 'sale_price', $product_data ) ) {
-                if ( $product_data['sale_price'] > 0 ) {
-                    $price = $product_data['sale_price'];
                 }
             }
 
@@ -3322,14 +2740,15 @@ class WooSEA_Get_Products {
             $rounded_precisions  = apply_filters( 'adt_product_feed_data_rounded_price_precisions', 0, $feed );
             $rounded_mode        = apply_filters( 'adt_product_feed_data_rounded_price_mode', PHP_ROUND_HALF_UP, $feed );
             $rounded_prices      = array(
-                'price'             => 'rounded_price',
-                'regular_price'     => 'rounded_regular_price',
-                'sale_price'        => 'rounded_sale_price',
-                'price_forced'      => 'price_forced_rounded',
-                'net_price'         => 'net_price_rounded',
-                'net_regular_price' => 'net_regular_price_rounded',
-                'net_sale_price'    => 'net_sale_price_rounded',
-                'sale_price_forced' => 'sale_price_forced_rounded',
+                'price'                => 'rounded_price',
+                'regular_price'        => 'rounded_regular_price',
+                'sale_price'           => 'rounded_sale_price',
+                'price_forced'         => 'price_forced_rounded',
+                'regular_price_forced' => 'regular_price_forced_rounded',
+                'sale_price_forced'    => 'sale_price_forced_rounded',
+                'net_price'            => 'net_price_rounded',
+                'net_regular_price'    => 'net_regular_price_rounded',
+                'net_sale_price'       => 'net_sale_price_rounded',
             );
 
             foreach ( $rounded_prices as $price_key => $rounded_key ) {
@@ -3338,65 +2757,14 @@ class WooSEA_Get_Products {
                 }
             }
 
-            // Localize the price attributes
-            $product_data['price']         = wc_format_localized_price( $product_data['price'] );
-            $product_data['regular_price'] = wc_format_localized_price( $product_data['regular_price'] );
-
-            if ( array_key_exists( 'sale_price', $product_data ) ) {
-                $product_data['sale_price'] = wc_format_localized_price( $product_data['sale_price'] );
-            }
-
-            if ( $product->get_price() ) {
-                $product_data['price_forced'] = wc_format_localized_price( $product_data['price_forced'] );
-            }
-            if ( $product->get_regular_price() ) {
-                $product_data['regular_price_forced'] = wc_format_localized_price( $product_data['regular_price_forced'] );
-            }
-            if ( $product->get_sale_price() ) {
-                $product_data['sale_price_forced'] = wc_format_localized_price( $product_data['sale_price_forced'] );
-            }
-            $product_data['net_price'] = wc_format_localized_price( $product_data['net_price'] );
-
-            if ( isset( $product_data['net_regular_price'] ) ) {
-                $product_data['net_regular_price'] = wc_format_localized_price( $product_data['net_regular_price'] );
-            }
-
-            if ( isset( $product_data['net_sale_price'] ) ) {
-                $product_data['net_sale_price'] = wc_format_localized_price( $product_data['net_sale_price'] );
-                $product_data['net_sale_price'] = wc_format_localized_price( $product_data['net_sale_price'] );
-                $product_data['net_sale_price'] = wc_format_localized_price( $product_data['net_sale_price'] );
-            }
-
-            if ( ! empty( $product_data['system_price'] ) ) {
-                $product_data['system_price'] = wc_format_localized_price( $product_data['system_price'] );
-            }
-
-            if ( ! empty( $product_data['system_net_price'] ) ) {
-                $product_data['system_net_price'] = wc_format_localized_price( $product_data['system_net_price'] );
-            }
-
-            if ( ! empty( $product_data['system_net_sale_price'] ) ) {
-                $product_data['system_net_sale_price'] = wc_format_localized_price( $product_data['system_net_sale_price'] );
-            }
-
-            if ( ! empty( $product_data['system_net_regular_price'] ) ) {
-                $product_data['system_net_regular_price'] = wc_format_localized_price( $product_data['system_net_regular_price'] );
-            }
-
-            if ( ! empty( $product_data['system_regular_price'] ) ) {
-                $product_data['system_regular_price'] = wc_format_localized_price( $product_data['system_regular_price'] );
-            }
-
-            if ( ! empty( $product_data['system_sale_price'] ) ) {
-                $product_data['system_sale_price'] = wc_format_localized_price( $product_data['system_sale_price'] );
-            }
-
             if ( ! empty( $feed_attributes ) ) {
+                $shipping_data_instance = Shipping_Data::instance();
+
                 foreach ( $feed_attributes as $attr_key => $attr_arr ) {
                     if ( is_array( $attr_arr ) ) {
                         if ( $attr_arr['attribute'] == 'g:shipping' ) {
                             if ( $product_data['price'] > 0 ) {
-                                $product_data['shipping'] = $this->woosea_get_shipping_cost( $class_cost_id, $feed, $product_data['price'], $tax_rates, $fullrate, $shipping_zones, $product_data['id'], $product_data['item_group_id'] );
+                                $product_data['shipping'] = $shipping_data_instance->get_shipping_data( $product, $feed );
                                 $shipping_str             = $product_data['shipping'];
                             }
                         }
@@ -3411,7 +2779,7 @@ class WooSEA_Get_Products {
                     ( $feed_channel['fields'] == 'idealo' ) ||
                     ( $feed_channel['fields'] == 'customfeed' )
                 ) {
-                    $product_data['shipping'] = $this->woosea_get_shipping_cost( $class_cost_id, $feed, $product_data['price'], $tax_rates, $fullrate, $shipping_zones, $product_data['id'], $product_data['item_group_id'] );
+                    $product_data['shipping'] = $shipping_data_instance->get_shipping_data( $product, $feed );
                     $shipping_str             = $product_data['shipping'];
                 }
             }
@@ -4472,34 +3840,6 @@ class WooSEA_Get_Products {
                 }
             }
 
-            /**
-             * Rules execution
-             */
-            if ( ! empty( $feed_rules ) ) {
-                if ( is_array( $product_data ) ) {
-                    $product_data = $this->woocommerce_sea_rules( $feed_rules, $product_data );
-                }
-            }
-
-            /**
-             * Check if we need to exclude Wholesale products
-             * WooCommerce Wholesale Prices by Rymera Web Co
-             */
-            if ( Helper::is_plugin_active( 'woocommerce-wholesale-prices/woocommerce-wholesale-prices.bootstrap.php' ) ) {
-                if ( is_array( $product_data ) ) {
-                    $product_data = $this->woocommerce_wholesale_check( $feed, $product_data );
-                }
-            }
-
-            /**
-             * Filter execution
-             */
-            if ( ! empty( $feed_filters ) ) {
-                if ( is_array( $product_data ) ) {
-                    $product_data = $this->woocommerce_sea_filters( $feed_filters, $product_data );
-                }
-            }
-
             if ( isset( $product_data['title_lcw'] ) ) {
                 $product_data['title_lcw'] = ucwords( $product_data['title_lcw'] );
             }
@@ -4571,6 +3911,34 @@ class WooSEA_Get_Products {
              * @param object $product The product object
              */
             $product_data = apply_filters( 'adt_get_product_data', $product_data, $feed, $product );
+
+            /**
+             * Filter execution
+             */
+            if ( ! empty( $feed_filters ) ) {
+                if ( is_array( $product_data ) && ! empty( $product_data ) ) {
+                    $filters_instance = AdTribes\PFP\Classes\Filters::instance();
+                    $product_data     = $filters_instance->filter( $product_data, $feed );
+                }
+            }
+
+            /**
+             * Rules execution
+             */
+            if ( ! empty( $feed_rules ) ) {
+                if ( is_array( $product_data ) && ! empty( $product_data ) ) {
+                    $rules_instance = AdTribes\PFP\Classes\Rules::instance();
+                    $product_data   = $rules_instance->rules( $product_data, $feed );
+                }
+            }
+
+            /**
+             * Localize the price attributes.
+             */
+            if ( ! empty( $product_data ) ) {
+                $product_data_instance = AdTribes\PFP\Classes\Product_Data::instance();
+                $product_data          = $product_data_instance->localize_prices( $product_data, $feed );
+            }
 
             /**
              * When product has passed the filter rules it can continue with the rest
@@ -4974,11 +4342,6 @@ class WooSEA_Get_Products {
         $feed->save();
 
         /**
-         * After feed generation action.
-         */
-        do_action( 'adt_after_product_feed_generation', $feed->id, $offset_step_size );
-
-        /**
          * Ready creating file, clean up our feed configuration mess now
          */
         delete_option( 'attributes_dropdown' );
@@ -5176,555 +4539,6 @@ class WooSEA_Get_Products {
     }
 
     /**
-     * Wholesale removal of products and shipping methods
-     */
-    private function woocommerce_wholesale_check( $feed, $product_data ) {
-        // Check if a wholesale discount has been set on categories
-        $product_cats_ids = wc_get_product_term_ids( $product_data['id'], 'product_cat' );
-
-        foreach ( $product_cats_ids as $ky => $cat_id ) {
-            $cat_discount_setting = get_option( 'taxonomy_' . $cat_id );
-
-            // When a wholesale category discount has been set the product needs to be removed from the product feed
-            if ( ! empty( $cat_discount_setting['wholesale_customer_wholesale_discount'] ) ) {
-
-                // Products can be excluded from the Wholesale category discount, those still need to make it to product feeds
-                if ( @metadata_exists( 'post', $product_data['id'], 'wwpp_ignore_cat_level_wholesale_discount' ) ) {
-
-                    $wwpp_ignore_cat_level_wholesale_discount = get_post_meta( $product_data['id'], 'wwpp_ignore_cat_level_wholesale_discount' );
-                    if ( ! in_array( 'yes', $wwpp_ignore_cat_level_wholesale_discount ) ) {
-                        $product_data = array();
-                        $product_data = null;
-                    }
-                }
-            }
-        }
-
-        // Check if manual wholesale prices have been set for wholesale users only
-        $wholesale_customer_have_wholesale_price = get_post_meta( $product_data['id'], 'wwpp_product_wholesale_visibility_filter' );
-
-        // When manual product wholesale price has been set for wholesale users only, remove from product feed
-        if ( is_array( $wholesale_customer_have_wholesale_price ) ) {
-            if ( ! in_array( 'all', $wholesale_customer_have_wholesale_price ) ) {
-                $product_data = array();
-                $product_data = null;
-            }
-        }
-        return $product_data;
-    }
-
-    /**
-     * Execute project rules
-     */
-    private function woocommerce_sea_rules( $project_rules2, $product_data ) {
-        $aantal_prods = count( $product_data );
-        if ( $aantal_prods > 0 ) {
-
-            foreach ( $project_rules2 as $pr_key => $pr_array ) {
-
-                foreach ( $product_data as $pd_key => $pd_value ) {
-
-                    // Check is there is a rule on specific attributes
-                    if ( $pd_key == $pr_array['attribute'] ) {
-                        // This is because for data manipulation the than attribute is empty
-                        if ( ! array_key_exists( 'than_attribute', $pr_array ) ) {
-                            $pr_array['than_attribute'] = $pd_key;
-                        }
-
-                        // Check if a rule has been set for Google categories
-                        if ( ! empty( $product_data['categories'] ) && ( $pr_array['than_attribute'] == 'google_category' ) && ( $product_data[ $pr_array['attribute'] ] == $pr_array['criteria'] ) ) {
-
-                            $pr_array['than_attribute'] = 'categories';
-                            $category_id                = explode( '-', $pr_array['newvalue'] );
-                            $pr_array['newvalue']       = $category_id[0];
-                            $product_data['categories'] = $pr_array['newvalue'];
-                        }
-
-                        // Make sure that rules on numerics are on true numerics
-                        if ( ! is_array( $pd_value ) && ( ! preg_match( '/[A-Za-z]/', $pd_value ) ) ) {
-                            $pd_value = strtr( $pd_value, ',', '.' );
-                        }
-
-                        // Make sure the price or sale price is numeric
-                        if ( ( $pr_array['attribute'] == 'sale_price' ) || ( $pr_array['attribute'] == 'price' ) ) {
-                            settype( $pd_value, 'double' );
-                        }
-
-                        if ( ( ( is_numeric( $pd_value ) ) && ( $pr_array['than_attribute'] != 'shipping' ) ) ) {
-                            // Rules for numeric values
-                            switch ( $pr_array['condition'] ) {
-                                case ( $pr_array['condition'] = 'contains' ):
-                                    if ( ( preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) ) {
-                                        $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = 'containsnot' ):
-                                    if ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) ) {
-                                        $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '=' ):
-                                    if ( ( $pd_value == $pr_array['criteria'] ) ) {
-                                        $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '!=' ):
-                                    if ( ( $pd_value != $pr_array['criteria'] ) ) {
-                                        $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '>' ):
-                                    if ( ( $pd_value > $pr_array['criteria'] ) ) {
-                                        $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '>=' ):
-                                    if ( ( $pd_value >= $pr_array['criteria'] ) ) {
-                                        $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '<' ):
-                                    if ( ( $pd_value < $pr_array['criteria'] ) ) {
-                                        $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '=<' ):
-                                    if ( ( $pd_value <= $pr_array['criteria'] ) ) {
-                                        $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = 'empty' ):
-                                    if ( empty( $product_data[ $pr_array['attribute'] ] ) ) {
-                                        if ( ( strlen( $pd_value ) < 1 ) ) {
-                                            $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                        } else {
-                                            $product_data[ $pr_array['attribute'] ] = $product_data[ $pr_array['than_attribute'] ];
-                                        }
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = 'notempty' ):
-                                    if ( empty( $product_data[ $pr_array['attribute'] ] ) ) {
-                                        if ( ( strlen( $pd_value ) > 1 ) ) {
-                                            $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                        } else {
-                                            $product_data[ $pr_array['attribute'] ] = $product_data[ $pr_array['than_attribute'] ];
-                                        }
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = 'multiply' ):
-                                    $pr_array['criteria'] = strtr( $pr_array['criteria'], ',', '.' );
-                                    $convert_back         = 'false';
-                                    $pos                  = strpos( $pd_value, ',' );
-                                    if ( $pos !== false ) {
-                                        $convert_back = 'true';
-                                    }
-                                    $pd_value = strtr( $pd_value, ',', '.' );
-                                    $newvalue = $pd_value * $pr_array['criteria'];
-                                    $newvalue = round( $newvalue, 2 );
-                                    if ( $convert_back == 'true' ) {
-                                        $newvalue = strtr( $newvalue, '.', ',' );
-                                    }
-
-                                    $decimal_separator = wc_get_price_decimal_separator();
-                                    $price_array       = array( 'price', 'regular_price', 'sale_price' );
-                                    if ( in_array( $pr_array['attribute'], $price_array, true ) ) {
-                                        if ( $decimal_separator == ',' ) {
-                                            $newvalue = strtr( $newvalue, '.', ',' );
-                                        }
-                                    }
-                                    $product_data[ $pr_array['attribute'] ] = $newvalue;
-                                    break;
-                                case ( $pr_array['condition'] = 'divide' ):
-                                    $newvalue                               = ( $pd_value / $pr_array['criteria'] );
-                                    $newvalue                               = round( $newvalue, 2 );
-                                    $newvalue                               = strtr( $newvalue, '.', ',' );
-                                    $product_data[ $pr_array['attribute'] ] = $newvalue;
-                                    break;
-                                case ( $pr_array['condition'] = 'plus' ):
-                                    $newvalue                               = ( $pd_value + $pr_array['criteria'] );
-                                    $product_data[ $pr_array['attribute'] ] = $newvalue;
-                                    break;
-                                case ( $pr_array['condition'] = 'minus' ):
-                                    $newvalue                               = ( $pd_value - $pr_array['criteria'] );
-                                    $product_data[ $pr_array['attribute'] ] = $newvalue;
-                                    break;
-                                case ( $pr_array['condition'] = 'findreplace' ):
-                                    if ( strpos( $pd_value, $pr_array['criteria'] ) !== false ) {
-                                        // Make sure that a new value has been set
-                                        if ( ! empty( $pr_array['newvalue'] ) ) {
-                                            // Find and replace only work on same attribute field, otherwise create a contains rule
-                                            if ( $pr_array['attribute'] == $pr_array['than_attribute'] ) {
-                                                $newvalue                                    = str_replace( $pr_array['criteria'], $pr_array['newvalue'], $pd_value );
-                                                $product_data[ $pr_array['than_attribute'] ] = ucfirst( $newvalue );
-                                            }
-                                        }
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
-                        } elseif ( is_array( $pd_value ) ) {
-
-                            // For now only shipping details are in an array
-                            foreach ( $pd_value as $k => $v ) {
-                                if ( is_array( $v ) ) {
-                                    foreach ( $v as $kk => $vv ) {
-                                        // Only shipping detail rule can be on price for now
-                                        if ( $kk == 'price' ) {
-                                            switch ( $pr_array['condition'] ) {
-                                                case ( $pr_array['condition'] = 'contains' ):
-                                                    if ( ( preg_match( '/' . $pr_array['criteria'] . '/', $vv ) ) ) {
-                                                        $pd_value[ $k ]['price']                     = str_replace( $pr_array['criteria'], $pr_array['newvalue'], $vv );
-                                                        $product_data[ $pr_array['than_attribute'] ] = $pd_value;
-                                                    }
-                                                    break;
-                                                case ( $pr_array['condition'] = 'containsnot' ):
-                                                    if ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $vv ) ) ) {
-                                                        $pd_value[ $k ]['price']                     = $pr_array['newvalue'];
-                                                        $product_data[ $pr_array['than_attribute'] ] = $pd_value;
-                                                    }
-                                                    break;
-                                                case ( $pr_array['condition'] = '=' ):
-                                                    if ( ( $vv == $pr_array['criteria'] ) ) {
-                                                        $pd_value[ $k ]['price']                     = $pr_array['newvalue'];
-                                                        $product_data[ $pr_array['than_attribute'] ] = $pd_value;
-                                                    }
-                                                    break;
-                                                case ( $pr_array['condition'] = '!=' ):
-                                                    if ( ( $vv != $pr_array['criteria'] ) ) {
-                                                        $pd_value[ $k ]['price']                     = $pr_array['newvalue'];
-                                                        $product_data[ $pr_array['than_attribute'] ] = $pd_value;
-                                                    }
-                                                    break;
-                                                case ( $pr_array['condition'] = '>' ):
-                                                    if ( ( $vv > $pr_array['criteria'] ) ) {
-                                                        $pd_value[ $k ]['price']                     = $pr_array['newvalue'];
-                                                        $product_data[ $pr_array['than_attribute'] ] = $pd_value;
-                                                    }
-                                                    break;
-                                                case ( $pr_array['condition'] = '>=' ):
-                                                    if ( ( $vv >= $pr_array['criteria'] ) ) {
-                                                        $pd_value[ $k ]['price']                     = $pr_array['newvalue'];
-                                                        $product_data[ $pr_array['than_attribute'] ] = $pd_value;
-                                                    }
-                                                    break;
-                                                case ( $pr_array['condition'] = '<' ):
-                                                    if ( ( $vv < $pr_array['criteria'] ) ) {
-                                                        $pd_value[ $k ]['price']                     = $pr_array['newvalue'];
-                                                        $product_data[ $pr_array['than_attribute'] ] = $pd_value;
-                                                    }
-                                                    break;
-                                                case ( $pr_array['condition'] = '=<' ):
-                                                    if ( ( $vv <= $pr_array['criteria'] ) ) {
-                                                        $pd_value[ $k ]['price']                     = $pr_array['newvalue'];
-                                                        $product_data[ $pr_array['than_attribute'] ] = $pd_value;
-                                                    }
-                                                    break;
-                                                case ( $pr_array['condition'] = 'empty' ):
-                                                    if ( ( strlen( $vv ) < 1 ) ) {
-                                                        $pd_value[ $k ]['price']                     = $pr_array['newvalue'];
-                                                        $product_data[ $pr_array['than_attribute'] ] = $pd_value;
-                                                    }
-                                                    break;
-                                                case ( $pr_array['condition'] = 'notempty' ):
-                                                    if ( ( strlen( $vv ) > 1 ) ) {
-                                                        $pd_value[ $k ]['price']                     = $pr_array['newvalue'];
-                                                        $product_data[ $pr_array['than_attribute'] ] = $pd_value;
-                                                    }
-                                                    break;
-                                                case ( $pr_array['condition'] = 'multiply' ):
-                                                    // Only shipping array
-                                                    if ( is_array( $pd_value ) ) {
-                                                        $pr_array['criteria'] = strtr( $pr_array['criteria'], ',', '.' );
-                                                        foreach ( $pd_value as $ship_a_key => $shipping_arr ) {
-                                                            foreach ( $shipping_arr as $ship_key => $ship_value ) {
-                                                                if ( $ship_key == 'price' ) {
-                                                                    $ship_pieces = explode( ' ', $ship_value );
-                                                                    if ( array_key_exists( '1', $ship_pieces ) ) {
-                                                                        $pd_value = strtr( $ship_pieces[1], ',', '.' );
-                                                                        $newvalue = $pd_value * $pr_array['criteria'];
-                                                                        $newvalue = round( $newvalue, 2 );
-                                                                        $newvalue = strtr( $newvalue, '.', ',' );
-                                                                        $newvalue = $ship_pieces[0] . ' ' . $newvalue;
-                                                                        $product_data[ $pr_array['than_attribute'] ][ $ship_a_key ]['price'] = $newvalue;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                    break;
-                                                default:
-                                                    break;
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    // Rules on product tags
-                                    foreach ( $pd_value as $k => $v ) {
-
-                                        // Rules for string values
-                                        if ( ! array_key_exists( 'cs', $pr_array ) ) {
-                                            $v                    = strtolower( $v );
-                                            $pr_array['criteria'] = strtolower( $pr_array['criteria'] );
-                                        }
-
-                                        switch ( $pr_array['condition'] ) {
-                                            case ( $pr_array['condition'] = 'contains' ):
-                                                if ( ( preg_match( '/' . $pr_array['criteria'] . '/', $v ) ) ) {
-                                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = 'containsnot' ):
-                                                if ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $v ) ) ) {
-                                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '=' ):
-                                                if ( ( $v == $pr_array['criteria'] ) ) {
-                                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '!=' ):
-                                                if ( ( $v != $pr_array['criteria'] ) ) {
-                                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '>' ):
-                                                if ( ( $v > $pr_array['criteria'] ) ) {
-                                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '>=' ):
-                                                if ( ( $v >= $pr_array['criteria'] ) ) {
-                                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '<' ):
-                                                if ( ( $v < $pr_array['criteria'] ) ) {
-                                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '=<' ):
-                                                if ( ( $v <= $pr_array['criteria'] ) ) {
-                                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = 'empty' ):
-                                                if ( ( strlen( $v ) < 1 ) ) {
-                                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = 'notempty' ):
-                                                if ( ( strlen( $v ) > 1 ) ) {
-                                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = 'multiply' ):
-                                                // Only shipping array
-                                                if ( is_array( $v ) ) {
-                                                    $pr_array['criteria'] = strtr( $pr_array['criteria'], ',', '.' );
-                                                    foreach ( $v as $ship_a_key => $shipping_arr ) {
-                                                        foreach ( $shipping_arr as $ship_key => $ship_value ) {
-                                                            if ( $ship_key == 'price' ) {
-                                                                $ship_pieces = explode( ' ', $ship_value );
-                                                                $pd_value    = strtr( $ship_pieces[1], ',', '.' );
-                                                                $newvalue    = $pd_value * $pr_array['criteria'];
-                                                                $newvalue    = round( $newvalue, 2 );
-                                                                $newvalue    = strtr( $newvalue, '.', ',' );
-                                                                $newvalue    = $ship_pieces[0] . ' ' . $newvalue;
-                                                                $product_data[ $pr_array['than_attribute'] ][ $ship_a_key ]['price'] = $newvalue;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                break;
-                                            default:
-                                                break;
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-
-                            // Rules for string values
-                            if ( ! array_key_exists( 'cs', $pr_array ) ) {
-                                if ( $pr_array['attribute'] != 'image' ) {
-                                    $pd_value             = strtolower( $pd_value );
-                                    $pr_array['criteria'] = strtolower( $pr_array['criteria'] );
-                                }
-                            }
-
-                            switch ( $pr_array['condition'] ) {
-                                case ( $pr_array['condition'] = 'contains' ):
-                                    if ( ( preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) ) {
-                                        // Specifically for shipping price rules
-                                        if ( ! empty( $product_data[ $pr_array['than_attribute'] ] ) ) {
-                                            if ( is_array( $product_data[ $pr_array['than_attribute'] ] ) ) {
-                                                $arr_size = ( count( $product_data[ $pr_array['than_attribute'] ] ) - 1 );
-                                                for ( $x = 0; $x <= $arr_size; $x++ ) {
-                                                    $product_data[ $pr_array['than_attribute'] ][ $x ]['price'] = $pr_array['newvalue'];
-                                                }
-                                            } else {
-                                                $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                            }
-                                        } else {
-                                            // This attribute value is empty for this product
-                                            $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                        }
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = 'containsnot' ):
-                                    if ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) ) {
-                                        // Specifically for shipping price rules
-                                        if ( isset( $pr_array['than_attribute'] ) ) {
-                                            if ( is_array( $product_data[ $pr_array['than_attribute'] ] ) ) {
-                                                $arr_size = ( count( $product_data[ $pr_array['than_attribute'] ] ) - 1 );
-                                                for ( $x = 0; $x <= $arr_size; $x++ ) {
-                                                    $product_data[ $pr_array['than_attribute'] ][ $x ]['price'] = $pr_array['newvalue'];
-                                                }
-                                            } else {
-                                                $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                            }
-                                        }
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '=' ):
-                                    if ( ( $pr_array['criteria'] == "$pd_value" ) ) {
-                                        // Specifically for shipping price rules
-                                        if ( isset( $product_data[ $pr_array['than_attribute'] ] ) ) {
-                                            if ( is_array( $product_data[ $pr_array['than_attribute'] ] ) ) {
-                                                $arr_size = ( count( $product_data[ $pr_array['than_attribute'] ] ) - 1 );
-                                                for ( $x = 0; $x <= $arr_size; $x++ ) {
-                                                    $product_data[ $pr_array['than_attribute'] ][ $x ]['price'] = $pr_array['newvalue'];
-                                                }
-                                            } else {
-                                                $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                            }
-                                        }
-                                    }
-                                    $ship = $product_data['shipping'];
-                                    break;
-                                case ( $pr_array['condition'] = '!=' ):
-                                    if ( ( $pr_array['criteria'] != "$pd_value" ) ) {
-                                        // Specifically for shipping price rules
-                                        if ( is_array( $product_data[ $pr_array['than_attribute'] ] ) ) {
-                                            $arr_size = ( count( $product_data[ $pr_array['than_attribute'] ] ) - 1 );
-                                            for ( $x = 0; $x <= $arr_size; $x++ ) {
-                                                $product_data[ $pr_array['than_attribute'] ][ $x ]['price'] = $pr_array['newvalue'];
-                                            }
-                                        } else {
-                                            $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                        }
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '>' ):
-                                    // Use a lexical order on relational string operators
-                                    if ( ( $pd_value > $pr_array['criteria'] ) ) {
-                                        // Specifically for shipping price rules
-                                        if ( is_array( $product_data[ $pr_array['than_attribute'] ] ) ) {
-                                            $arr_size = ( count( $product_data[ $pr_array['than_attribute'] ] ) - 1 );
-                                            for ( $x = 0; $x <= $arr_size; $x++ ) {
-                                                $product_data[ $pr_array['than_attribute'] ][ $x ]['price'] = $pr_array['newvalue'];
-                                            }
-                                        } else {
-                                            $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                        }
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '>=' ):
-                                    // Use a lexical order on relational string operators
-                                    if ( ( $pd_value >= $pr_array['criteria'] ) ) {
-                                        // Specifically for shipping price rules
-                                        if ( is_array( $product_data[ $pr_array['than_attribute'] ] ) ) {
-                                            $arr_size = ( count( $product_data[ $pr_array['than_attribute'] ] ) - 1 );
-                                            for ( $x = 0; $x <= $arr_size; $x++ ) {
-                                                $product_data[ $pr_array['than_attribute'] ][ $x ]['price'] = $pr_array['newvalue'];
-                                            }
-                                        } else {
-                                            $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                        }
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '<' ):
-                                    // Use a lexical order on relational string operators
-                                    if ( ( $pd_value < $pr_array['criteria'] ) ) {
-                                        // Specifically for shipping price rules
-                                        if ( isset( $product_data[ $pr_array['than_attribute'] ] ) && ( is_array( $product_data[ $pr_array['than_attribute'] ] ) ) ) {
-                                            $arr_size = ( count( $product_data[ $pr_array['than_attribute'] ] ) - 1 );
-                                            for ( $x = 0; $x <= $arr_size; $x++ ) {
-                                                $product_data[ $pr_array['than_attribute'] ][ $x ]['price'] = $pr_array['newvalue'];
-                                            }
-                                        } else {
-                                            $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                        }
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = '=<' ):
-                                    // Use a lexical order on relational string operators
-                                    if ( ( $pd_value <= $pr_array['criteria'] ) ) {
-                                        // Specifically for shipping price rules
-                                        if ( is_array( $product_data[ $pr_array['than_attribute'] ] ) ) {
-                                            $arr_size = ( count( $product_data[ $pr_array['than_attribute'] ] ) - 1 );
-                                            for ( $x = 0; $x <= $arr_size; $x++ ) {
-                                                $product_data[ $pr_array['than_attribute'] ][ $x ]['price'] = $pr_array['newvalue'];
-                                            }
-                                        } else {
-                                            $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                        }
-                                    }
-                                    break;
-
-                                case ( $pr_array['condition'] = 'empty' ):
-                                    if ( empty( $product_data[ $pr_array['attribute'] ] ) ) {
-                                        if ( empty( $product_data[ $pr_array['than_attribute'] ] ) ) {
-                                            $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                        } else {
-                                            $product_data[ $pr_array['attribute'] ] = $product_data[ $pr_array['than_attribute'] ];
-                                        }
-                                    }
-                                    break;
-                                case ( $pr_array['condition'] = 'replace' ):
-                                    $product_data[ $pr_array['than_attribute'] ] = str_replace( $pr_array['criteria'], $pr_array['newvalue'], $product_data[ $pr_array['than_attribute'] ] );
-                                    break;
-                                case ( $pr_array['condition'] = 'findreplace' ):
-                                    if ( strpos( $pd_value, $pr_array['criteria'] ) !== false ) {
-                                        // Make sure that a new value has been set
-                                        if ( ! empty( $pr_array['newvalue'] ) ) {
-                                            // Find and replace only work on same attribute field, otherwise create a contains rule
-                                            if ( $pr_array['attribute'] == $pr_array['than_attribute'] ) {
-                                                $newvalue = str_replace( $pr_array['criteria'], $pr_array['newvalue'], $pd_value );
-                                                // $product_data[$pr_array['than_attribute']] = ucfirst($newvalue);
-                                                $product_data[ $pr_array['than_attribute'] ] = $newvalue;
-                                            }
-                                        }
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                    } else {
-                        // When a rule has been set on an attribute that is not in product_data
-                        // Add the newvalue to product_data
-                        if ( ! array_key_exists( $pr_array['attribute'], $product_data ) ) {
-                            if ( ! empty( $pr_array['newvalue'] ) ) {
-                                if ( $pr_array['condition'] == 'empty' ) {
-                                    $product_data[ $pr_array['than_attribute'] ] = $pr_array['newvalue'];
-                                }
-                            } elseif ( ! empty( $pr_array['than_attribute'] ) ) {
-                                if ( array_key_exists( $pr_array['than_attribute'], $product_data ) ) {
-                                    $product_data[ $pr_array['attribute'] ] = $product_data[ $pr_array['than_attribute'] ];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return $product_data;
-    }
-
-    /**
      * Function to exclude products based on individual product exclusions
      */
     private function woosea_exclude_individual( $product_data ) {
@@ -5898,620 +4712,4 @@ class WooSEA_Get_Products {
         update_option( 'woosea_gs_analysis_results', $gs_analysis_check, false );
     }
 
-    /**
-     * Execute project filters (include / exclude)
-     */
-    private function woocommerce_sea_filters( $project_rules, $product_data ) {
-        $allowed = 1;
-
-        // Check if product was already excluded from the feed
-        $product_excluded = ucfirst( get_post_meta( $product_data['id'], '_woosea_exclude_product', true ) );
-
-        if ( $product_excluded == 'Yes' ) {
-            $allowed = 0;
-        }
-
-        if ( array_key_exists( 'categories', $product_data ) ) {
-            $product_data['google_category'] = $product_data['categories'];
-        }
-
-        foreach ( $project_rules as $pr_key => $pr_array ) {
-
-            if ( $pr_array['attribute'] == 'categories' ) {
-                $pr_array['attribute'] = 'raw_categories';
-            }
-
-            if ( ! array_key_exists( $pr_array['attribute'], $product_data ) ) {
-                $product_data[ $pr_array['attribute'] ] = '';  // Sets an empty postmeta value in place of a missing one.
-            }
-
-            foreach ( $product_data as $pd_key => $pd_value ) {
-                // Check is there is a rule on specific attributes
-                if ( in_array( $pd_key, $pr_array, true ) ) {
-
-                    if ( $pd_key == 'price' || $pd_key == 'regular_price' ) {
-                        // $pd_value = @number_format($pd_value,2);
-                        $pd_value = wc_format_decimal( $pd_value );
-                    }
-
-                    if ( is_numeric( $pd_value ) ) {
-                        $old_value = $pd_value;
-                        if ( $pd_key == 'price' || $pd_key == 'regular_price' ) {
-                            $pd_value = @number_format( $pd_value, 2 );
-                        }
-
-                        // Rules for numeric values
-                        switch ( $pr_array['condition'] ) {
-                            case ( $pr_array['condition'] = 'contains' ):
-                                if ( ( preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = 'containsnot' ):
-                                if ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '=' ):
-                                if ( ( $old_value == $pr_array['criteria'] ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $old_value != $pr_array['criteria'] ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '!=' ):
-                                if ( ( $old_value == $pr_array['criteria'] ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    if ( $allowed != 0 ) {
-                                        $allowed = 1;
-                                    }
-                                } elseif ( ( $old_value == $pr_array['criteria'] ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '>' ):
-                                if ( ( $old_value > $pr_array['criteria'] ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $old_value <= $pr_array['criteria'] ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '>=' ):
-                                if ( ( $old_value >= $pr_array['criteria'] ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $old_value < $pr_array['criteria'] ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '<' ):
-                                if ( ( $old_value < $pr_array['criteria'] ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $old_value > $pr_array['criteria'] ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '=<' ):
-                                if ( ( $old_value <= $pr_array['criteria'] ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $old_value > $pr_array['criteria'] ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = 'empty' ):
-                                if ( ( strlen( $pd_value ) < 1 ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( strlen( $pd_value > 0 ) ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = 'notempty' ):
-                                if ( ( strlen( $pd_value ) > 1 ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( strlen( $pd_value < 0 ) ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                    } elseif ( is_array( $pd_value ) ) {
-                        // This can either be a shipping or product_tag array
-                        if ( ( $pr_array['attribute'] == 'product_tag' ) || ( $pr_array['attribute'] == 'purchase_note' ) ) {
-                            $in_tag_array = 'not';
-
-                            foreach ( $pd_value as $pt_key => $pt_value ) {
-                                // Rules for string values
-                                if ( ! array_key_exists( 'cs', $pr_array ) ) {
-                                    $pt_value             = strtolower( $pt_value );
-                                    $pr_array['criteria'] = strtolower( $pr_array['criteria'] );
-                                }
-
-                                if ( preg_match( '/' . $pr_array['criteria'] . '/', $pt_value ) ) {
-                                    $in_tag_array = 'yes';
-                                }
-                            }
-
-                            if ( $in_tag_array == 'yes' ) {
-                                // if(in_array($pr_array['criteria'], $pd_value, TRUE)) {
-                                $v = $pr_array['criteria'];
-                                switch ( $pr_array['condition'] ) {
-                                    case ( $pr_array['condition'] = 'contains' ):
-                                        if ( ( preg_match( '/' . $pr_array['criteria'] . '/', $v ) ) ) {
-                                            if ( $pr_array['than'] == 'include_only' ) {
-                                                if ( $allowed != 0 ) {
-                                                    $allowed = 1;
-                                                }
-                                            } else {
-                                                $allowed = 0;
-                                            }
-                                        } else {
-                                            $allowed = 0;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = 'containsnot' ):
-                                        if ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $v ) ) ) {
-                                            if ( $pr_array['than'] == 'include_only' ) {
-                                                if ( $allowed != 0 ) {
-                                                    $allowed = 1;
-                                                }
-                                            } else {
-                                                $allowed = 0;
-                                            }
-                                        } else {
-                                            $allowed = 0;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '=' ):
-                                        if ( ( $v == $pr_array['criteria'] ) ) {
-                                            if ( $pr_array['than'] == 'include_only' ) {
-                                                if ( $allowed != 0 ) {
-                                                    $allowed = 1;
-                                                }
-                                            } else {
-                                                $allowed = 0;
-                                            }
-                                        } else {
-                                            $allowed = 0;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '!=' ):
-                                        if ( ( $v != $pr_array['criteria'] ) ) {
-                                            if ( $pr_array['than'] == 'include_only' ) {
-                                                if ( $allowed != 0 ) {
-                                                    $allowed = 1;
-                                                }
-                                            } else {
-                                                $allowed = 0;
-                                            }
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '>' ):
-                                        if ( ( $v > $pr_array['criteria'] ) ) {
-                                            if ( $pr_array['than'] == 'include_only' ) {
-                                                if ( $allowed != 0 ) {
-                                                    $allowed = 1;
-                                                }
-                                            } else {
-                                                $allowed = 0;
-                                            }
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '>=' ):
-                                        if ( ( $v >= $pr_array['criteria'] ) ) {
-                                            if ( $pr_array['than'] == 'include_only' ) {
-                                                if ( $allowed != 0 ) {
-                                                    $allowed = 1;
-                                                }
-                                            } else {
-                                                $allowed = 0;
-                                            }
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '<' ):
-                                        if ( ( $v < $pr_array['criteria'] ) ) {
-                                            if ( $pr_array['than'] == 'include_only' ) {
-                                                if ( $allowed != 0 ) {
-                                                    $allowed = 1;
-                                                }
-                                            } else {
-                                                $allowed = 0;
-                                            }
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '=<' ):
-                                        if ( ( $v <= $pr_array['criteria'] ) ) {
-                                            if ( $pr_array['than'] == 'include_only' ) {
-                                                if ( $allowed != 0 ) {
-                                                    $allowed = 1;
-                                                }
-                                            } else {
-                                                $allowed = 0;
-                                            }
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = 'empty' ):
-                                        if ( strlen( $v ) < 1 ) {
-                                            if ( $pr_array['than'] == 'include_only' ) {
-                                                if ( $allowed != 0 ) {
-                                                    $allowed = 1;
-                                                }
-                                            } elseif ( ! empty( $pt_value ) ) {
-                                                $allowed = 1;
-                                            } else {
-                                                $allowed = 0;
-                                            }
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = 'notempty' ):
-                                        if ( strlen( $v ) > 1 ) {
-                                            if ( $pr_array['than'] == 'include_only' ) {
-                                                if ( $allowed != 0 ) {
-                                                    $allowed = 1;
-                                                }
-                                            } elseif ( ! empty( $pt_value ) ) {
-                                                $allowed = 1;
-                                            } else {
-                                                $allowed = 0;
-                                            }
-                                        }
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            } else {
-
-                                switch ( $pr_array['condition'] ) {
-                                    case ( $pr_array['condition'] = 'contains' ):
-                                        if ( $pr_array['than'] == 'include_only' ) {
-                                            $allowed = 0;
-                                        } elseif ( $allowed != 0 ) {
-                                            $allowed = 1;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = 'containsnot' ):
-                                        if ( $pr_array['than'] == 'include_only' ) {
-                                            if ( $allowed != 0 ) {
-                                                $allowed = 1;
-                                            }
-                                        } else {
-                                            $allowed = 0;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '=' ):
-                                        if ( $pr_array['than'] == 'include_only' ) {
-                                            $allowed = 0;
-                                        } elseif ( $allowed != 0 ) {
-                                            $allowed = 1;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '!=' ):
-                                        if ( $pr_array['than'] == 'include_only' ) {
-                                            if ( $allowed != 0 ) {
-                                                $allowed = 1;
-                                            }
-                                        } else {
-                                            $allowed = 0;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '>' ):
-                                        if ( $pr_array['than'] == 'include_only' ) {
-                                            $allowed = 0;
-                                        } else {
-                                            $allowed = 0;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '>=' ):
-                                        if ( $pr_array['than'] == 'include_only' ) {
-                                            $allowed = 0;
-                                        } else {
-                                            $allowed = 0;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '<' ):
-                                        if ( $pr_array['than'] == 'include_only' ) {
-                                            $allowed = 0;
-                                        } else {
-                                            $allowed = 0;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = '=<' ):
-                                        if ( $pr_array['than'] == 'include_only' ) {
-                                            $allowed = 0;
-                                        } else {
-                                            $allowed = 0;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = 'empty' ):
-                                        if ( $pr_array['than'] == 'include_only' ) {
-                                            if ( $allowed != 0 ) {
-                                                $allowed = 1;
-                                            }
-                                        } else {
-                                            $allowed = 0;
-                                        }
-                                        break;
-                                    case ( $pr_array['condition'] = 'notempty' ):
-                                        if ( $pr_array['than'] == 'include_only' ) {
-                                            if ( $allowed != 0 ) {
-                                                $allowed = 0;
-                                            }
-                                        } else {
-                                            $allowed = 1;
-                                        }
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                        } else {
-                            // For now only shipping details are in an array
-                            foreach ( $pd_value as $k => $v ) {
-                                foreach ( $v as $kk => $vv ) {
-                                    // Only shipping detail rule can be on price for now
-                                    if ( $kk == 'price' ) {
-                                        switch ( $pr_array['condition'] ) {
-                                            case ( $pr_array['condition'] = 'contains' ):
-                                                if ( ( preg_match( '/' . $pr_array['criteria'] . '/', $vv ) ) ) {
-                                                    $allowed = 0;
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = 'containsnot' ):
-                                                if ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $vv ) ) ) {
-                                                    $allowed = 0;
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '=' ):
-                                                if ( ( $vv == $pr_array['criteria'] ) ) {
-                                                    $allowed = 0;
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '!=' ):
-                                                if ( ( $vv != $pr_array['criteria'] ) ) {
-                                                    $allowed = 0;
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '>' ):
-                                                if ( ( $vv > $pr_array['criteria'] ) ) {
-                                                    $allowed = 0;
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '>=' ):
-                                                if ( ( $vv >= $pr_array['criteria'] ) ) {
-                                                    $allowed = 0;
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '<' ):
-                                                if ( ( $vv < $pr_array['criteria'] ) ) {
-                                                    $allowed = 0;
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '=<' ):
-                                                if ( ( $vv <= $pr_array['criteria'] ) ) {
-                                                    $allowed = 0;
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = 'empty' ):
-                                                if ( strlen( $vv ) < 1 ) {
-                                                    $allowed = 0;
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = 'notempty' ):
-                                                if ( strlen( $vv ) > 1 ) {
-                                                    $allowed = 0;
-                                                }
-                                                break;
-                                            default:
-                                                break;
-                                        }
-                                    } else {
-                                        // These are filters on reviews
-                                        switch ( $pr_array['condition'] ) {
-                                            case ( $pr_array['condition'] = 'contains' ):
-                                                if ( ( preg_match( '/' . $pr_array['criteria'] . '/', $vv ) ) ) {
-                                                    if ( $pr_array['than'] == 'include_only' ) {
-                                                        $allowed = 1;
-                                                    } else {
-                                                        $allowed = 0;
-                                                    }
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = 'containsnot' ):
-                                                if ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $vv ) ) ) {
-                                                    if ( $pr_array['than'] == 'include_only' ) {
-                                                        $allowed = 0;
-                                                    } else {
-                                                        $allowed = 1;
-                                                    }
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '=' ):
-                                                if ( ( $vv == $pr_array['criteria'] ) ) {
-                                                    if ( $pr_array['than'] == 'include_only' ) {
-                                                        $allowed = 1;
-                                                    } else {
-                                                        $allowed = 0;
-                                                    }
-                                                }
-                                                break;
-                                            case ( $pr_array['condition'] = '!=' ):
-                                                if ( ( $vv != $pr_array['criteria'] ) ) {
-                                                    if ( $pr_array['than'] == 'include_only' ) {
-                                                        $allowed = 0;
-                                                    } else {
-                                                        $allowed = 1;
-                                                    }
-                                                }
-                                                break;
-                                            default:
-                                                break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        // Filters for string values
-                        // If case-sensitve is off than lowercase both the criteria and attribute value
-                        if ( array_key_exists( 'cs', $pr_array ) ) {
-                            if ( $pr_array['cs'] != 'on' ) {
-                                $pd_value             = strtolower( $pd_value );
-                                $pr_array['criteria'] = strtolower( $pr_array['criteria'] );
-                            }
-                        }
-
-                        $pos               = strpos( $pd_value, '&amp;' );
-                        $pos_slash_back    = strpos( $pr_array['criteria'], '\\' );
-                        $pos_slash_forward = strpos( $pr_array['criteria'], '/' );
-
-                        if ( $pos !== false ) {
-                            $pd_value = str_replace( '&amp;', '&', $pd_value );
-                        }
-                        if ( $pos_slash_back !== false ) {
-                            $pr_array['criteria'] = str_replace( '\\', '', $pr_array['criteria'] );
-                        }
-                        if ( $pos_slash_forward !== false ) {
-                            $pr_array['criteria'] = str_replace( '/', '', $pr_array['criteria'] );
-                            $pd_value             = str_replace( '/', '', $pd_value );
-                        }
-
-                        // if(!empty($pd_value)){
-                        switch ( $pr_array['condition'] ) {
-                            case ( $pr_array['condition'] = 'contains' ):
-                                if ( ( preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    if ( $allowed != 0 ) {
-                                        $allowed = 1;
-                                    }
-                                }
-                                break;
-                            case ( $pr_array['condition'] = 'containsnot' ):
-                                if ( ( ! preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '=' ):
-                                if ( ( $pr_array['criteria'] == "$pd_value" ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $pr_array['criteria'] != "$pd_value" ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $found = strpos( $pd_value, $pr_array['criteria'] );
-                                    if ( $found !== false ) {
-                                        // for category mapping check if its an array
-                                        if ( $pr_array['attribute'] == 'raw_categories' ) {
-                                            $raw_cats_arr = explode( '||', $pd_value );
-                                            if ( is_array( $raw_cats_arr ) ) {
-                                                if ( in_array( $pr_array['criteria'], $raw_cats_arr, true ) ) {
-                                                    if ( $allowed != 0 ) {
-                                                        $allowed = 1;
-                                                    }
-                                                } else {
-                                                    $allowed = 0;
-                                                }
-                                            }
-                                        } elseif ( $allowed != 0 ) {
-                                            $allowed = 1;
-                                        }
-                                    } else {
-                                        $allowed = 0;
-                                    }
-                                } elseif ( ( $pr_array['criteria'] == "$pd_value" ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    if ( $allowed != 0 ) {
-                                        $allowed = 1;
-                                    }
-                                } elseif ( ( preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    // $allowed = 0;
-                                } elseif ( ( preg_match( '/' . $pr_array['criteria'] . '/', $pd_value ) ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 1;
-                                } else {
-                                    // $allowed = 1; // Change made on February 24th 2021
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '!=' ):
-                                if ( ( $pr_array['criteria'] == "$pd_value" ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    if ( $allowed != 0 ) {
-                                        $allowed = 1;
-                                    }
-                                } elseif ( ( $pr_array['criteria'] == "$pd_value" ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $pr_array['criteria'] != "$pd_value" ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '>' ):
-                                // Use a lexical order on relational string operators
-                                if ( ( $pd_value > $pr_array['criteria'] ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $pd_value < $pr_array['criteria'] ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '>=' ):
-                                // Use a lexical order on relational string operators
-                                if ( ( $pd_value >= $pr_array['criteria'] ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $pd_value < $pr_array['criteria'] ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '<' ):
-                                // Use a lexical order on relational string operators
-                                if ( ( $pd_value < $pr_array['criteria'] ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $pd_value > $pr_array['criteria'] ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = '=<' ):
-                                // Use a lexical order on relational string operators
-                                if ( ( $pd_value <= $pr_array['criteria'] ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( $pd_value > $pr_array['criteria'] ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = 'empty' ):
-                                if ( ( strlen( $pd_value ) < 1 ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( strlen( $pd_value ) > 0 ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    if ( $allowed != 0 ) {
-                                        $allowed = 1;
-                                    }
-                                } elseif ( ( strlen( $pd_value ) > 0 ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            case ( $pr_array['condition'] = 'notempty' ):
-                                if ( ( strlen( $pd_value ) > 0 ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    $allowed = 0;
-                                } elseif ( ( strlen( $pd_value ) < 1 ) && ( $pr_array['than'] == 'exclude' ) ) {
-                                    if ( $allowed != 0 ) {
-                                        $allowed = 1;
-                                    }
-                                } elseif ( ( strlen( $pd_value ) < 1 ) && ( $pr_array['than'] == 'include_only' ) ) {
-                                    $allowed = 0;
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                        // }
-                    }
-                }
-            }
-        }
-
-        if ( $allowed < 1 ) {
-            $product_data = array();
-            $product_data = null;
-        } else {
-            return $product_data;
-        }
-    }
 }

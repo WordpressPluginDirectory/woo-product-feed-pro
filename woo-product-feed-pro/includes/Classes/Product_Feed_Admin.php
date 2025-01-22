@@ -7,9 +7,9 @@
 
 namespace AdTribes\PFP\Classes;
 
-use AdTribes\PFP\Helpers\Helper;
 use AdTribes\PFP\Abstracts\Abstract_Class;
 use AdTribes\PFP\Factories\Product_Feed;
+use AdTribes\PFP\Helpers\Helper;
 use AdTribes\PFP\Helpers\Product_Feed_Helper;
 use AdTribes\PFP\Traits\Singleton_Trait;
 
@@ -42,7 +42,7 @@ class Product_Feed_Admin extends Abstract_Class {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
-        if ( ! Product_Feed_Helper::is_current_user_allowed() ) {
+        if ( ! Helper::is_current_user_allowed() ) {
             wp_send_json_error( __( 'You do not have permission to manage product feed.', 'woo-product-feed-pro' ) );
         }
 
@@ -121,7 +121,7 @@ class Product_Feed_Admin extends Abstract_Class {
          * Run the product feed batch processing.
          * This is the legacy code base processing logic.
          */
-        $product_feed->run_batch_event( true );
+        $product_feed->generate( 'cron' );
     }
 
     /**
@@ -139,14 +139,14 @@ class Product_Feed_Admin extends Abstract_Class {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
-        if ( ! Product_Feed_Helper::is_current_user_allowed() ) {
+        if ( ! Helper::is_current_user_allowed() ) {
             wp_send_json_error( __( 'You do not have permission to manage product feed.', 'woo-product-feed-pro' ) );
         }
 
         $product_feed = Product_Feed_Helper::get_product_feed( $post_data['project_hash'] );
         if ( $product_feed->id ) {
             // Get the current refresh interval.
-            $refresh_interval_before = $product_feed->refresh_interval;
+            $refresh_interval_before = $product_feed->refresh_interval ?? '';
 
             $props_to_update = array();
             $step            = isset( $_GET['step'] ) ? sanitize_text_field( $_GET['step'] ) : 0;
@@ -163,6 +163,11 @@ class Product_Feed_Admin extends Abstract_Class {
                         'only_include_lowest_product_variation' => isset( $post_data['lowest_price_variations'] ) && 'on' === $post_data['lowest_price_variations'] ? 'yes' : 'no',
                         'create_preview'             => isset( $post_data['preview_feed'] ) && 'on' === $post_data['preview_feed'] ? 'yes' : 'no',
                         'refresh_only_when_product_changed' => isset( $post_data['products_changed'] ) && 'on' === $post_data['products_changed'] ? 'yes' : 'no',
+                    );
+                    break;
+                case 1: // Categories mapping. (Google only).
+                    $props_to_update = array(
+                        'mappings' => $post_data['mappings'] ?? array(),
                     );
                     break;
                 case 4: // Filters and rules.
@@ -201,12 +206,14 @@ class Product_Feed_Admin extends Abstract_Class {
             $props_to_update = apply_filters( 'adt_edit_product_feed_props', $props_to_update, $product_feed, $post_data, $step );
             $product_feed->set_props( $props_to_update );
 
-            // Re-register the product feed action scheduler if the refresh interval has changed.
-            if ( $refresh_interval_before !== $product_feed->refresh_interval ) {
-                $product_feed->register_action();
-            }
-
             $product_feed->save();
+
+            // Re-register the product feed action scheduler if the refresh interval has changed.
+            if ( '' !== $product_feed->refresh_interval && $refresh_interval_before !== $product_feed->refresh_interval ) {
+                $product_feed->register_action();
+            } elseif ( '' === $product_feed->refresh_interval ) {
+                $product_feed->unregister_action();
+            }
         }
     }
 
@@ -228,7 +235,7 @@ class Product_Feed_Admin extends Abstract_Class {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
-        if ( ! Product_Feed_Helper::is_current_user_allowed() ) {
+        if ( ! Helper::is_current_user_allowed() ) {
             wp_send_json_error( __( 'You do not have permission to manage product feed.', 'woo-product-feed-pro' ) );
         }
 
@@ -253,7 +260,7 @@ class Product_Feed_Admin extends Abstract_Class {
             /**
              * Run the product feed batch processing.
              */
-            $feed->run_batch_event( true );
+            $feed->generate( 'cron' );
         }
 
         $feed->post_status = 'true' === $is_publish ? 'publish' : 'draft';
@@ -280,7 +287,7 @@ class Product_Feed_Admin extends Abstract_Class {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
-        if ( ! Product_Feed_Helper::is_current_user_allowed() ) {
+        if ( ! Helper::is_current_user_allowed() ) {
             wp_send_json_error( __( 'You do not have permission to manage product feed.', 'woo-product-feed-pro' ) );
         }
 
@@ -370,7 +377,7 @@ class Product_Feed_Admin extends Abstract_Class {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
-        if ( ! Product_Feed_Helper::is_current_user_allowed() ) {
+        if ( ! Helper::is_current_user_allowed() ) {
             wp_send_json_error( __( 'You do not have permission to manage product feed.', 'woo-product-feed-pro' ) );
         }
 
@@ -384,9 +391,11 @@ class Product_Feed_Admin extends Abstract_Class {
         do_action( 'adt_before_cancel_product_feed', $feed );
 
         // Remove the scheduled event.
-        as_unschedule_action( ADT_PFP_AS_GENERATE_PRODUCT_FEED_BATCH, array( 'feed_id' => $this->id ) );
+        as_unschedule_all_actions( '', array(), 'adt_pfp_as_generate_product_feed_batch_' . $feed->id );
 
         $feed->total_products_processed = 0;
+        $feed->batch_size               = 0;
+        $feed->executed_from            = '';
         $feed->status                   = 'stopped';
         $feed->last_updated             = gmdate( 'd M Y H:i:s' );
         $feed->save();
@@ -412,7 +421,7 @@ class Product_Feed_Admin extends Abstract_Class {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
-        if ( ! Product_Feed_Helper::is_current_user_allowed() ) {
+        if ( ! Helper::is_current_user_allowed() ) {
             wp_send_json_error( __( 'You do not have permission to manage product feed.', 'woo-product-feed-pro' ) );
         }
 
@@ -423,20 +432,15 @@ class Product_Feed_Admin extends Abstract_Class {
             wp_send_json_error( __( 'Product feed not found.', 'woo-product-feed-pro' ) );
         }
 
-        // Set status to processing.
-        $feed->status                   = 'processing';
-        $feed->total_products_processed = 0;
-        $feed->save();
-
         // Remove cache.
         Product_Feed_Helper::disable_cache();
 
         /**
          * Run the product feed batch processing.
          */
-        $feed->run_batch_event( true );
+        $response = $feed->generate( 'ajax' );
 
-        wp_send_json_success( __( 'Product feed has been refreshed.', 'woo-product-feed-pro' ) );
+        wp_send_json_success( $response );
     }
 
     /**
@@ -452,7 +456,7 @@ class Product_Feed_Admin extends Abstract_Class {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
-        if ( ! Product_Feed_Helper::is_current_user_allowed() ) {
+        if ( ! Helper::is_current_user_allowed() ) {
             wp_send_json_error( __( 'You do not have permission to manage product feed.', 'woo-product-feed-pro' ) );
         }
 
@@ -515,7 +519,7 @@ class Product_Feed_Admin extends Abstract_Class {
                 // Update product feed configuration.
                 $this->edit_product_feed( $form_data );
 
-                wp_safe_redirect( admin_url( 'admin.php?page=woosea_manage_feed' ) );
+                wp_safe_redirect( admin_url( 'admin.php?page=woo-product-feed' ) );
                 exit;
             case 101:
                 // Update temp product feed configuration.
@@ -524,7 +528,7 @@ class Product_Feed_Admin extends Abstract_Class {
                 // Create product feed.
                 $this->create_product_feed( $project_temp );
 
-                wp_safe_redirect( admin_url( 'admin.php?page=woosea_manage_feed' ) );
+                wp_safe_redirect( admin_url( 'admin.php?page=woo-product-feed' ) );
                 exit;
             default:
                 load_template(
@@ -667,7 +671,7 @@ class Product_Feed_Admin extends Abstract_Class {
      */
     public static function get_product_feed_setting_url( $legacy_project_hash, $channel_hash, $step = 0 ) {
         $args = array(
-            'page'         => 'woo-product-feed-pro',
+            'page'         => 'pfp-edit-feed',
             'action'       => 'edit_project',
             'project_hash' => $legacy_project_hash,
             'channel_hash' => $channel_hash,
