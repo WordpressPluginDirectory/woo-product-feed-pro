@@ -2,14 +2,14 @@
 # This file is distributed under the GPL3.
 msgid ""
 msgstr ""
-"Project-Id-Version: Product Feed PRO for WooCommerce 13.4.1.2\n"
+"Project-Id-Version: Product Feed PRO for WooCommerce 13.4.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woo-product-feed-pro\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-02-04T23:52:18+00:00\n"
+"POT-Creation-Date: 2025-04-03T03:12:13+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: woo-product-feed-pro\n"
@@ -40,15 +40,15 @@ msgid "https://www.adtribes.io"
 msgstr ""
 
 #: bootstrap-old.php:633
-#: includes/Classes/Heartbeat.php:34
-#: includes/Classes/Heartbeat.php:83
+#: includes/Classes/Heartbeat.php:44
+#: includes/Classes/Heartbeat.php:157
 #: includes/Classes/Product_Feed_Admin.php:42
 #: includes/Classes/Product_Feed_Admin.php:139
-#: includes/Classes/Product_Feed_Admin.php:235
-#: includes/Classes/Product_Feed_Admin.php:287
-#: includes/Classes/Product_Feed_Admin.php:377
-#: includes/Classes/Product_Feed_Admin.php:421
-#: includes/Classes/Product_Feed_Admin.php:456
+#: includes/Classes/Product_Feed_Admin.php:234
+#: includes/Classes/Product_Feed_Admin.php:286
+#: includes/Classes/Product_Feed_Admin.php:375
+#: includes/Classes/Product_Feed_Admin.php:419
+#: includes/Classes/Product_Feed_Admin.php:458
 #: includes/Classes/Usage.php:760
 #: includes/Classes/Usage.php:790
 #: includes/Classes/WP_Admin.php:420
@@ -56,10 +56,6 @@ msgstr ""
 #: includes/Classes/WP_Admin.php:486
 #: includes/Classes/WP_Admin.php:505
 msgid "Invalid security token"
-msgstr ""
-
-#: bootstrap-old.php:804
-msgid "Nonce verification failed"
 msgstr ""
 
 #: bootstrap/app.php:160
@@ -76,89 +72,42 @@ msgstr ""
 msgid "Please contact support if this issue persists."
 msgstr ""
 
-#: includes/Classes/FunnelKit_Stripe.php:84
-msgid "Stripe"
+#: includes/Classes/Filters.php:290
+#: includes/Classes/Rules.php:245
+msgid "You are not allowed to perform this action."
 msgstr ""
 
-#: includes/Classes/FunnelKit_Stripe.php:113
-msgid "Setup FunnelKit Stripe (Recommended)"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:114
-msgid "Use FunnelKit's Stripe for Maximum Compatibility & Trustworthy Support"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:116
-msgid "Better Express Payment with Apple & Google Pay"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:117
-msgid "Supports One Click Upsells with Express Pay Options"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:118
-msgid "Personalised Support for any payments related issues"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:119
-msgid "Increase Revenue with Buy Now Pay Later services such as Affirm, Klarna and AfterPay"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:124
-msgid "Swap To FunnelKit Stripe (Recommended)"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:152
-msgid "Install"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:153
-msgid "Installing..."
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:154
-msgid "Go to Settings"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:155
-msgid "Connect"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:156
-msgid "Dismiss Forever"
-msgstr ""
-
-#: includes/Classes/FunnelKit_Stripe.php:248
-msgid "Error: FunnelKit Stripe Admin class not found."
-msgstr ""
-
-#: includes/Classes/Heartbeat.php:38
+#: includes/Classes/Heartbeat.php:48
 #: includes/Classes/Product_Feed_Admin.php:46
 #: includes/Classes/Product_Feed_Admin.php:143
-#: includes/Classes/Product_Feed_Admin.php:239
-#: includes/Classes/Product_Feed_Admin.php:291
-#: includes/Classes/Product_Feed_Admin.php:381
-#: includes/Classes/Product_Feed_Admin.php:425
-#: includes/Classes/Product_Feed_Admin.php:460
+#: includes/Classes/Product_Feed_Admin.php:238
+#: includes/Classes/Product_Feed_Admin.php:290
+#: includes/Classes/Product_Feed_Admin.php:379
+#: includes/Classes/Product_Feed_Admin.php:423
+#: includes/Classes/Product_Feed_Admin.php:462
 #: includes/Classes/Product_Feed_Attributes.php:579
 msgid "You do not have permission to manage product feed."
 msgstr ""
 
-#: includes/Classes/Heartbeat.php:42
+#: includes/Classes/Heartbeat.php:52
 #: includes/Classes/WP_Admin.php:428
 msgid "Invalid request."
 msgstr ""
 
-#: includes/Classes/Heartbeat.php:69
+#: includes/Classes/Heartbeat.php:82
 msgid "Product feed(s) not found."
 msgstr ""
 
-#: includes/Classes/Heartbeat.php:92
-#: includes/Classes/Product_Feed_Admin.php:247
-#: includes/Classes/Product_Feed_Admin.php:296
-#: includes/Classes/Product_Feed_Admin.php:388
-#: includes/Classes/Product_Feed_Admin.php:432
-#: includes/Classes/Product_Feed_Admin.php:467
+#: includes/Classes/Heartbeat.php:114
+msgid "Product Feed: heartbeat"
+msgstr ""
+
+#: includes/Classes/Heartbeat.php:166
+#: includes/Classes/Product_Feed_Admin.php:246
+#: includes/Classes/Product_Feed_Admin.php:295
+#: includes/Classes/Product_Feed_Admin.php:386
+#: includes/Classes/Product_Feed_Admin.php:430
+#: includes/Classes/Product_Feed_Admin.php:469
 msgid "Product feed not found."
 msgstr ""
 
@@ -167,72 +116,76 @@ msgstr ""
 msgid "Advanced Coupons"
 msgstr ""
 
-#: includes/Classes/Plugin_Installer.php:88
+#: includes/Classes/Plugin_Installer.php:95
 msgid "You do not have sufficient permissions to install and activate plugins."
 msgstr ""
 
-#: includes/Classes/Plugin_Installer.php:93
+#: includes/Classes/Plugin_Installer.php:100
 msgid "The plugin is not valid."
 msgstr ""
 
-#: includes/Classes/Plugin_Installer.php:112
+#: includes/Classes/Plugin_Installer.php:119
 msgid "The plugin is already installed."
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:410
+#: includes/Classes/Product_Feed_Admin.php:408
 msgid "Product feed process has been cancelled."
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:476
+#: includes/Classes/Product_Feed_Admin.php:478
 msgid "Product feed has been deleted."
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:603
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:81
+#: includes/Classes/Product_Feed_Admin.php:489
+msgid "Nonce verification failed"
+msgstr ""
+
+#: includes/Classes/Product_Feed_Admin.php:622
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:78
 msgid "General feed settings"
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:609
+#: includes/Classes/Product_Feed_Admin.php:628
 #: views/manage-feed/step/woosea-generate-feed-step-7.php:113
 msgid "Field mapping"
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:615
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:90
+#: includes/Classes/Product_Feed_Admin.php:634
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:96
 msgid "Feed filters and rules"
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:621
+#: includes/Classes/Product_Feed_Admin.php:640
 #: views/manage-feed/step/woosea-generate-feed-step-5.php:85
 msgid "Conversion & Google Analytics settings"
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:632
+#: includes/Classes/Product_Feed_Admin.php:651
 #: views/manage-feed/step/woosea-generate-feed-step-1.php:79
 msgid "Category mapping"
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:699
+#: includes/Classes/Product_Feed_Admin.php:718
 msgid "Feed settings"
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:709
+#: includes/Classes/Product_Feed_Admin.php:728
 msgid "Start product feed processing"
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:720
+#: includes/Classes/Product_Feed_Admin.php:739
 msgid "Cancel product feed processing"
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:727
+#: includes/Classes/Product_Feed_Admin.php:746
 msgid "Copy product feed"
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:733
+#: includes/Classes/Product_Feed_Admin.php:752
 msgid "Delete product feed"
 msgstr ""
 
-#: includes/Classes/Product_Feed_Admin.php:743
+#: includes/Classes/Product_Feed_Admin.php:762
 msgid "Download product feed"
 msgstr ""
 
@@ -497,10 +450,95 @@ msgstr ""
 msgid "Product Feed CPT"
 msgstr ""
 
+#: includes/Traits/Filters_Rules_Trait.php:107
+msgid "contains"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:108
+msgid "doesn't contain"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:109
+msgid "is equal to"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:110
+msgid "is not equal to"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:111
+msgid "is greater than"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:112
+msgid "is greater or equal to"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:113
+msgid "is less than"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:114
+msgid "is less or equal to"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:115
+msgid "is empty"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:116
+msgid "is not empty"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:122
+msgid "multiply"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:123
+msgid "divide"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:124
+msgid "plus"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:125
+msgid "minus"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:126
+msgid "find and replace"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:143
+msgid "Exclude"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:144
+msgid "Include only"
+msgstr ""
+
+#: includes/Traits/Filters_Rules_Trait.php:147
+msgid "Action"
+msgstr ""
+
+#: views/filters-rules/view-filter-row.php:27
+msgid "Filter"
+msgstr ""
+
+#: views/filters-rules/view-filter-row.php:60
+#: views/filters-rules/view-rule-row.php:67
+msgid "Case sensitive"
+msgstr ""
+
+#: views/filters-rules/view-rule-row.php:34
+msgid "Rule"
+msgstr ""
+
 #. translators: %s: WooCommerce Product Feed PRO plugin rating link
 #: views/manage-feed/step/woosea-generate-feed-step-0.php:18
 #: views/manage-feed/step/woosea-generate-feed-step-1.php:17
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:20
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:22
 #: views/manage-feed/step/woosea-generate-feed-step-5.php:19
 #: views/manage-feed/step/woosea-generate-feed-step-7.php:20
 #: views/manage-feed/view-manage-feed.php:15
@@ -508,9 +546,9 @@ msgstr ""
 msgid "If you like our %1$s plugin please leave us a %2$s rating. Thanks in advance!"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:77
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:74
 #: views/manage-feed/step/woosea-generate-feed-step-1.php:75
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:86
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:92
 #: views/manage-feed/step/woosea-generate-feed-step-5.php:81
 #: views/manage-feed/step/woosea-generate-feed-step-7.php:109
 #: views/manage-feed/view-manage-feed.php:52
@@ -521,53 +559,65 @@ msgstr ""
 msgid "AdTribes"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:94
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:91
 msgid "Project name"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:117
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:114
 msgid "Country"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:120
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:122
 msgid "Select a country"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:132
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:131
 msgid "Channel"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:202
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:145
 msgid "Include product variations"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:217
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:160
 msgid "And only include default product variation"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:232
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:175
 msgid "And only include lowest priced product variation(s)"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:247
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:190
 msgid "File format"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:265
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:208
 msgid "Delimiter"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:282
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:225
 #: views/manage-feed/view-manage-feed-table.php:30
 msgid "Refresh interval"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:303
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:246
 msgid "Refresh only when products changed"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-0.php:313
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:256
 msgid "Create a preview of the feed"
+msgstr ""
+
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:268
+msgid "Remove products that did not have sales in the last days"
+msgstr ""
+
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:270
+msgid "What does this do?"
+msgstr ""
+
+#: views/manage-feed/step/woosea-generate-feed-step-0.php:276
+msgid "days"
 msgstr ""
 
 #: views/manage-feed/step/woosea-generate-feed-step-1.php:86
@@ -594,65 +644,57 @@ msgstr ""
 msgid "category"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:116
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:122
 msgid "Type"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:119
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:125
 msgid "IF"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:121
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:127
 msgid "Specify the condition under which this filter or rule will be applied. Choose an attribute or condition that will trigger this rule."
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:130
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:136
 msgid "Condition"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:132
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:138
 msgid "Define the specific condition to be met. Options include equals, not equals, greater than, less than, etc., depending on the selected attribute."
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:141
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:147
 #: views/manage-feed/step/woosea-generate-feed-step-7.php:148
 msgid "Value"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:143
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:149
 msgid "Enter the value that the condition should match. This value will be compared against the attribute chosen in the IF field."
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:152
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:158
 msgid "CS"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:154
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:160
 msgid "Enable this option if the condition should be case-sensitive. This means that 'Product' and 'product' will be treated as different values."
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:163
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:169
 msgid "Then"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:165
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:171
 msgid "Specify the action to be taken if the condition is met. This could be including, excluding, or modifying a product attribute."
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:174
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:180
 msgid "IS"
 msgstr ""
 
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:176
+#: views/manage-feed/step/woosea-generate-feed-step-4.php:182
 msgid "Define the result or value to be applied when the condition is met. This complements the action specified in the THEN field."
-msgstr ""
-
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:199
-msgid "Filter"
-msgstr ""
-
-#: views/manage-feed/step/woosea-generate-feed-step-4.php:348
-msgid "Rule"
 msgstr ""
 
 #: views/manage-feed/step/woosea-generate-feed-step-5.php:91
@@ -685,10 +727,6 @@ msgstr ""
 
 #: views/manage-feed/step/woosea-generate-feed-step-5.php:129
 msgid "Google Analytics campaign content (utm_content)"
-msgstr ""
-
-#: views/manage-feed/step/woosea-generate-feed-step-5.php:133
-msgid "Remove products that did not have sales in the last days"
 msgstr ""
 
 #. translators: %s = link to learn static values.
@@ -950,6 +988,7 @@ msgstr ""
 #: views/view-about-page.php:110
 #: views/view-about-page.php:130
 #: views/view-about-page.php:150
+#: views/view-about-page.php:170
 msgid "Status:"
 msgstr ""
 
@@ -959,6 +998,7 @@ msgstr ""
 #: views/view-about-page.php:111
 #: views/view-about-page.php:131
 #: views/view-about-page.php:151
+#: views/view-about-page.php:171
 msgid "Installed"
 msgstr ""
 
@@ -968,6 +1008,7 @@ msgstr ""
 #: views/view-about-page.php:111
 #: views/view-about-page.php:131
 #: views/view-about-page.php:151
+#: views/view-about-page.php:171
 msgid "Not installed"
 msgstr ""
 
@@ -977,67 +1018,80 @@ msgstr ""
 #: views/view-about-page.php:114
 #: views/view-about-page.php:134
 #: views/view-about-page.php:154
-#: views/view-about-page.php:155
+#: views/view-about-page.php:174
+#: views/view-about-page.php:175
 msgid "Install Plugin"
 msgstr ""
 
 #: views/view-about-page.php:61
-msgid "WC Vendors"
+msgid "StoreAgent AI for WooCommerce"
 msgstr ""
 
 #: views/view-about-page.php:62
-msgid "WC Vendors (Free Plugin)"
+msgid "StoreAgent AI for WooCommerce (Free Plugin)"
 msgstr ""
 
 #: views/view-about-page.php:65
-msgid "Easiest way to create your multivendor marketplace and earn commission from every sale. Create a WooCommerce marketplace with multi-seller, product vendor & multi vendor commissions."
+msgid "Boost your WooCommerce store with AI agents. Generate product descriptions, automatically create review summaries with sentiment analysis, add AI-powered product Q&A, and loads more."
 msgstr ""
 
 #: views/view-about-page.php:81
-msgid "WooCommerce Wholesale Prices"
+msgid "WC Vendors"
 msgstr ""
 
 #: views/view-about-page.php:82
-msgid "WooCommerce Wholesale Prices (Free Plugin)"
+msgid "WC Vendors (Free Plugin)"
 msgstr ""
 
 #: views/view-about-page.php:85
-msgid "The #1 WooCommerce wholesale plugin for adding wholesale prices & managing B2B customers. Trusted by over 25k store owners for managing wholesale orders, pricing, visibility, user roles, and more."
+msgid "Easiest way to create your multivendor marketplace and earn commission from every sale. Create a WooCommerce marketplace with multi-seller, product vendor & multi vendor commissions."
 msgstr ""
 
 #: views/view-about-page.php:101
-msgid "Invoice Gateway for WooCommerce"
+msgid "WooCommerce Wholesale Prices"
 msgstr ""
 
 #: views/view-about-page.php:102
-msgid "Invoice Gateway for WooCommerce (Free Plugin)"
+msgid "WooCommerce Wholesale Prices (Free Plugin)"
 msgstr ""
 
 #: views/view-about-page.php:105
-msgid "Accept orders via a special invoice payment gateway method which lets your customer enter their order without upfront payment. Then just issue an invoice from your accounting system and paste in the number."
+msgid "The #1 WooCommerce wholesale plugin for adding wholesale prices & managing B2B customers. Trusted by over 25k store owners for managing wholesale orders, pricing, visibility, user roles, and more."
 msgstr ""
 
 #: views/view-about-page.php:121
-msgid "Store Exporter for WooCommerce"
+msgid "Invoice Gateway for WooCommerce"
 msgstr ""
 
 #: views/view-about-page.php:122
-msgid "Store Exporter for WooCommerce (Free Plugin)"
+msgid "Invoice Gateway for WooCommerce (Free Plugin)"
 msgstr ""
 
 #: views/view-about-page.php:125
-msgid "Easily export Orders, Subscriptions, Coupons, Products, Categories, Tags to a variety of formats. The deluxe version also adds scheduled exporting for easy reporting and syncing with other systems."
+msgid "Accept orders via a special invoice payment gateway method which lets your customer enter their order without upfront payment. Then just issue an invoice from your accounting system and paste in the number."
 msgstr ""
 
 #: views/view-about-page.php:141
-msgid "Store Toolkit for WooCommerce"
+msgid "Store Exporter for WooCommerce"
 msgstr ""
 
 #: views/view-about-page.php:142
-msgid "Store Toolkit for WooCommerce (Free Plugin)"
+msgid "Store Exporter for WooCommerce (Free Plugin)"
 msgstr ""
 
 #: views/view-about-page.php:145
+msgid "Easily export Orders, Subscriptions, Coupons, Products, Categories, Tags to a variety of formats. The deluxe version also adds scheduled exporting for easy reporting and syncing with other systems."
+msgstr ""
+
+#: views/view-about-page.php:161
+msgid "Store Toolkit for WooCommerce"
+msgstr ""
+
+#: views/view-about-page.php:162
+msgid "Store Toolkit for WooCommerce (Free Plugin)"
+msgstr ""
+
+#: views/view-about-page.php:165
 msgid "A growing set of commonly-used WooCommerce admin tools such as deleting WooCommerce data in bulk, such as products, orders, coupons, and customers. It also adds extra small features, order filtering, and more."
 msgstr ""
 

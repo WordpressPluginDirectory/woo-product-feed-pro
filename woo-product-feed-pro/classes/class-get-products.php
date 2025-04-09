@@ -52,11 +52,6 @@ class WooSEA_Get_Products {
 
             // Remove new line breaks.
             $string = str_replace( array( "\r", "\n" ), '', $string );
-
-            if ( in_array( $this->file_format, array( 'csv', 'tsv', 'txt' ) ) ) {
-                // Replace commas with their hexadecimal representation.
-                $string = str_replace( ',', '\x2C', $string );
-            }
         }
         return $string;
     }
@@ -1719,11 +1714,10 @@ class WooSEA_Get_Products {
     }
 
     /**
-     * Actual creation of CSV/TXT file
+     * Actual creation of CSV/TXT feed
      * Returns relative and absolute file path
      */
     public function woosea_create_csvtxt_feed( $products, $feed, $header ) {
-
         $upload_dir = wp_upload_dir();
         $base       = $upload_dir['basedir'];
         $path       = $base . '/woo-product-feed-pro/' . $feed->file_format;
@@ -1747,79 +1741,157 @@ class WooSEA_Get_Products {
         // Check if there is a channel feed class that we need to use
         $fields = $feed->get_channel( 'fields' );
 
-        if ( ! empty( $fields ) ) {
-            $channel_attributes = array();
-            if ( $fields != 'standard' ) {
-                if ( ! class_exists( 'WooSEA_' . $fields ) ) {
-                    $channel_file_path = plugin_dir_path( __FILE__ ) . '/channels/class-' . $fields . '.php';
-                    if ( file_exists( $channel_file_path ) ) {
-                        require $channel_file_path;
-                        $channel_class      = 'WooSEA_' . $fields;
-                        $channel_attributes = $channel_class::get_channel_attributes();
-                    }
-                }
-            }
-
-            // Append or write to file
-            $fp = fopen( $file, 'a+' );
-
-            // Set proper UTF encoding BOM for CSV files
-            if ( $header == 'true' ) {
-                if ( ! preg_match( '/fruugo/i', $fields ) ) {
-                    fputs( $fp, $bom = chr( 0xEF ) . chr( 0xBB ) . chr( 0xBF ) );
-                }
-            }
-
-            // Write each row of the products array
-            foreach ( $products as $row ) {
-                foreach ( $row as $k => $v ) {
-                    $pieces = explode( "','", $v );
-                    if ( ! empty( $pieces ) ) {
-                        $tab_line = '';
-                        foreach ( $pieces as $k_inner => $v ) {
-                            if ( ( $fields != 'standard' ) && ( $fields != 'customfeed' ) ) {
-                                $v = $this->get_alternative_key( $channel_attributes, $v );
-                            }
-    
-                            // For CSV fileformat the keys need to get stripped of the g:
-                            if ( $header === 'true' && in_array( $feed->file_format, array( 'csv', 'txt', 'tsv' ), true ) ) {
-                                $v = str_replace( 'g:', '', $v );
-                            }
-    
-                            // Remove any double quotes from the values.
-                            $v = trim( $v, "\"'" );
-    
-                            // Hexadecimal comma to comma
-                            $v = str_replace( '\x2C', ',', $v );
-    
-                            $pieces[ $k_inner ] = $v;
-                        }
-    
-                        // Convert tab delimiter
-                        if ( $feed->delimiter == 'tab' ) {
-                            $csv_delimiter = "\t";
-                        } else {
-                            $csv_delimiter = $feed->delimiter;
-                        }
-    
-                        foreach ( $pieces as $t_key => $t_value ) {
-                            $tab_line .= $t_value . "$csv_delimiter";
-                        }
-                        $tab_line  = rtrim( $tab_line, $csv_delimiter );
-                        $tab_line .= PHP_EOL;
-                        fwrite( $fp, $tab_line );
-                    } else {
-                        $pieces = array_map( 'trim', $pieces );
-                        fputcsv( $fp, $pieces, $csv_delimiter );
-                    }
-                }
-            }
-            // Close the file
-            fclose( $fp );
+        if ( empty( $fields ) ) {
+            return $external_file;
         }
+
+        // Load channel attributes if needed
+        $channel_attributes = $this->load_channel_attributes($fields);
+
+        // Append or write to file
+        $fp = fopen( $file, 'a+' );
+
+        // Set proper UTF encoding BOM for CSV files
+        if ( $header == 'true' && ! preg_match( '/fruugo/i', $fields ) ) {
+            fputs( $fp, $bom = chr( 0xEF ) . chr( 0xBB ) . chr( 0xBF ) );
+        }
+
+        // Set delimiter
+        $csv_delimiter = ($feed->delimiter == 'tab') ? "\t" : $feed->delimiter;
+
+        // Process each product row
+        foreach ( $products as $row ) {
+            foreach ( $row as $k => $v ) {
+                $pieces = explode( "','", $v );
+                
+                if ( empty( $pieces ) ) {
+                    $pieces = array_map( 'trim', $pieces );
+                    fputcsv( $fp, $pieces, $csv_delimiter, '"' );
+                    continue;
+                }
+
+                // Special handling for Google Local feeds
+                if ( $fields == 'google_local' && $header == 'false' ) {
+                    $this->process_google_local_feed($fp, $pieces, $feed, $fields, $channel_attributes, $header, $csv_delimiter);
+                    continue;
+                }
+                
+                // Process standard feed format
+                $csv_line = $this->prepare_csv_line($pieces, $fields, $channel_attributes, $header, $feed);
+                fputcsv( $fp, $csv_line, $csv_delimiter, '"' );
+            }
+        }
+        
+        // Close the file
+        fclose( $fp );
 
         // Return external location of feed
         return $external_file;
+    }
+
+    /**
+     * Load channel attributes for a specific feed type
+     * 
+     * @param string $fields The feed field type
+     * @return array Channel attributes
+     */
+    private function load_channel_attributes($fields) {
+        $channel_attributes = array();
+        
+        if ( $fields != 'standard' && $fields != 'customfeed' ) {
+            if ( ! class_exists( 'WooSEA_' . $fields ) ) {
+                $channel_file_path = plugin_dir_path( __FILE__ ) . '/channels/class-' . $fields . '.php';
+                if ( file_exists( $channel_file_path ) ) {
+                    require $channel_file_path;
+                    $channel_class      = 'WooSEA_' . $fields;
+                    $channel_attributes = $channel_class::get_channel_attributes();
+                }
+            }
+        }
+        
+        return $channel_attributes;
+    }
+
+    /**
+     * Process Google Local feed format
+     * 
+     * @param resource $fp File pointer
+     * @param array $pieces CSV line pieces
+     * @param object $feed Feed object
+     * @param string $fields Feed field type
+     * @param array $channel_attributes Channel attributes
+     * @param string $header Whether this is a header row
+     * @param string $csv_delimiter CSV delimiter
+     */
+    private function process_google_local_feed($fp, $pieces, $feed, $fields, $channel_attributes, $header, $csv_delimiter) {
+        // Get the store codes
+        $stores_local = '';
+        foreach ( $feed->attributes as $attr ) {
+            if ( isset( $attr['attribute'] ) && $attr['attribute'] == 'g:store_code' ) {
+                $stores_local = $attr['mapfrom'];
+                break;
+            }
+        }
+        
+        // Process each piece
+        $pieces = $this->prepare_csv_line($pieces, $fields, $channel_attributes, $header, $feed);
+        
+        if ( ! empty( $stores_local ) ) {
+            $store_ids = explode( '|', $stores_local );
+            
+            // If we have multiple store IDs, create a line for each store
+            if ( count( $store_ids ) > 1 ) {
+                foreach ( $store_ids as $store_value ) {
+                    if ( ! empty( $store_value ) ) {
+                        // Replace the store code in position 1
+                        $pieces_copy = $pieces;
+                        $pieces_copy[1] = $store_value;
+                        
+                        fputcsv( $fp, $pieces_copy, $csv_delimiter, '"' );
+                    }
+                }
+            } else {
+                // Single store code case
+                $pieces[1] = trim($stores_local);
+                fputcsv( $fp, $pieces, $csv_delimiter, '"' );
+            }
+        } else {
+            // No store code specified
+            fputcsv( $fp, $pieces, $csv_delimiter, '"' );
+        }
+    }
+
+    /**
+     * Prepare CSV line by processing each piece
+     * 
+     * @param array $pieces CSV line pieces
+     * @param string $fields Feed field type
+     * @param array $channel_attributes Channel attributes
+     * @param string $header Whether this is a header row
+     * @param object $feed Feed object
+     * @return array Processed CSV line
+     */
+    private function prepare_csv_line($pieces, $fields, $channel_attributes, $header, $feed) {
+        $csv_line = array();
+        
+        foreach ( $pieces as $k_inner => $v ) {
+            // Apply channel-specific transformations
+            if ( ( $fields != 'standard' ) && ( $fields != 'customfeed' ) ) {
+                $v = $this->get_alternative_key( $channel_attributes, $v );
+            }
+
+            // For CSV fileformat the keys need to get stripped of the g:
+            if ( $header === 'true' && in_array( $feed->file_format, array( 'csv', 'txt', 'tsv' ), true ) ) {
+                $v = str_replace( 'g:', '', $v );
+            }
+
+            // Clean up the value
+            $v = trim( $v, "\"'" );
+            
+            $csv_line[] = $v;
+        }
+        
+        return $csv_line;
     }
 
     /**
@@ -1946,9 +2018,9 @@ class WooSEA_Get_Products {
             'tax_query' => array(
 				array(
 					'taxonomy' => 'product_visibility',
-					'field'    => 'name',
-					'terms'    => array( 'exclude-from-catalog', 'exclude-from-search' ),
-					'operator' => 'NOT IN',
+                    'field'    => 'name',
+                    'terms'    => array( 'exclude-from-catalog' ),
+                    'operator' => 'NOT IN',
 				),
 			),
         );
@@ -1967,15 +2039,6 @@ class WooSEA_Get_Products {
 
         // SHIPPING ZONES IS BIG, TAKES TOO MUCH MEMORY
         $shipping_zones = $this->woosea_get_shipping_zones();
-
-        // Log some information to the WooCommerce logs
-        $add_woosea_logging = get_option( 'add_woosea_logging' );
-        if ( $add_woosea_logging == 'yes' ) {
-            $logger = new WC_Logger();
-            $logger->add( 'Product Feed Pro by AdTribes.io', '<!-- Start new QUERY -->' );
-            $logger->add( 'Product Feed Pro by AdTribes.io', print_r( $wp_query, true ) );
-            $logger->add( 'Product Feed Pro by AdTribes.io', '<!-- START new QUERY -->' );
-        }
 
         while ( $prods->have_posts() ) :
             $prods->the_post();
@@ -2014,6 +2077,7 @@ class WooSEA_Get_Products {
                     continue;
                 }
             }
+
             $product_data['title']                 = $this->woosea_sanitize_html( $product->get_title() );
             $product_data['title']                 = $this->woosea_utf8_for_xml( $product_data['title'] );
             $product_data['mother_title']          = $product_data['title'];
@@ -2093,9 +2157,9 @@ class WooSEA_Get_Products {
             $cat_term   = '';
             $cat_order  = '';
             $categories = array();
-            if ( $parent_id && method_exists( $parent_product, 'get_category_ids' ) ) {
+            if ( $parent_id && is_object( $parent_product ) && is_a( $parent_product, 'WC_Product_Variable' ) && method_exists( $parent_product, 'get_category_ids' ) ) {
                 $categories = $parent_product->get_category_ids();
-            } elseif ( method_exists( $product, 'get_category_ids' ) ) {
+            } elseif ( is_object( $product ) && method_exists( $product, 'get_category_ids' ) ) {
                 $categories = $product->get_category_ids();
             }
             $cat_alt = $categories;
@@ -2302,12 +2366,11 @@ class WooSEA_Get_Products {
                 $product_data['link_no_tracking'] = $vlink_piece[0];
             }
 
-            $product_data['condition']     = get_post_meta( $product_data['id'], '_woosea_condition', true );
-            $product_data['condition']     = is_string( $product_data['condition'] ) ? ucfirst( $product_data['condition'] ) : $product_data['condition'];
             $product_data['purchase_note'] = get_post_meta( $product_data['id'], '_purchase_note' );
 
+            // Product condition is default to 'new' if not set.
             if ( empty( $product_data['condition'] ) || $product_data['condition'] == 'Array' ) {
-                $product_data['condition'] = 'New';
+                $product_data['condition'] = 'new';
             }
 
             // get_stock only works as of WC 5 and higher?
@@ -3980,9 +4043,7 @@ class WooSEA_Get_Products {
                 }
 
                 if ( isset( $old_attributes_config ) && is_array( $old_attributes_config ) ) {
-                    $identifier_positions = array();
                     $loop_count           = 0;
-
                     foreach ( $old_attributes_config as $attr_key => $attr_value ) {
                         if ( ! $attr_line ) {
                             if ( array_key_exists( 'static_value', $attr_value ) ) {
@@ -4003,12 +4064,6 @@ class WooSEA_Get_Products {
                         } elseif ( array_key_exists( 'static_value', $attr_value ) ) {
                             $attr_line .= ",'" . $attr_value['prefix'] . $attr_value['mapfrom'] . $attr_value['suffix'] . "'";
                         } else {
-                            // Determine position of identifiers in CSV row
-                            if ( $attr_value['attribute'] == 'g:brand' || $attr_value['attribute'] == 'g:gtin' || $attr_value['attribute'] == 'g:mpn' || $attr_value['attribute'] == 'g:identifier_exists' ) {
-                                $arr_pos              = array( $attr_value['attribute'] => $loop_count );
-                                $identifier_positions = array_merge( $identifier_positions, $arr_pos );
-                            }
-
                             if ( array_key_exists( $attr_value['mapfrom'], $product_data ) ) {
                                 if ( is_array( $product_data[ $attr_value['mapfrom'] ] ) ) {
                                     if ( $attr_value['mapfrom'] == 'product_tag' ) {
@@ -4087,21 +4142,56 @@ class WooSEA_Get_Products {
                     $pieces_row = explode( "','", $attr_line );
                     $pieces_row = array_map( 'trim', $pieces_row );
 
+                    // Fix the first and last elements to remove the extra quotes
+                    if (!empty($pieces_row)) {
+                        // Remove leading quote from first element
+                        $pieces_row[0] = ltrim($pieces_row[0], "'");
+                        
+                        // Remove trailing quote from last element
+                        $last_index = count($pieces_row) - 1;
+                        $pieces_row[$last_index] = rtrim($pieces_row[$last_index], "'");
+                    }
+
+                    // Identifier exists attribute for Google Shopping with Plugin Calculation Value Attribute
                     if ( $feed_channel['fields'] == 'google_shopping' ) {
-                        foreach ( $identifier_positions as $id_key => $id_value ) {
-                            if ( $id_key != 'g:identifier_exists' ) {
-                                if ( $pieces_row[ $id_value ] ) {
-                                    $identifier_exists = 'yes';
+                        // Identifier Attributes
+                        $identifier_attributes = array( 'g:brand', 'g:gtin', 'g:mpn' );
+
+                        $has_plugin_calculation_mapfrom = false;
+                        $identifier_exists_position = -1;
+                        $identifier_attributes_positions = array();
+                        $loop_count = 0;
+                        foreach ($old_attributes_config as $attr) {
+                            if (isset($attr['attribute'])) {
+                                if ( $attr['attribute'] == 'g:identifier_exists' ) {
+                                    $identifier_exists_position = $loop_count;
                                 }
-                            } else {
-                                $identifier_position = $id_value;
+
+                                if (in_array($attr['attribute'], $identifier_attributes)) {
+                                    $identifier_attributes_positions[] = $loop_count;
+                                }
                             }
+
+                            if ( isset( $attr['mapfrom'] ) && $attr['mapfrom'] == 'calculated' ) {
+                                $has_plugin_calculation_mapfrom = true;
+                            }
+                            $loop_count++;
                         }
 
-                        if ( ( isset( $identifier_exists ) ) && ( $identifier_exists == 'yes' ) ) {
-                            $pieces_row[ $id_value ] = $identifier_exists;
-                        } elseif ( isset( $id_value ) ) {
-                            $pieces_row[ $id_value ] = 'no';
+                        // If the plugin calculation mapfrom is found,
+                        // and the identifier attributes are present in the feed,
+                        // and the identifier position is set, set the identifier exists to yes.
+                        if ( $has_plugin_calculation_mapfrom && $identifier_exists_position != -1 ) {
+                            $pieces_row[ $identifier_exists_position ] = 'no';
+
+                            if ( ! empty( $identifier_attributes_positions ) ) {
+                                foreach ( $identifier_attributes_positions as $identifier_attribute_position ) {
+                                    if ( isset( $pieces_row[ $identifier_attribute_position ] ) && '' !== $pieces_row[ $identifier_attribute_position ] ) {
+                                        $pieces_row[ $identifier_exists_position ] = 'yes';
+                                        break;
+                                    }
+                                }
+                            }
                         }
                     }
                     $attr_line  = implode( "','", $pieces_row );
@@ -4386,38 +4476,51 @@ class WooSEA_Get_Products {
         if ( ( $feed_channel['taxonomy'] == 'google_shopping' ) && ( isset( $xml_product['g:condition'] ) ) && ( ! isset( $xml_product['g:identifier_exists'] ) ) ) {
             $identifier_exists = 'no'; // default value is no
 
-            if ( array_key_exists( 'g:brand', $xml_product ) && ( $xml_product['g:brand'] != '' ) ) {
-                // g:gtin exists and has a value
-                if ( ( array_key_exists( 'g:gtin', $xml_product ) ) && ( $xml_product['g:gtin'] != '' ) ) {
-                    $identifier_exists = 'yes';
+            // Per Google's requirements, we only need identifier_exists if the product is new
+            if ( strtolower($xml_product['g:condition']) == 'new' ) {
+                if ( array_key_exists( 'g:brand', $xml_product ) && ( $xml_product['g:brand'] != '' ) ) {
+                    // g:gtin exists and has a value
+                    if ( ( array_key_exists( 'g:gtin', $xml_product ) ) && ( $xml_product['g:gtin'] != '' ) ) {
+                        $identifier_exists = 'yes';
                     // g:mpn exists and has a value
-                } elseif ( ( array_key_exists( 'g:mpn', $xml_product ) ) && ( $xml_product['g:mpn'] != '' ) ) {
-                    $identifier_exists = 'yes';
-                    // g:brand is empty and so are g:gtin and g:mpn, so no identifier exists
+                    } elseif ( ( array_key_exists( 'g:mpn', $xml_product ) ) && ( $xml_product['g:mpn'] != '' ) ) {
+                        $identifier_exists = 'yes';
+                    // g:brand exists but no gtin or mpn
+                    } else {
+                        $identifier_exists = 'no';
+                    }
                 } else {
-                    $identifier_exists = 'no';
-                }
-            } else {
-                // g:gtin exists and has a value but brand is empty
-                if ( ( array_key_exists( 'g:gtin', $xml_product ) ) && ( $xml_product['g:gtin'] != '' ) ) {
-                    $identifier_exists = 'no';
-                    // g:mpn exists and has a value but brand is empty
-                } elseif ( ( array_key_exists( 'g:mpn', $xml_product ) ) && ( $xml_product['g:mpn'] != '' ) ) {
-                    $identifier_exists = 'no';
-                    // g:brand is empty and so are g:gtin and g:mpn, so no identifier exists
-                } else {
+                    // No brand, so identifier_exists should be 'no'
                     $identifier_exists = 'no';
                 }
             }
-            // New policy of Google, only when the value is yes add it to the feed
-            // 28 October 2019
-            if ( array_key_exists( 'calculated', $feed_attributes ) ) {
+
+            // Check if the feed attributes include the calculated attribute for identifier_exists
+            $has_calculated_attribute = false;
+            foreach ($feed_attributes as $attr) {
+                if (isset($attr['mapfrom']) && $attr['mapfrom'] === 'calculated' && 
+                    isset($attr['attribute']) && $attr['attribute'] === 'g:identifier_exists') {
+                    $has_calculated_attribute = true;
+                    break;
+                }
+            }
+            
+            // Only add identifier_exists to the feed if it's configured in the feed attributes
+            if ($has_calculated_attribute) {
                 $xml_product['g:identifier_exists'] = $identifier_exists;
             }
         }
 
         if ( $feed_channel['name'] == 'Mall.sk' ) {
-            if ( array_key_exists( 'calculated', $feed_attributes ) ) {
+            $has_calculated_attribute = false;
+            foreach ($feed_attributes as $attr) {
+                if (isset($attr['mapfrom']) && $attr['mapfrom'] === 'calculated') {
+                    $has_calculated_attribute = true;
+                    break;
+                }
+            }
+            
+            if ($has_calculated_attribute) {
                 $xml_product['VARIABLE_PARAMS'] = 'calculated';
             }
         }
