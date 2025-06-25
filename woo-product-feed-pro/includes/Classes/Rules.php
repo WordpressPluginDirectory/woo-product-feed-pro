@@ -7,17 +7,16 @@
 
 namespace AdTribes\PFP\Classes;
 
-use AdTribes\PFP\Abstracts\Abstract_Class;
+use AdTribes\PFP\Abstracts\Abstract_Filters_Rules;
 use AdTribes\PFP\Traits\Singleton_Trait;
 use AdTribes\PFP\Traits\Filters_Rules_Trait;
-use AdTribes\PFP\Classes\Product_Feed_Attributes;
 
 /**
  * Rules class.
  *
  * @since 13.3.4.1
  */
-class Rules extends Abstract_Class {
+class Rules extends Abstract_Filters_Rules {
 
     use Singleton_Trait;
     use Filters_Rules_Trait;
@@ -51,6 +50,11 @@ class Rules extends Abstract_Class {
             }
 
             $value = $data[ $rule['attribute'] ] ?? '';
+
+            $value = $this->maybe_get_category_hierarchy( $value, $rule['attribute'], $data );
+
+            // Backward compatibility for category slug, for previous versions we used to use the category name.
+            $rule = $this->maybe_get_category_slug( $rule, $rule['attribute'] );
 
             // For some reason, the calculation rules conditions doesn't show the than_attribute in the frontend.
             // So instead of altering the then_attribute, it will alter the attribute.
@@ -120,6 +124,12 @@ class Rules extends Abstract_Class {
         $condition  = $rule['condition'] ?? '';
         $rule_value = $rule['criteria'] ?? '';
 
+        // If not case sensitive then convert the value to lower case for comparison.
+        if ( ! isset( $rule['cs'] ) || 'on' !== $rule['cs'] ) {
+            $value      = strtolower( $value );
+            $rule_value = strtolower( $rule_value );
+        }
+
         switch ( $condition ) {
             case 'contains':
                 if ( preg_match( '/' . preg_quote( $rule_value, '/' ) . '/', $value ) ) {
@@ -157,7 +167,7 @@ class Rules extends Abstract_Class {
                 }
                 break;
             case '<=':
-            case '=<':
+            case '=<': // Backward compatibility for <=. Old version used =<.
                 if ( $value <= $rule_value ) {
                     $rule_met = true;
                 }
@@ -248,12 +258,8 @@ class Rules extends Abstract_Class {
         // Generate a unique row ID.
         $row_count = isset( $_POST['rowCount'] ) ? absint( $_POST['rowCount'] ) : round( microtime( true ) * 1000 );
 
-        // Get attributes for the dropdown.
-        $product_feed_attributes = new Product_Feed_Attributes();
-        $attributes              = $product_feed_attributes->get_attributes();
-
         // Generate the HTML template.
-        $html = $this->get_rule_template( $row_count, $attributes );
+        $html = $this->get_rule_template( $row_count );
 
         wp_send_json_success(
             array(

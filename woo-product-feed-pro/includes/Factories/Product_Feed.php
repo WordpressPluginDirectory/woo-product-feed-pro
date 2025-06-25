@@ -315,6 +315,7 @@ class Product_Feed {
     private function _filter_meta_value( $value, $key ) {
         switch ( $key ) {
             case 'filters':
+            case 'rules':
                 $value = $this->_filter_feed_filters_mapping_meta_value( $value );
         }
         return $value;
@@ -754,6 +755,10 @@ class Product_Feed {
 
                 $logger = new \WC_Logger();
                 $logger->add( 'Product Feed Pro by AdTribes.io', $log_message, 'error' );
+
+                if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                    error_log( $log_message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+                }
             }
 
             // Set status to error.
