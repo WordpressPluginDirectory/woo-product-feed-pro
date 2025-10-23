@@ -56,11 +56,21 @@ function woosea_get_term_parents( $id, $taxonomy, $project_taxonomy, $link = fal
  * @param object $product The product object.
  */
 function woosea_add_facebook_pixel( $product = null ) {
-    if ( ! is_object( $product ) ) {
-                global $product;
-        }
+    // Check if WooCommerce is loaded and available
+    if ( ! class_exists( 'WooCommerce' ) ) {  
+        return;  
+    }  
 
-    $add_facebook_pixel = get_option( 'add_facebook_pixel' );
+    if ( ! is_object( $product ) ) {
+        $post_id = apply_filters( 'adt_facebook_pixel_post_id', get_the_ID() );
+        $product = function_exists( 'wc_get_product' ) ? wc_get_product( $post_id ) : null;  
+    }  
+    
+    if ( ! $product instanceof WC_Product ) {  
+        return;  
+    }
+
+    $add_facebook_pixel = get_option( 'adt_add_facebook_pixel' );
     $add_facebook_capi  = get_option( 'add_facebook_capi' );
 
     if ( $add_facebook_pixel == 'yes' ) {
@@ -68,8 +78,8 @@ function woosea_add_facebook_pixel( $product = null ) {
         $viewContent           = '';
         $event_id              = uniqid( rand(), true );
         $currency              = get_woocommerce_currency();
-            $facebook_pixel_id = get_option( 'woosea_facebook_pixel_id' );
-        $facebook_capi_token   = get_option( 'woosea_facebook_capi_token' );
+        $facebook_pixel_id = get_option( 'adt_facebook_pixel_id' );
+        $facebook_capi_token   = get_option( 'adt_facebook_capi_token' );
 
         // Add vulnerability check.
         if ( ! is_numeric( $facebook_pixel_id ) ) {
@@ -164,7 +174,7 @@ function woosea_add_facebook_pixel( $product = null ) {
                                 // Since these are not allowed in the feed, at the variations product ID's.
                                 // Get children product variation IDs in an array.
                                 $woosea_content_ids = 'variation';
-                                $woosea_content_ids = get_option( 'add_facebook_pixel_content_ids' );
+                                $woosea_content_ids = get_option( 'adt_facebook_pixel_content_ids' );
 
                                 if ( $woosea_content_ids == 'variation' ) {
                                     $children_ids = $product->get_children();
@@ -453,15 +463,24 @@ add_action( 'wp_footer', 'woosea_add_facebook_pixel' );
  * @param object $product The product object.
  */
 function woosea_add_remarketing_tags( $product = null ) {
-    if ( ! is_object( $product ) ) {
-        $product = wc_get_product( get_the_ID() );
-    }
+    // Check if WooCommerce is loaded and available
+    if ( ! class_exists( 'WooCommerce' ) ) {  
+        return;  
+    }  
+
+    if ( ! is_object( $product ) ) {  
+        $product = function_exists( 'wc_get_product' ) ? wc_get_product( get_the_ID() ) : null;  
+    }  
+    
+    if ( ! $product instanceof WC_Product ) {  
+        return;  
+    }  
 
     $ecomm_pagetype  = WooSEA_Google_Remarketing::woosea_google_remarketing_pagetype();
-    $add_remarketing = get_option( 'add_remarketing' );
+    $add_remarketing = get_option( 'adt_add_remarketing' );
 
     if ( $add_remarketing == 'yes' ) {
-        $adwords_conversion_id = get_option( 'woosea_adwords_conversion_id' );
+        $adwords_conversion_id = get_option( 'adt_adwords_conversion_id' );
 
         // Add vulnerability check, unset when no proper comversion ID was inserted.
         if ( ! is_numeric( $adwords_conversion_id ) ) {
@@ -666,7 +685,7 @@ function woosea_inject_ajax( $order_id ) {
     $customer_id = $order->get_user_id();
     $total       = $order->get_total();
 
-    update_option( 'last_order_id', $order_id, false );
+    update_option( 'adt_last_order_id', $order_id, false );
 }
 add_action( 'woocommerce_thankyou', 'woosea_inject_ajax' );
 
@@ -920,8 +939,8 @@ function woosea_before_product_save( $post_id ) {
                 'parent_id'         => $product->get_parent_id(),
             );
 
-            if ( ! get_option( 'product_changes' ) ) {
-                update_option( 'product_changes', $before, false );
+            if ( ! get_option( 'adt_product_changes' ) ) {
+                update_option( 'adt_product_changes', $before, false );
             }
         }
     }
@@ -970,8 +989,8 @@ function woosea_on_product_save( $product_id ) {
         );
 
         if ( is_array( $product_data ) ) {
-            if ( get_option( 'product_changes' ) ) {
-                $before = get_option( 'product_changes' );
+            if ( get_option( 'adt_product_changes' ) ) {
+                $before = get_option( 'adt_product_changes' );
                 $diff   = array_diff( $after, $before );
 
                 if ( ! $diff ) {
@@ -981,7 +1000,7 @@ function woosea_on_product_save( $product_id ) {
                     update_option( 'woosea_allow_update', false );
                 }
 
-                delete_option( 'product_changes' );
+                delete_option( 'adt_product_changes' );
             } else {
                 // Enable the product changed flag.
                 update_option( 'woosea_allow_update', false );

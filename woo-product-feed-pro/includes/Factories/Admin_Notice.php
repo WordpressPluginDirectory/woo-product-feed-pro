@@ -224,7 +224,7 @@ class Admin_Notice extends Abstract_Class {
                 Helper::locate_admin_template(
                     'notices/failed-dependency-notice.php',
                     true,
-                    true,
+                    false,
                     array(
                         'message'             => $message,
                         'failed_dependencies' => $failed_dependencies,
@@ -235,7 +235,7 @@ class Admin_Notice extends Abstract_Class {
                 Helper::locate_admin_template(
                     'notices/allow-tracking-notice.php',
                     true,
-                    true,
+                    false,
                     array(
                         'message_id'     => $message_id,
                         'message'        => $message,
@@ -249,7 +249,7 @@ class Admin_Notice extends Abstract_Class {
                 Helper::locate_admin_template(
                     'notices/admin-notice.php',
                     true,
-                    true,
+                    false,
                     array(
                         'message_id'     => $message_id,
                         'message'        => $message,

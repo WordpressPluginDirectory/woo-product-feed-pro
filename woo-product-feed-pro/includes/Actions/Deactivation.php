@@ -51,20 +51,21 @@ class Deactivation extends Abstract_Class {
         delete_option( 'adt_pfp_activation_code_triggered' );
         delete_site_option( ADT_PFP_OPTION_INSTALLED_VERSION );
 
-        $this->cleanup_cron();
+        $this->cleanup_action_scheduler();
         $this->cleanup_options();
+        $this->cleanup_transients();
     }
 
     /**
-     * Cleanup cron.
+     * Cleanup action scheduler.
      *
      * @since 13.3.3
      * @access public
      */
-    protected function cleanup_cron() {
+    protected function cleanup_action_scheduler() {
         // Clear Action Scheduler hooks.
         if ( function_exists( 'as_unschedule_all_actions' ) ) {
-            as_unschedule_all_actions( ADT_PFP_AS_GENERATE_PRODUCT_FEED );
+            as_unschedule_all_actions( '', array(), ADT_PFP_AS_GENERATE_PRODUCT_FEED_GROUP );
             as_unschedule_all_actions( ADT_PFP_AS_FETCH_GOOGLE_PRODUCT_TAXONOMY );
         }
     }
@@ -78,6 +79,16 @@ class Deactivation extends Abstract_Class {
     protected function cleanup_options() {
         delete_option( 'woosea_getelite_notification' );
         delete_option( 'woosea_license_notification_closed' );
+    }
+
+    /**
+     * Cleanup transients.
+     *
+     * @since 13.4.7
+     * @access public
+     */
+    protected function cleanup_transients() {
+        delete_transient( ADT_TRANSIENT_CUSTOM_ATTRIBUTES );
     }
 
     /**

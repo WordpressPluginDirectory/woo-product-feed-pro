@@ -118,18 +118,18 @@ class Usage extends Abstract_Class {
         global $wpdb;
 
         $option_keys = array(
-            'add_mother_image',
-            'add_all_shipping',
-            'free_shipping',
-            'remove_free_shipping',
-            'local_pickup_shipping',
-            'add_woosea_basic',
-            'add_woosea_logging',
-            'add_facebook_pixel',
-            'add_facebook_pixel_content_ids',
-            'add_remarketing',
-            'add_batch',
-            'woosea_batch_size',
+            'adt_use_parent_variable_product_image',
+            'adt_add_all_shipping',
+            'adt_remove_other_shipping_classes_on_free_shipping',
+            'adt_remove_free_shipping',
+            'adt_remove_local_pickup_shipping',
+            'adt_show_only_basis_attributes',
+            'adt_enable_logging',
+            'adt_add_facebook_pixel',
+            'adt_facebook_pixel_content_ids',
+            'adt_add_remarketing',
+            'adt_enable_batch',
+            'adt_batch_size',
         );
 
         $data['settings'] = array();
@@ -598,7 +598,7 @@ class Usage extends Abstract_Class {
                 'httpversion' => '1.1',
                 'blocking'    => false,
                 'body'        => $this->_get_data(),
-                'user-agent'  => 'PFP/' . ADT_PFP_OPTION_INSTALLED_VERSION . '; ' . get_bloginfo( 'url' ),
+                'user-agent'  => 'PFP/' . WOOCOMMERCESEA_PLUGIN_VERSION . '; ' . get_bloginfo( 'url' ),
             )
         );
 
@@ -714,7 +714,7 @@ class Usage extends Abstract_Class {
             )
         ) {
             // Enqueue the notice scripts.
-            wp_enqueue_script( 'adt-pfp-allow-usage-tracking-notice', ADT_PFP_JS_URL . 'usage-tracking-notice.js', array( 'jquery' ), ADT_PFP_OPTION_INSTALLED_VERSION, true );
+            wp_enqueue_script( 'adt-pfp-allow-usage-tracking-notice', ADT_PFP_JS_URL . 'usage-tracking-notice.js', array( 'jquery' ), WOOCOMMERCESEA_PLUGIN_VERSION, true );
             wp_localize_script(
                 'adt-pfp-allow-usage-tracking-notice',
                 'adt_pfp_allow_tracking_notice',
@@ -756,11 +756,11 @@ class Usage extends Abstract_Class {
             wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'woo-product-feed-pro' ) ) );
         }
 
-        if ( ! wp_verify_nonce( $_REQUEST['security'], 'woosea_ajax_nonce' ) ) {
+        if ( isset( $_REQUEST['security'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
-        $value = sanitize_text_field( $_REQUEST['value'] ?? '' );
+        $value = isset( $_REQUEST['value'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['value'] ) ) : '';
         $value = 'true' === $value ? 'yes' : 'no';
 
         // Update the option.
@@ -786,11 +786,11 @@ class Usage extends Abstract_Class {
             wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'woo-product-feed-pro' ) ) );
         }
 
-        if ( ! wp_verify_nonce( $_REQUEST['security'], 'adt_pfp_allow_tracking_nonce' ) ) {
+        if ( isset( $_REQUEST['security'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'adt_pfp_allow_tracking_nonce' ) ) {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
-        $value = sanitize_text_field( $_REQUEST['value'] ?? '' );
+        $value = isset( $_REQUEST['value'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['value'] ) ) : '';
         $value = '1' === $value ? 'yes' : 'no';
 
         // Update the option.

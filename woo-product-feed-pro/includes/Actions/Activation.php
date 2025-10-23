@@ -16,6 +16,7 @@ use AdTribes\PFP\Classes\Notices;
 
 // Updates.
 use AdTribes\PFP\Updates\Version_13_3_5_Update;
+use AdTribes\PFP\Updates\Version_13_4_8_Update;
 
 /**
  * Activation class.
@@ -77,6 +78,14 @@ class Activation extends Abstract_Class {
          */
         ( new Version_13_3_5_Update() )->run();
 
+        /***************************************************************************
+         * Version 13.4.8 Update
+         ***************************************************************************
+         *
+         * This version is the option prefix migration update.
+         */
+        ( new Version_13_4_8_Update() )->run();
+
         // Update current installed plugin version.
         update_site_option( ADT_PFP_OPTION_INSTALLED_VERSION, Helper::get_plugin_version() );
 
@@ -110,6 +119,9 @@ class Activation extends Abstract_Class {
             update_option( 'woosea_count_activation', $new_activation, false );
         }
 
+        // Delete the transient for custom attributes.
+        delete_transient( ADT_TRANSIENT_CUSTOM_ATTRIBUTES );
+
         /**
          * Delete the debug.log file from the uploads directory if it exists.
          */
@@ -137,13 +149,19 @@ class Activation extends Abstract_Class {
             array(
                 'post_status'    => array( 'publish' ),
                 'posts_per_page' => -1,
+                'meta_query'     => array(
+                    array(
+                        'key'     => 'adt_refresh_interval',
+                        'value'   => 'custom',
+                        'compare' => '!=',
+                    ),
+                ),
             ),
             'edit'
         );
 
         if ( $product_feeds_query->have_posts() ) {
             foreach ( $product_feeds_query->get_posts() as $product_feed ) {
-
                 if ( ! $product_feed instanceof Product_Feed ) {
                     continue;
                 }

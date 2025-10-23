@@ -1,3 +1,55 @@
+= 13.4.8 (2025-10-17) =
+* Bug Fix: Category mapping fails to load Google taxonomy when .txt files are blocked by server security rules
+* Bug Fix: The custom batch size setting was no longer working
+* Bug Fix: The UTM term was not being hidden in the Google & Analytics section
+* Bug Fix: Multiple PHP error warnings were logged while creating a feed
+* Bug Fix: The parent variable image was not being used for variations when the setting was enabled
+* Bug Fix: The price had the wrong value due to a custom tax class
+* Bug Fix: Variable product creation date mapping was not updating after date changes
+* Improvement: Added the ability to name a rule in the Rules Builder
+* Improvement: Refactored unprefixed options
+
+= 13.4.7 (2025-09-25) =
+* Bug Fix: Exclude filter migration changes operator from OR to AND
+* Bug Fix: Issue with comma separator in rule THEN action (Multiply/Divide/Plus/Minus)
+* Bug Fix: Pinterest RSS Board feed generate many errors in the XML validator
+* Bug Fix: Remove `Refresh only when products changed` option due to causing the feed never being regenerated
+* Bug Fix: Static value for price is returning no value/attribute on XML file
+* Bug Fix: Store code mappable field no output if static value ss only numbers
+* Bug Fix: Unable to change country for all channel feeds
+* Feature: Feature to export product feed setup
+* Feature: Implement cleanup tool on uninstall
+* Improvement: Add `g:free_shipping_threshold` attribute for google shopping feed
+* Improvement: Add filter on retrieving post id for facebook fixel feature
+* Improvement: Group search results for attributes in Rules And Filter
+* Improvement: Prevent feed settings from being updated while feed generation is in progress
+* Improvement: Refactor `generate()` function parameter & skip registering feed action scheduler if refresh interval is set to `custom`
+* Improvement: Refactor the plugin settings page
+* Improvement: Save/Toast notification for settings
+
+= 13.4.6 (2025-08-14) =
+* Bug Fix: Duplicating a feed doesn't transfer the filters and rules from the original feed to the duplicate
+* Bug Fix: Empty values cannot be saved for the find and replace rule
+* Bug Fix: Featured products cannot be included in the feed
+* Bug Fix: Field-mapping changes do not persist when navigating back before feed generation
+* Bug Fix: The field mapping for 'Featured' products is always exported as 'no' in product feeds
+* Bug Fix: Filters using OR logic do not work properly—products are not excluded
+* Bug Fix: 'Is Empty Then' rules prevent rules from being saved
+* Bug Fix: PHP fatal error 'Call to undefined function wc_get_product()' occurs before WooCommerce is fully initialized
+* Bug Fix: The 'Product_Detail_1' to 'Product_Detail_10' mappable fields are identical
+* Bug Fix: HTML characters are now replaced with alphabetic characters in Pinterest feeds
+* Bug Fix: Shipping field does not generate properly when the zone is set to 'Everywhere'
+* Bug Fix: The Skroutz template does not follow the variation structure
+* Bug Fix: The 'product_highlight' mappable field overrides instead of creating a new instance in XML
+* Improvement: 'Abstract_Filters_Rules' retrieves the attribute field mapping on each page load
+* Improvement: Added a button to fix duplicated feed issues caused by abnormalities when updating from older versions
+* Improvement: Added support for changing the feed country after duplication
+* Improvement: Enabled a logging option to record feed generation details
+* Improvement: Option to add or remove the 'created_at' tag in a feed
+* Improvement: Removed 'WP cron enabled' from the system check
+* Improvement: Added a filter to change the `<link>` in the XML for the Google Shopping feed
+* Feature: Separated the Filters and Rules pages and implemented a new UI form
+
 = 13.4.5 (2025-06-25) =
 * Bug Fix: Feed Update Time Is Not Following Site's Timezone
 * Bug Fix: Filter and Rules by category not working for variations product

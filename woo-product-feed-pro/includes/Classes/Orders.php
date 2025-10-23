@@ -97,7 +97,7 @@ class Orders extends Abstract_Class {
 
             if ( $wpdb->last_error ) {
                 // Log the error for debugging.
-                $logging = get_option( 'add_woosea_logging', 'no' );
+                $logging = get_option( 'adt_enable_logging', 'no' );
                 if ( 'yes' === $logging ) {
                     // Fallback to WooCommerce API if database query fails.
                     $logger = new \WC_Logger();

@@ -11,7 +11,7 @@ $is_fetching                     = $google_product_taxonomy_fetcher->is_fetching
 $is_file_exists                  = $google_product_taxonomy_fetcher->is_file_exists();
 
 $feed    = null;
-$feed_id = isset( $_GET['id'] ) ? sanitize_text_field( $_GET['id'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+$feed_id = isset( $_GET['id'] ) ? sanitize_text_field( wp_unslash( $_GET['id'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 $edit_feed = false;
 if ( $feed_id ) {
@@ -23,8 +23,7 @@ if ( $feed_id ) {
         $channel_hash = $feed->channel_hash;
         $project_hash = $feed->legacy_project_hash;
 
-        $count_mappings = count( $feed_mappings );
-        $edit_feed      = true;
+        $edit_feed = true;
     }
 } else {
     $feed         = get_option( ADT_OPTION_TEMP_PRODUCT_FEED, array() );
@@ -32,8 +31,11 @@ if ( $feed_id ) {
     $project_hash = $feed['project_hash'] ?? '';
     $channel_data = '' !== $channel_hash ? Product_Feed_Helper::get_channel_from_legacy_channel_hash( $channel_hash ) : array();
 
-    $feed_mappings  = array();
-    $count_mappings = 0;
+    $feed_mappings = array();
+
+    if ( ! empty( $feed['mappings'] ) && is_array( $feed['mappings'] ) ) {
+        $feed_mappings = $feed['mappings'];
+    }
 }
 
 /**
@@ -107,15 +109,21 @@ do_action( 'adt_before_product_feed_manage_page', 1, $project_hash, $feed );
                         <?php echo Product_Feed_Helper::get_hierarchical_categories_mapping( $feed ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                         <tr>
                             <td colspan="3">
-                                <input type="hidden" id="channel_hash" name="channel_hash" value="<?php echo esc_attr( $channel_hash ); ?>">
-                                <?php if ( $edit_feed ) : ?> 
-                                    <input type="hidden" name="project_update" id="project_update" value="yes" />
-                                    <input type="hidden" id="project_hash" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
-                                    <input type="submit" value="<?php esc_attr_e( 'Save mappings', 'woo-product-feed-pro' ); ?>" />
-                                <?php else : ?>
-                                    <input type="hidden" id="project_hash" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
-                                    <input type="submit" value="<?php esc_attr_e( 'Save & Continue', 'woo-product-feed-pro' ); ?>" />
-                                <?php endif; ?>
+                                <div class="adt-edit-feed-form-buttons adt-tw-flex adt-tw-gap-2 adt-tw-items-center">
+                                    <input type="hidden" id="channel_hash" name="channel_hash" value="<?php echo esc_attr( $channel_hash ); ?>">
+                                    <?php if ( $edit_feed ) : ?> 
+                                        <input type="hidden" name="project_update" id="project_update" value="yes" />
+                                        <input type="hidden" id="project_hash" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
+                                        <button type="submit" class="adt-button adt-button-sm adt-button-primary" id="savebutton">
+                                            <?php esc_attr_e( 'Save Mappings', 'woo-product-feed-pro' ); ?>
+                                        </button>
+                                    <?php else : ?>
+                                        <input type="hidden" id="project_hash" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
+                                        <button type="submit" class="adt-button adt-button-sm adt-button-primary adt-tw-gap-2" id="savebutton">
+                                            <?php esc_attr_e( 'Save & Continue', 'woo-product-feed-pro' ); ?>
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

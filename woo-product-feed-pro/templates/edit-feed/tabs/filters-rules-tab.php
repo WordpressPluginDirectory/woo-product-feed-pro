@@ -5,8 +5,8 @@ use AdTribes\PFP\Factories\Product_Feed;
 use AdTribes\PFP\Factories\Admin_Notice;
 use AdTribes\PFP\Classes\Product_Feed_Attributes;
 use AdTribes\PFP\Helpers\Product_Feed_Helper;
-use AdTribes\PFP\Classes\Filters;
-use AdTribes\PFP\Classes\Rules;
+use AdTribes\PFP\Classes\Legacy\Filters_Legacy;
+use AdTribes\PFP\Classes\Legacy\Rules_Legacy;
 
 /**
  * Create product attribute object
@@ -28,12 +28,12 @@ if ( $feed_id ) {
         $project_hash = $feed->legacy_project_hash;
 
         $count_rules = 0;
-        if ( ! empty( $feed_filters ) ) {
+        if ( ! empty( $feed_filters ) && is_array( $feed_filters ) ) {
             $count_rules = count( $feed_filters );
         }
 
         $count_rules2 = 0;
-        if ( ! empty( $feed_rules ) ) {
+        if ( ! empty( $feed_rules ) && is_array( $feed_rules ) ) {
             $count_rules2 = count( $feed_rules );
         }
 
@@ -45,13 +45,16 @@ if ( $feed_id ) {
     $project_hash = $feed['project_hash'] ?? '';
     $channel_data = '' !== $channel_hash ? Product_Feed_Helper::get_channel_from_legacy_channel_hash( $channel_hash ) : array();
     $feed_type   = $channel_data['fields'] ?? '';
-    $count_rules  = 0;
-    $count_rules2 = 0;
+
+    $feed_filters = $feed['rules'] ?? array();
+    $feed_rules   = $feed['rules2'] ?? array();
+    $count_rules  = count( $feed_filters );
+    $count_rules2 = count( $feed_rules );
 }
 
 // Instantiate the classes.
-$filters_instance = new Filters( $feed_type ?? '' );
-$rules_instance   = new Rules( $feed_type ?? '');
+$filters_instance = new Filters_Legacy( $feed_type ?? '' );
+$rules_instance   = new Rules_Legacy( $feed_type ?? '');
 
 /**
  * Action hook to add content before the product feed manage page.
@@ -180,21 +183,27 @@ do_action( 'adt_before_product_feed_manage_page', 4, $project_hash, $feed );
             <tbody>
             <tr class="rules-buttons">
                 <td colspan="8">
-                    <input type="hidden" id="channel_hash" name="channel_hash" value="<?php echo esc_attr( $channel_hash ?? '' ); ?>">
-                    <?php if ( $edit_feed ) : ?>
-                        <input type="hidden" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
-                        <input type="hidden" name="woosea_page" value="filters_rules">
-                        <input type="button" class="delete-row" value="- Delete">&nbsp;
-                        <input type="button" class="add-filter" value="+ Add filter">&nbsp;
-                        <input type="button" class="add-rule" value="+ Add rule">&nbsp;
-                        <input type="submit" id="savebutton" value="<?php esc_attr_e( 'Save', 'woo-product-feed-pro' ); ?>">
-                    <?php else : ?>
-                        <input type="hidden" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
-                        <input type="button" class="delete-row" value="- Delete">&nbsp;
-                        <input type="button" class="add-filter" value="+ Add filter">&nbsp;
-                        <input type="button" class="add-rule" value="+ Add rule">&nbsp;
-                        <input type="submit" id="savebutton" value="<?php esc_attr_e( 'Save & Continue', 'woo-product-feed-pro' ); ?>">
-                    <?php endif; ?>
+                    <div class="adt-edit-feed-form-buttons adt-tw-flex adt-tw-gap-2 adt-tw-items-center">
+                        <input type="hidden" id="channel_hash" name="channel_hash" value="<?php echo esc_attr( $channel_hash ?? '' ); ?>">
+                        <?php if ( $edit_feed ) : ?>
+                            <input type="hidden" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
+                            <input type="hidden" name="woosea_page" value="filters_rules">
+                            <button type="button" class="adt-button adt-button-sm delete-row" >- <?php esc_attr_e( 'Delete', 'woo-product-feed-pro' ); ?></button>
+                            <button type="button" class="adt-button adt-button-sm add-filter">+ <?php esc_attr_e( 'Add filter', 'woo-product-feed-pro' ); ?></button>
+                            <button type="button" class="adt-button adt-button-sm add-rule">+ <?php esc_attr_e( 'Add rule', 'woo-product-feed-pro' ); ?></button>
+                            <button type="submit" id="savebutton" class="adt-button adt-button-sm adt-button-primary">
+                                <?php esc_attr_e( 'Save Changes', 'woo-product-feed-pro' ); ?>
+                            </button>
+                        <?php else : ?>
+                            <input type="hidden" name="project_hash" value="<?php echo esc_attr( $project_hash ); ?>">
+                            <button type="button" class="adt-button adt-button-sm delete-row" >- <?php esc_attr_e( 'Delete', 'woo-product-feed-pro' ); ?></button>
+                            <button type="button" class="adt-button adt-button-sm add-filter">+ <?php esc_attr_e( 'Add filter', 'woo-product-feed-pro' ); ?></button>
+                            <button type="button" class="adt-button adt-button-sm add-rule">+ <?php esc_attr_e( 'Add rule', 'woo-product-feed-pro' ); ?></button>
+                            <button type="submit" id="savebutton" class="adt-button adt-button-sm adt-button-primary">
+                                <?php esc_attr_e( 'Save & Continue', 'woo-product-feed-pro' ); ?>
+                            </button>
+                        <?php endif; ?>
+                    </div>
                 </td>
             </tr>
             </tbody>
