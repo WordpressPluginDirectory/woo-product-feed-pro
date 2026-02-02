@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue';
+import { __ } from '@wordpress/i18n';
 import { useRulesStore } from '../../stores/rulesStore';
 import { useValidation } from '../../composables/useValidation';
 import { getValidationClasses, getContainerValidationClasses, hasValidationErrors } from '../../helpers/validation';
 import RuleGroup from '../groups/RuleGroup.vue';
 import GroupDropdown from '../common/GroupDrowdown.vue';
 import AttributeSelect from '../common/AttributeSelect.vue';
+import FieldMappingSelect from '../common/FieldMappingSelect.vue';
 import RuleAction from '../common/RuleAction.vue';
 import { isEliteActive, showEliteUpsellModal } from '@/helpers';
-
-// Get translation function from WordPress i18n
-const { __ } = window.wp.i18n;
 
 const store = useRulesStore();
 const { getFieldErrors } = useValidation('rules');
@@ -19,6 +18,9 @@ const props = defineProps<{
   ruleIndex: number;
   rule: any;
 }>();
+
+// Force update key for action components
+const actionForceUpdateKey = ref<Record<string, number>>({});
 
 // Get the condition groups within this specific rule
 const ruleConditions = computed(() => {
@@ -46,7 +48,7 @@ const getActionErrorClasses = (baseClasses: string, actionId: string) => {
 const getActionContainerClasses = (action: any) => {
   const classes = getContainerValidationClasses(hasActionErrors(action.id));
   
-  if (action.action === 'set_attribute' && !isEliteActive()) {
+  if ([ 'set_attribute', 'exclude' ].includes(action.action) && !isEliteActive()) {
     return `${classes} adt-disabled-action-container`;
   }
 
@@ -78,9 +80,29 @@ const getValuePlaceholder = (action: any): string => {
 };
 
 const updateAction = (action: any, value: string) => {
-  if (!isEliteActive() && value === 'set_attribute') {
-    showEliteUpsellModal('rule_action_set_attribute');
+  // Map of Elite-only actions to their upsell modal keys
+  const eliteOnlyActions: Record<string, string> = {
+    'set_attribute': 'rule_action_set_attribute',
+    'exclude': 'rule_action_exclude'
+  };
+
+  // Check if this is an Elite-only action and Elite is not active
+  if (!isEliteActive() && eliteOnlyActions[value]) {
+    // Show the upsell modal
+    showEliteUpsellModal(eliteOnlyActions[value]);
+    
+    // Revert to previous value and force UI re-render
+    const previousValue = action.action || 'set_value';
+    if (previousValue !== value) {
+      store.updateRuleAction(props.rule.id, action.id, { action: previousValue });
+    }
+    
+    // Force re-render by incrementing the component key
+    actionForceUpdateKey.value[action.id] = (actionForceUpdateKey.value[action.id] || 0) + 1;
+    return;
   }
+
+  // Normal action update
   store.updateRuleAction(props.rule.id, action.id, { action: value });
 };
 
@@ -127,7 +149,7 @@ const cancelEditRuleName = () => {
         <h2 class="adt-tw-text-base adt-tw-font-semibold adt-tw-text-gray-800 adt-tw-flex adt-tw-items-center adt-tw-gap-2">
           <!-- Display Mode -->
           <template v-if="!isEditingRuleName">
-            Rule - 
+            {{ __('Rule', 'woo-product-feed-pro') }} - 
             <div class="adt-tw-flex adt-tw-items-center adt-tw-gap-2">
               <template v-if="props.rule.name">
                 {{ props.rule.name }}
@@ -139,14 +161,14 @@ const cancelEditRuleName = () => {
             <span
               class="adt-tw-icon-[lucide--pencil] adt-tw-size-3 adt-tw-text-gray-400 adt-tw-transition-colors hover:adt-tw-text-blue-500 adt-tw-cursor-pointer"
               @click="editRuleName"
-              title="Edit rule name"
+              :title="__('Edit rule name', 'woo-product-feed-pro')"
             ></span>
           </template>
 
           <!-- Editing Mode -->
           <template v-else>
             <div class="adt-tw-flex adt-tw-items-center adt-tw-gap-2">
-              <span class="adt-tw-text-gray-600">Rule -</span>
+              <span class="adt-tw-text-gray-600">{{ __('Rule', 'woo-product-feed-pro') }} -</span>
               <input
                 v-model="editingRuleName"
                 type="text"
@@ -159,12 +181,12 @@ const cancelEditRuleName = () => {
               <span
                 class="adt-tw-icon-[lucide--check] adt-tw-size-4 adt-tw-text-green-500 adt-tw-transition-colors hover:adt-tw-text-green-600 adt-tw-cursor-pointer"
                 @click="saveRuleName"
-                title="Save rule name"
+                :title="__('Save rule name', 'woo-product-feed-pro')"
               ></span>
               <span
                 class="adt-tw-icon-[lucide--x] adt-tw-size-4 adt-tw-text-gray-400 adt-tw-transition-colors hover:adt-tw-text-red-500 adt-tw-cursor-pointer"
                 @click="cancelEditRuleName"
-                title="Cancel editing"
+                :title="__('Cancel editing', 'woo-product-feed-pro')"
               ></span>
             </div>
           </template>
@@ -221,18 +243,30 @@ const cancelEditRuleName = () => {
               
               <!-- Action Attribute -->
               <div class="adt-tw-col-span-12 md:adt-tw-col-span-4">
-                <AttributeSelect
-                  :model-value="action.attribute || ''"
-                  placeholder="Select attribute"
-                  store-type="rules"
-                  :has-error="hasActionErrors(action.id)"
-                  @update:model-value="updateActionAttribute(action.id, $event)"
-                />
+                <template v-if="[ 'exclude' ].includes(action.action)">
+                  <FieldMappingSelect
+                    :model-value="action.attribute || ''"
+                    placeholder="Select field to exclude"
+                    :has-error="hasActionErrors(action.id)"
+                    @update:model-value="updateActionAttribute(action.id, $event)"
+                  />
+                </template>
+                <template v-else>
+                  <AttributeSelect
+                    :model-value="action.attribute || ''"
+                    placeholder="Select attribute"
+                    store-type="rules"
+                    :is-then-attributes="true"
+                    :has-error="hasActionErrors(action.id)"
+                    @update:model-value="updateActionAttribute(action.id, $event)"
+                  />
+                </template>
               </div>
 
               <!-- Action Action -->
               <div class="adt-tw-col-span-12 sm:adt-tw-col-span-3">
                 <RuleAction
+                  :key="`action-${action.id}-${actionForceUpdateKey[action.id] || 0}`"
                   :model-value="action.action || 'set_value'"
                   placeholder="Select action"
                   store-type="rules"
@@ -243,7 +277,7 @@ const cancelEditRuleName = () => {
               
               <!-- Action Value -->
               <div class="adt-tw-col-span-12 sm:adt-tw-col-span-4">
-                <template v-if="action.action === 'set_attribute'">
+                <template v-if="[ 'set_attribute' ].includes(action.action)">
                   <AttributeSelect
                     :model-value="action.value || ''"
                     placeholder="Select attribute"
@@ -252,7 +286,7 @@ const cancelEditRuleName = () => {
                     @update:model-value="updateActionValue(action.id, $event)"
                   />
                 </template>
-                <template v-else>
+                <template v-if="!['exclude', 'set_attribute'].includes(action.action)">
                   <div v-if="action.action === 'findreplace'">
                     <input
                       type="text"
@@ -306,7 +340,8 @@ const cancelEditRuleName = () => {
 
 <style lang="scss">
 .adt-disabled-action-container {
-  .adt-attribute-select-container {
+  .adt-attribute-select-container,
+  .adt-field-mapping-select-container {
     opacity: 0.5;
     pointer-events: none !important;
     background-color: #f0f0f0;

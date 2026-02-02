@@ -60,8 +60,8 @@ do_action( 'adt_before_product_feed_manage_page', 5, $project_hash, $feed );
         $admin_notice = new Admin_Notice(
             '<p>' . __('<strong>Google Analytics UTM codes:</strong><br/>Adding Google Analytics UTM codes is not mandatory, it will however enable you to get detailed insights into how your products are performing in Google Analytics reporting and allow you to tweak and tune your campaign making it more profitable. We strongly advise you to add the Google Analytics tracking. When enabled the plugin will append the Google Analytics UTM parameters to your landingpage URL\'s.', 'woo-product-feed-pro') . '</p>',
             'info',
-            'html',
-            false
+            false,
+            true
         );
         $admin_notice->run();
         ?>

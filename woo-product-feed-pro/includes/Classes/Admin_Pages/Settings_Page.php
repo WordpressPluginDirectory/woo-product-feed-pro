@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Author: Rymera Web Co.
  *
@@ -17,6 +18,7 @@ use AdTribes\PFP\Helpers\Helper;
  * @since 13.4.4
  */
 class Settings_Page extends Admin_Page {
+
 
     use Singleton_Trait;
 
@@ -273,6 +275,24 @@ class Settings_Page extends Admin_Page {
                 'type'      => 'text',
                 'id'        => 'adt_batch_size',
                 'parent_id' => 'adt_enable_batch',
+            ),
+            /**
+             * Disable HTTP feed generation requests setting.
+             *
+             * This setting, when enabled, prevents the plugin from initiating product feed generation through HTTP requests.
+             * It is typically used to improve security or performance by disallowing direct HTTP triggering of feed generation
+             * (e.g., via an external URL or browser-initiated request). Instead, feed generation will only proceed via
+             * background tasks or internal processes.
+             *
+             * @since 13.4.9
+             *
+             * @see https://www.adtribes.io/knowledge-base/what-does-disable-http-feed-generation-requests-do/
+             */
+            array(
+                'title'          => __( 'Disable HTTP feed generation requests', 'woo-product-feed-pro' ),
+                'type'           => 'checkbox',
+                'id'             => 'adt_disable_http_feed_generation',
+                'read_more_link' => Helper::get_utm_url( 'knowledge-base/what-does-disable-http-feed-generation-requests-do', 'pfp', 'manage-settings', 'httpfeedgenerationsetting' ),
             ),
         );
 

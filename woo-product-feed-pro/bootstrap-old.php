@@ -353,44 +353,45 @@ function woosea_add_facebook_pixel( $product = null ) {
                 $fb_capi_data['custom_data']['content_ids']  = $ids;
                 $fb_capi_data['custom_data']['content_type'] = 'product';
 
-            } elseif ( $fb_pagetype == 'searchresults' ) {
-                $term                  = get_queried_object();
-                        $search_string = sanitize_text_field( $_GET['s'] );
+        } elseif ( $fb_pagetype == 'searchresults' ) {
+            $term          = get_queried_object();
+            $search_string = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '';
 
-                global $wp_query;
-                $ids       = wp_list_pluck( $wp_query->posts, 'ID' );
-                $fb_prodid = '';
+            global $wp_query;
+            $ids       = wp_list_pluck( $wp_query->posts, 'ID' );
+            $fb_prodid = '';
 
-                foreach ( $ids as $id ) {
-                    $_product = wc_get_product( $id );
-                    if ( ! $_product ) {
-                        return -1;
-                    }
+            foreach ( $ids as $id ) {
+                $_product = wc_get_product( $id );
+                if ( ! $_product ) {
+                    return -1;
+                }
 
-                    $ptype = $_product->get_type();
-                    if ( $ptype == 'simple' ) {
-                        // Add the simple product ID.
+                $ptype = $_product->get_type();
+                if ( $ptype == 'simple' ) {
+                    // Add the simple product ID.
+                    $fb_prodid .= '\'' . $id . '\',';
+                } else {
+                    // This is a variable product, add variation product ID's.
+                    $children_ids = $_product->get_children();
+                    foreach ( $children_ids as $id ) {
                         $fb_prodid .= '\'' . $id . '\',';
-                    } else {
-                        // This is a variable product, add variation product ID's.
-                        $children_ids = $_product->get_children();
-                        foreach ( $children_ids as $id ) {
-                            $fb_prodid .= '\'' . $id . '\',';
-                        }
                     }
                 }
-                        $fb_prodid = rtrim( $fb_prodid, ',' );
-                $viewContent       = "fbq(\"trackCustom\",\"Search\",{search_string:\"$search_string\", content_type:\"product\", content_ids:\"[$fb_prodid]\"},{eventID:\"$event_id\"});";
-
-                // Facebook CAPI data.
-                $fb_capi_data['event_name']                  = 'Search';
-                $fb_capi_data['custom_data']['content_ids']  = $ids;
-                $fb_capi_data['custom_data']['content_type'] = 'product';
-            } else {
-                // This is another page than a product page.
-                $fb_capi_data['event_name'] = 'ViewContent';
-                $viewContent                = '';
             }
+
+            $fb_prodid = rtrim( $fb_prodid, ',' );
+            $viewContent       = "fbq(\"trackCustom\",\"Search\",{search_string:\"$search_string\", content_type:\"product\", content_ids:\"[$fb_prodid]\"},{eventID:\"$event_id\"});";
+
+            // Facebook CAPI data.
+            $fb_capi_data['event_name']                  = 'Search';
+            $fb_capi_data['custom_data']['content_ids']  = $ids;
+            $fb_capi_data['custom_data']['content_type'] = 'product';
+        } else {
+            // This is another page than a product page.
+            $fb_capi_data['event_name'] = 'ViewContent';
+            $viewContent                = '';
+        }
         ?>
         <!-- Facebook Pixel Code - Product Feed Pro for WooCommerce by AdTribes.io -->
         <!------------------------------------------------------------------------------
@@ -643,24 +644,6 @@ function woosea_add_remarketing_tags( $product = null ) {
     }
 }
 add_action( 'wp_footer', 'woosea_add_remarketing_tags' );
-
-/**
- * Close the get Elite activation notification.
- **/
-function woosea_getelite_active_notification() {
-    if ( ! wp_verify_nonce( $_REQUEST['security'], 'woosea_ajax_nonce' ) ) {
-        wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
-    }
-
-    if ( Helper::is_current_user_allowed() ) {
-        $get_elite_notice = array(
-            'show'      => 'no',
-            'timestamp' => date( 'd-m-Y' ),
-        );
-        update_option( 'woosea_getelite_active_notification', $get_elite_notice, false );
-    }
-}
-add_action( 'wp_ajax_woosea_getelite_active_notification', 'woosea_getelite_active_notification' );
 
 /**
  * Add some JS and mark-up code on every front-end page in order to get the conversion tracking to work.

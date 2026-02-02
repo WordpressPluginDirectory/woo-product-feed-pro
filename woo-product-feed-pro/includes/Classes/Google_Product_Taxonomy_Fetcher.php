@@ -21,7 +21,7 @@ class Google_Product_Taxonomy_Fetcher extends Abstract_Class {
 
     const GOOGLE_PRODUCT_TAXONOMY_FILE_NAME = 'taxonomy-with-ids.en-US.txt';
 
-    const GOOGLE_PRODUCT_TAXONOMY_SERVER_URL = 'https://adtribes.b-cdn.net/' . self::GOOGLE_PRODUCT_TAXONOMY_FILE_NAME;
+    const GOOGLE_PRODUCT_TAXONOMY_SERVER_URL = 'https://adtribes.io/' . self::GOOGLE_PRODUCT_TAXONOMY_FILE_NAME;
 
     const GOOGLE_PRODUCT_TAXONOMY_FILE_PATH = WP_CONTENT_DIR . '/uploads/woo-product-feed-pro/' . self::GOOGLE_PRODUCT_TAXONOMY_FILE_NAME;
 
