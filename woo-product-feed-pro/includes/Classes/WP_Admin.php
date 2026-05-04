@@ -14,6 +14,7 @@ use AdTribes\PFP\Helpers\Product_Feed_Helper;
 use AdTribes\PFP\Updates\Version_13_3_5_Update;
 use AdTribes\PFP\Traits\Singleton_Trait;
 use AdTribes\PFP\Factories\Vite_App;
+use AdTribes\PFP\Factories\Product_Feed;
 use AdTribes\PFP\Factories\Product_Feed_Query;
 
 /**
@@ -57,10 +58,6 @@ class WP_Admin extends Abstract_Class {
             wp_enqueue_style( 'woosea_admin-css', ADT_PFP_CSS_URL . 'woosea_admin.css', array(), WOOCOMMERCESEA_PLUGIN_VERSION );
             wp_enqueue_style( 'woosea_jquery_ui-css', ADT_PFP_CSS_URL . 'jquery-ui.css', array(), WOOCOMMERCESEA_PLUGIN_VERSION );
             wp_enqueue_style( 'woosea_jquery_typeahead-css', ADT_PFP_CSS_URL . 'jquery.typeahead.css', array(), WOOCOMMERCESEA_PLUGIN_VERSION );
-
-            if ( preg_match( '/woosea_manage_license/i', $hook ) ) {
-                wp_enqueue_style( 'woosea_license_settings-css', ADT_PFP_CSS_URL . 'license-settings.css', array(), WOOCOMMERCESEA_PLUGIN_VERSION );
-            }
 
             // JS for adding table rows to the rules page.
             wp_enqueue_script( 'woosea_filters_rules-js', ADT_PFP_JS_URL . 'woosea_filters_rules.js', '', WOOCOMMERCESEA_PLUGIN_VERSION, true );
@@ -190,7 +187,7 @@ class WP_Admin extends Abstract_Class {
     public function plugin_action_links( $links, $file ) {
         // Check to make sure we are on the correct plugin.
         if ( ADT_PFP_BASENAME === $file ) {
-            $plugin_links[] = '<a href="' . admin_url( 'admin.php?page=woosea_manage_license' ) . '">License</a>';
+            $plugin_links[] = '<a href="' . admin_url( 'admin.php?page=adt_license_settings_page' ) . '">License</a>';
             $plugin_links[] = '<a href="' . Helper::get_utm_url( 'support', 'pfp', 'pluginpage', 'support' ) . '" target="_blank" rel="noopener noreferrer">Support</a>';
             $plugin_links[] = '<a href="' . Helper::get_utm_url( 'tutorials', 'pfp', 'pluginpage', 'tutorials' ) . '" target="_blank" rel="noopener noreferrer">Tutorials</a>';
             $plugin_links[] = '<a href="' . admin_url( 'admin.php?page=woosea_manage_settings' ) . '">Settings</a>';
@@ -270,6 +267,71 @@ class WP_Admin extends Abstract_Class {
     }
 
     /**
+     * Mark plugin-internal meta keys as protected.
+     *
+     * Feed configuration is stored as post meta on `adt_product_feed` posts using
+     * the `adt_` prefix. Marking these keys protected hides them from admin surfaces
+     * (REST schema, custom fields UI, etc.) that honour `is_protected_meta()`.
+     *
+     * @since 13.5.4
+     * @access public
+     *
+     * @param bool   $is_protected Whether the meta key is protected.
+     * @param string $meta_key     The meta key.
+     * @param string $meta_type    The meta type.
+     * @return bool
+     */
+    public function protect_adt_meta_keys( $is_protected, $meta_key, $meta_type ) {
+        if ( 'post' === $meta_type && is_string( $meta_key ) && str_starts_with( $meta_key, Product_Feed::META_PREFIX ) ) {
+            return true;
+        }
+        return $is_protected;
+    }
+
+    /**
+     * Exclude plugin-internal meta keys from the classic editor "Add Custom Field" dropdown.
+     *
+     * WordPress core's `meta_form()` runs a `SELECT DISTINCT meta_key ... LIMIT 30` against
+     * `wp_postmeta` and only then applies `is_protected_meta()`. Because `adt_*` keys sort
+     * alphabetically before most user-defined keys, the 30-row window is fully consumed by
+     * plugin-internal keys and — once `is_protected_meta()` removes them — the dropdown ends
+     * up empty. Short-circuiting via `postmeta_form_keys` lets us exclude `adt_*` at the SQL
+     * level so the user's own custom fields surface instead.
+     *
+     * @since 13.5.4
+     * @access public
+     *
+     * @param array|null $keys Pre-defined meta keys, or null to run core's query.
+     * @param \WP_Post   $post The current post being edited.
+     * @return array|null
+     */
+    public function filter_postmeta_form_keys( $keys, $post ) {
+        if ( null !== $keys ) {
+            return $keys;
+        }
+
+        global $wpdb;
+
+        $limit       = (int) apply_filters( 'postmeta_form_limit', 30 );
+        $prefix_like = $wpdb->esc_like( Product_Feed::META_PREFIX ) . '%';
+
+        return $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT DISTINCT meta_key
+                FROM $wpdb->postmeta
+                WHERE meta_key NOT BETWEEN '_' AND '_z'
+                    AND meta_key NOT LIKE %s
+                HAVING meta_key NOT LIKE %s
+                ORDER BY meta_key
+                LIMIT %d",
+                $prefix_like,
+                $wpdb->esc_like( '_' ) . '%',
+                $limit
+            )
+        );
+    }
+
+    /**
      * Redirect from the old menu slug to the new one.
      *
      * Due to the change in the menu slug in 13.3.4, we need to redirect the user to the correct page.
@@ -294,6 +356,7 @@ class WP_Admin extends Abstract_Class {
      * Update settings via AJAX.
      *
      * @since 13.3.4
+     * @since 13.5.2.1 - Added CSRF protection and allowed settings validation.
      * @access public
      */
     public function ajax_adt_pfp_update_settings() {
@@ -301,7 +364,8 @@ class WP_Admin extends Abstract_Class {
             wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'woo-product-feed-pro' ) ) );
         }
 
-        if ( isset( $_REQUEST['security'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
+        // CSRF protection is now mandatory - nonce must be present and valid.
+        if ( ! isset( $_REQUEST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
@@ -315,6 +379,14 @@ class WP_Admin extends Abstract_Class {
         // Only validate required fields (setting and type), allow empty values.
         if ( empty( $setting ) || empty( $type ) ) {
             wp_send_json_error( array( 'message' => __( 'Invalid request.', 'woo-product-feed-pro' ) ) );
+        }
+
+        // Allowlist of plugin settings that can be updated via AJAX.
+        // This prevents arbitrary WordPress option updates.
+        $allowed_settings = $this->get_allowed_ajax_settings();
+
+        if ( ! in_array( $setting, $allowed_settings, true ) ) {
+            wp_send_json_error( array( 'message' => __( 'Invalid setting parameter.', 'woo-product-feed-pro' ) ) );
         }
 
         // Process value based on type.
@@ -345,6 +417,90 @@ class WP_Admin extends Abstract_Class {
     }
 
     /**
+     * Get allowed settings that can be updated via AJAX.
+     *
+     * @since 13.5.2.1
+     * @access private
+     * @return array List of allowed option names.
+     */
+    private function get_allowed_ajax_settings() {
+        // Define allowlist of plugin-specific settings that can be updated via AJAX.
+        // Only plugin-owned settings are allowed to prevent arbitrary WordPress option updates.
+        $allowed = array(
+            // General settings from Settings_Page::get_general_settings().
+            'adt_use_parent_variable_product_image',
+            'adt_add_all_shipping',
+            'adt_remove_other_shipping_classes_on_free_shipping',
+            'adt_remove_free_shipping',
+            'adt_remove_local_pickup_shipping',
+            'adt_show_only_basis_attributes',
+            'adt_enable_logging',
+            'adt_add_facebook_pixel',
+            'adt_facebook_pixel_id',
+            'adt_facebook_pixel_content_ids',
+            'adt_add_remarketing',
+            'adt_adwords_conversion_id',
+            'adt_enable_batch',
+            'adt_batch_size',
+            'adt_disable_http_feed_generation',
+            // Other settings from Settings_Page::get_other_settings().
+            'adt_use_legacy_filters_and_rules',
+            defined( 'ADT_PFP_CLEAN_UP_PLUGIN_OPTIONS' ) ? (string) ADT_PFP_CLEAN_UP_PLUGIN_OPTIONS : 'adt_clean_up_plugin_data',
+            // Elite general settings.
+            'adt_structured_data_fix',
+            'adt_structured_vat',
+            'adt_enable_data_manipulation_support',
+            'adt_enable_wpml_support',
+            'adt_enable_aelia_support',
+            'adt_enable_curcy_support',
+            'adt_enable_polylang_support',
+            'adt_enable_translatepress_support',
+            'adt_enable_facebook_capi',
+            'adt_facebook_capi_token',
+        );
+
+        /**
+         * Filter the list of allowed AJAX settings.
+         *
+         * This filter allows extending the allowlist for child plugins (like Elite version).
+         * All added settings must use the 'adt_' prefix to ensure they are plugin-owned.
+         *
+         * WARNING: Be extremely careful when adding settings to this list.
+         * Never allow core WordPress options like 'default_role', 'users_can_register',
+         * 'admin_email', 'siteurl', 'home', etc.
+         *
+         * Example usage (in Elite plugin):
+         * add_filter('adt_pfp_allowed_ajax_settings', function($allowed) {
+         *     return array_merge($allowed, array(
+         *         'adt_structured_data_fix',
+         *         'adt_enable_wpml_support',
+         *     ));
+         * });
+         *
+         * @since 13.5.2.1
+         * @param array $allowed Array of allowed option names.
+         * @return array List of allowed option names.
+         */
+        $filtered = apply_filters( 'adt_pfp_allowed_ajax_settings', $allowed );
+
+        // Validate filtered result is an array to prevent PHP errors.
+        // Falls back to original allowlist if filter returns invalid type.
+        if ( ! is_array( $filtered ) ) {
+            $filtered = $allowed;
+        }
+
+        // Enforce prefix requirement to prevent arbitrary option updates.
+        $allowed = array_filter(
+            $filtered,
+            function ( $value ) {
+                return is_string( $value ) && str_starts_with( $value, 'adt_' );
+            }
+        );
+
+        return array_values( $allowed );
+    }
+
+    /**
      * Migrate to custom post type.
      *
      * @since 13.3.5
@@ -355,7 +511,7 @@ class WP_Admin extends Abstract_Class {
             wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'woo-product-feed-pro' ) ) );
         }
 
-        if ( isset( $_REQUEST['security'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
+        if ( ! isset( $_REQUEST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
@@ -383,7 +539,7 @@ class WP_Admin extends Abstract_Class {
             wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'woo-product-feed-pro' ) ) );
         }
 
-        if ( isset( $_REQUEST['security'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
+        if ( ! isset( $_REQUEST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
@@ -406,7 +562,7 @@ class WP_Admin extends Abstract_Class {
             wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'woo-product-feed-pro' ) ) );
         }
 
-        if ( isset( $_REQUEST['security'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
+        if ( ! isset( $_REQUEST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
@@ -485,7 +641,7 @@ class WP_Admin extends Abstract_Class {
      * @access public
      */
     public function ajax_use_legacy_filters_and_rules() {
-        if ( isset( $_REQUEST['security'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
+        if ( ! isset( $_REQUEST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
             wp_send_json_error( array( 'message' => __( 'Invalid security token', 'woo-product-feed-pro' ) ) );
         }
 
@@ -516,6 +672,10 @@ class WP_Admin extends Abstract_Class {
     public function ajax_fix_duplicate_feed() {
         if ( ! Helper::is_current_user_allowed() ) {
             wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'woo-product-feed-pro' ) ) );
+        }
+
+        if ( ! isset( $_REQUEST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
+            wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
         // Reset backward compatibility options.
@@ -564,7 +724,7 @@ class WP_Admin extends Abstract_Class {
      * @access public
      **/
     public function ajax_dismiss_get_elite_notice() {
-        if ( isset( $_REQUEST['security'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
+        if ( ! isset( $_REQUEST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST['security'] ) ), 'woosea_ajax_nonce' ) ) {
             wp_send_json_error( __( 'Invalid security token', 'woo-product-feed-pro' ) );
         }
 
@@ -602,6 +762,10 @@ class WP_Admin extends Abstract_Class {
 
         // Add plugin action links.
         add_filter( 'plugin_action_links', array( $this, 'plugin_action_links' ), 10, 2 );
+
+        // Hide plugin-internal adt_ meta keys from the classic editor Custom Fields dropdown.
+        add_filter( 'is_protected_meta', array( $this, 'protect_adt_meta_keys' ), 10, 3 );
+        add_filter( 'postmeta_form_keys', array( $this, 'filter_postmeta_form_keys' ), 10, 2 );
 
         // Add other settings on the plugin settings page.
         add_action( 'adt_after_manage_settings_table', array( $this, 'add_other_settings' ) );

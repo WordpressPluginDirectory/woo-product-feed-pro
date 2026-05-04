@@ -33,6 +33,8 @@ use AdTribes\PFP\Classes\Upsell;
 use AdTribes\PFP\Classes\Legacy\Filters_Legacy;
 use AdTribes\PFP\Classes\Legacy\Rules_Legacy;
 use AdTribes\PFP\Classes\Export_Import_Tools;
+use AdTribes\PFP\Classes\Facebook_Pixel;
+use AdTribes\PFP\Classes\CLI\CLI_Bootstrap;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -64,4 +66,6 @@ return array(
     Filters_Legacy::instance(),
     Rules_Legacy::instance(),
     Export_Import_Tools::instance(),
+    Facebook_Pixel::instance(),
+    CLI_Bootstrap::instance(),
 );

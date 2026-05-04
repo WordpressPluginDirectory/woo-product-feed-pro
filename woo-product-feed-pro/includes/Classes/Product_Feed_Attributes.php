@@ -44,6 +44,8 @@ class Product_Feed_Attributes extends Abstract_Class {
             'mother_title_hyphen'             => 'Product name parent product hyphen',
             'title_lc'                        => 'Product name lowercase',
             'title_lcw'                       => 'Product name uppercase first characters',
+            'raw_title'                       => 'Unfiltered product name',
+            'raw_mother_title'                => 'Unfiltered product name parent product',
             'description'                     => 'Product description',
             'short_description'               => 'Product short description',
             'raw_description'                 => 'Unfiltered product description',
@@ -71,6 +73,7 @@ class Product_Feed_Attributes extends Abstract_Class {
             'featured'                        => 'Featured',
             'tax_status'                      => 'Tax status',
             'tax_class'                       => 'Tax class',
+            'tax_class_name'                  => 'Tax class name',
             'vat'                             => 'VAT',
             'currency'                        => 'Currency',
             'categories'                      => 'Category',
@@ -467,6 +470,7 @@ class Product_Feed_Attributes extends Abstract_Class {
             ) AS p ON pm.post_id = p.ID
             WHERE pm.meta_key NOT IN ('_product_attributes')
                 AND pm.meta_key NOT LIKE '_woosea_%'
+                AND pm.meta_key NOT LIKE 'attribute_pa_%'
         ";
 
         $custom_attributes = $wpdb->get_col( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -515,9 +519,17 @@ class Product_Feed_Attributes extends Abstract_Class {
                 }
             }
             $product_variations_attributes = array_unique( $product_variations_attributes );
+
+            // Filter out WooCommerce taxonomy attributes (pa_*) — they belong in "Dynamic attributes", not here.
+            $product_variations_attributes = array_filter(
+                $product_variations_attributes,
+                function ( $attr ) {
+                    return strpos( $attr, 'pa_' ) !== 0;
+                }
+            );
         }
 
-        return $product_variations_attributes ? $product_variations_attributes : array();
+        return $product_variations_attributes ? array_values( $product_variations_attributes ) : array();
     }
 
 

@@ -56,6 +56,17 @@ class Cron extends Abstract_Class {
             case 'tsv':
                 $products_count = count( file( $file ) ) - 1; // -1 for the header.
                 break;
+            case 'jsonl':
+                $products_count = $this->count_non_empty_lines( $file, false );
+                break;
+            case 'jsonl.gz':
+                $products_count = $this->count_non_empty_lines( $file, true );
+                break;
+            case 'csv.gz':
+            case 'tsv.gz':
+                $line_count     = $this->count_non_empty_lines( $file, true );
+                $products_count = $line_count > 0 ? $line_count - 1 : 0; // -1 for the header.
+                break;
         }
 
         /**
@@ -72,55 +83,42 @@ class Cron extends Abstract_Class {
     }
 
     /**
-     * Move the feed file to the final file.
+     * Count non-empty lines in a file, streaming plain or gzip-compressed input.
      *
-     * @since 13.4.1
-     * @access public
+     * Streams line-by-line so large feed files do not need to be loaded
+     * entirely into memory.
      *
-     * @param Product_Feed $feed The feed data object.
+     * @since 13.5.4
+     *
+     * @param string $file     The file path.
+     * @param bool   $is_gzip  Whether the file is gzip-compressed.
+     * @return int
      */
-    public function move_feed_file_to_final( $feed ) {
-        $upload_dir = wp_upload_dir();
-        $base       = $upload_dir['basedir'];
-        $path       = $base . '/woo-product-feed-pro/' . $feed->file_format;
-        $tmp_file   = $path . '/' . sanitize_file_name( $feed->file_name ) . '_tmp.' . $feed->file_format;
-        $new_file   = $path . '/' . sanitize_file_name( $feed->file_name ) . '.' . $feed->file_format;
+    private function count_non_empty_lines( $file, $is_gzip ) {
+        $count  = 0;
+        $handle = $is_gzip ? gzopen( $file, 'rb' ) : fopen( $file, 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 
-        // Check if temporary file exists before attempting to copy.
-        if ( ! file_exists( $tmp_file ) ) {
-            if ( function_exists( 'wc_get_logger' ) ) {
-                $logger = wc_get_logger();
-                $logger->warning(
-                    'Temporary feed file does not exist',
-                    array(
-                        'source'      => 'woo-product-feed-pro',
-                        'feed_id'     => $feed->id,
-                        'feed_title'  => $feed->title,
-                        'tmp_file'    => $tmp_file,
-                        'file_format' => $feed->file_format,
-                    )
-                );
+        if ( false === $handle ) {
+            return 0;
+        }
+
+        while ( ! ( $is_gzip ? gzeof( $handle ) : feof( $handle ) ) ) {
+            $line = $is_gzip ? gzgets( $handle ) : fgets( $handle );
+            if ( false === $line ) {
+                break;
             }
-            return;
+            if ( '' !== trim( $line ) ) {
+                ++$count;
+            }
         }
 
-        // Move the temporary file to the final file.
-        if ( copy( $tmp_file, $new_file ) ) {
-            wp_delete_file( $tmp_file );
-        } elseif ( function_exists( 'wc_get_logger' ) ) {
-            $logger = wc_get_logger();
-            $logger->error(
-                'Failed to copy temporary feed file to final location',
-                array(
-                    'source'      => 'woo-product-feed-pro',
-                    'feed_id'     => $feed->id,
-                    'feed_title'  => $feed->title,
-                    'tmp_file'    => $tmp_file,
-                    'new_file'    => $new_file,
-                    'file_format' => $feed->file_format,
-                )
-            );
+        if ( $is_gzip ) {
+            gzclose( $handle );
+        } else {
+            fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
         }
+
+        return $count;
     }
 
     /**
@@ -171,6 +169,41 @@ class Cron extends Abstract_Class {
             return;
         }
 
+        // Guard: if feed is still processing, check if it's stuck or has active batches.
+        if ( 'processing' === $feed->status ) {
+            $pending_batches = $this->query_pending_batch_actions( $feed_id );
+
+            if ( ! empty( $pending_batches ) ) {
+                // Previous run still has pending batches — skip this scheduled run.
+                if ( function_exists( 'wc_get_logger' ) ) {
+                    wc_get_logger()->warning(
+                        'Skipping scheduled feed generation: previous run still has pending batches',
+                        array(
+                            'source'          => 'woo-product-feed-pro',
+                            'feed_id'         => $feed_id,
+                            'pending_batches' => count( $pending_batches ),
+                        )
+                    );
+                }
+                return;
+            }
+
+            // No pending batches but status is processing — feed is stuck, allow reset.
+            if ( function_exists( 'wc_get_logger' ) ) {
+                wc_get_logger()->info(
+                    'Feed appears stuck (processing with no pending batches), allowing reset',
+                    array(
+                        'source'  => 'woo-product-feed-pro',
+                        'feed_id' => $feed_id,
+                    )
+                );
+            }
+
+            // Reset status so generate() won't be blocked by the guard.
+            $feed->status = 'ready';
+            $feed->save();
+        }
+
         Product_Feed_Helper::disable_cache();
 
         $feed->generate( 'schedule' );
@@ -193,12 +226,12 @@ class Cron extends Abstract_Class {
         }
 
         /**
-         * Check if the feed is stopped.
+         * Check if the feed is still in processing status.
          *
-         * If in the middle of processing a feed and the feed is stopped by the user.
-         * This is to avoid the feed from continuing to process when the user has stopped it.
+         * Skip if the feed was stopped by the user, or if it's no longer processing
+         * (e.g., a stale batch from a previous run arriving after a new run completed).
          */
-        if ( 'stopped' === $feed->status ) {
+        if ( 'processing' !== $feed->status ) {
             return;
         }
 
@@ -228,6 +261,27 @@ class Cron extends Abstract_Class {
         $feed->save();
     }
 
+
+    /**
+     * Query pending batch actions for a given feed.
+     *
+     * @since 13.5.4
+     * @access private
+     *
+     * @param int $feed_id Feed ID.
+     * @return array
+     */
+    private function query_pending_batch_actions( $feed_id ) {
+        return as_get_scheduled_actions(
+            array(
+                'hook'     => ADT_PFP_AS_GENERATE_PRODUCT_FEED_BATCH,
+                'status'   => \ActionScheduler_Store::STATUS_PENDING,
+                'args'     => array( 'feed_id' => intval( $feed_id ) ),
+                'per_page' => 1,
+            ),
+            'ids'
+        );
+    }
 
     /**
      * Run the class
